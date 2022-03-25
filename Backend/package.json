@@ -2,5 +2,8 @@
   "devDependencies": {
     "firebase-functions-test": "^0.3.3",
     "mocha": "^9.2.2"
+  },
+  "dependencies": {
+    "node-fetch": "^3.2.3"
   }
 }
