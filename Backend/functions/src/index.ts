@@ -1,30 +1,9 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin"
-import fetch from "node-fetch";
+import * as customType from '../types/types'
+import * as utils from '../utils/utils'
 // import { doc, setDoc } from "firebase/firestore"; 
 admin.initializeApp();
-
-type options = {
-    "method": string,
-    "headers": headers,
-    "json": boolean
-};
-type headers = {
-    "Content-Type": string,
-    "Authorization": string
-}
-
-
-async function testing_firebase_scope(url:string, options:options, next_page_token:string="", return_array=[]):Promise<any> {
-    const response:any = await (await fetch(url+next_page_token, options)).json()
-    return_array = return_array.concat(response.content)
-    if(response.next_page_token != undefined){
-        return testing_firebase_scope(url, options, "&next_page_token="+response.next_page_token, return_array)
-    }
-    return return_array   
-}
-
-
 
 // FUNCTION #1 Filtering and checking - scheduler
 //      1. fetch API data - DONE
@@ -35,18 +14,18 @@ async function testing_firebase_scope(url:string, options:options, next_page_tok
 exports.fetchDunningInvoices = functions.https.onRequest(async (req, res) => {
     const _url = 'https://api.reepay.com/v1/list/invoice?size=100&state=dunning'
 
-    const headers:headers = {
+    const headers:customType.headers = {
         'Content-Type': 'application/json',
         'Authorization': `Basic ${process.env.API_KEY_LALATOYS}`
     }
 
-    const options:options = {
+    const options:customType.options = {
         method: 'GET',
         headers: headers,
         json: true
     };
 
-    const content_array:Array<any> = await testing_firebase_scope(_url, options)
+    const content_array:Array<any> = await utils.testing_firebase_scope(_url, options)
     // const writeResult = await admin.firestore().collection('ActivDunning').add(content_array)
     for (let dunningInvoices of content_array){
         await admin.firestore().collection('ActivDunning').add(dunningInvoices);
@@ -54,6 +33,8 @@ exports.fetchDunningInvoices = functions.https.onRequest(async (req, res) => {
 
     res.json({result: `Message with ID: ${content_array} added.`});
   });
+
+
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
 //
