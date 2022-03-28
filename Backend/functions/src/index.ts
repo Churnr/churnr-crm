@@ -11,6 +11,7 @@ exports.fetchInvoices = functions.https.onRequest(async (req, res) => {
         'Content-Type': 'application/json',
         'Authorization': `Basic ${process.env.API_KEY_LALATOYS}`
     }
+
     const options = {
         method: 'GET',
         headers: _headers,
@@ -20,9 +21,10 @@ exports.fetchInvoices = functions.https.onRequest(async (req, res) => {
     await fetch(_url, options)
     .then(respons => respons.json())
     .then(respons => {  
-        const ress = respons
-        console.log(ress)
+        const ress:any = respons
+        console.log(ress.content)
     });
+
     res.json({result: `Message with ID: added.`});
   });
 // // Start writing Firebase Functions

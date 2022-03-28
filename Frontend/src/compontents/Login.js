@@ -27,6 +27,7 @@ export default function Login() {
 }
     return (
       <>
+      <div  className="w-100" style={{ maxWidth: "400px", margin: "auto"}}>
     <Card>
         <Card.Body>
             <h2 className='text-center mb-4'>Log in</h2>
@@ -40,7 +41,7 @@ export default function Login() {
                 <Form.Label>Password</Form.Label>
                 <Form.Control type='password' ref={passwordRef} required/>
             </Form.Group>
-            <Button disabled={loading} className='w-100' type='submit' style={{marginTop: "2rem"}}>Log in
+            <Button variant="dark" disabled={loading} className='w-100' type='submit' style={{marginTop: "2rem"}}>Log in
             </Button>
          </Form> 
        </Card.Body>
@@ -48,6 +49,8 @@ export default function Login() {
     <div className='w-300 text-center mt-2'>
 
         Need an account? Ask an Admin foo..
-    </div></>
+    </div>
+    </div>
+    </>
   )
 }
