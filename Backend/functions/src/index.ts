@@ -2,10 +2,13 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin"
 import fetch from "node-fetch";
 // import { doc, setDoc } from "firebase/firestore"; 
-
+function testing_firebase_scope() {
+    return console.log("Working")
+}
 admin.initializeApp();
 
 exports.fetchInvoices = functions.https.onRequest(async (req, res) => {
+
     const _url = 'https://api.reepay.com/v1/list/invoice?size=10&state=dunning'
     const _headers = {
         'Content-Type': 'application/json',
@@ -22,6 +25,7 @@ exports.fetchInvoices = functions.https.onRequest(async (req, res) => {
     .then(respons => respons.json())
     .then(respons => {  
         const ress:any = respons
+        testing_firebase_scope()
         console.log(ress.content)
     });
 
