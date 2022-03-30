@@ -1,8 +1,8 @@
 import * as functions from "firebase-functions";
-import * as admin from "firebase-admin"
-import * as customType from '../types/types'
-import * as utils from '../utils/utils'
-// import { doc, setDoc } from "firebase/firestore"; 
+import * as admin from "firebase-admin";
+import * as customType from "../types/types";
+import * as utils from "../utils/utils";
+// import { doc, setDoc } from "firebase/firestore";
 admin.initializeApp();
 
 // FUNCTION #1 Filtering and checking - scheduler
@@ -12,40 +12,42 @@ admin.initializeApp();
 //      4. Cross reference with Current invoice collection and Reepay API
 //      5. Save remaining data
 exports.fetchDunningInvoices = functions.https.onRequest(async (req, res) => {
-    const _url = 'https://api.reepay.com/v1/list/invoice?size=100&state=dunning'
+  const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
 
-    const headers:customType.headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${process.env.API_KEY_LALATOYS}`
-    }
+  const headers: customType.headers = {
+    "Content-Type": "application/json",
+    "Authorization": `Basic ${process.env.API_KEY_LALATOYS}`,
+  };
 
-    const options:customType.options = {
-        method: 'GET',
-        headers: headers,
-        json: true
-    };
+  const options: customType.options = {
+    method: "GET",
+    headers: headers,
+    json: true,
+  };
 
-    const content_array:Array<any> = await utils.testing_firebase_scope(_url, options)
-    // const writeResult = await admin.firestore().collection('ActivDunning').add(content_array)
-    for (let dunningInvoices of content_array){
-        await admin.firestore().collection('ActivDunning').add(dunningInvoices);
-      }
+  const contentArray: Array<any> =
+  await utils.retriveReepayList(_url, options);
+  // const writeResult = await admin.firestore()
+  // .collection('ActivDunning').add(content_array)
+  for (const dunningInvoices of contentArray) {
+    await admin.firestore().collection("ActivDunning").add(dunningInvoices);
+  }
 
-    res.json({result: `Message with ID: ${content_array} added.`});
-  });
+  res.json({result: "Invoices fetched ."});
+});
 
 
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
 //
- export const helloWorld = functions.https.onRequest((request, response) => {
-   functions.logger.info("Hello logs!", {structuredData: true});
-   response.send("Hello from");
+export const helloWorld = functions.https.onRequest((request, response) => {
+  functions.logger.info("Hello logs!", {structuredData: true});
+  response.send("Hello from");
 });
 
 
 // F#1 -> F#2
 // FUNCTION #2 Updating the active dunning list (not failed) - scheduler
 //      1.
-//      2. 
+//      2.
 

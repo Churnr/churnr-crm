@@ -1,11 +1,22 @@
+import * as customType from "../types/types";
 import fetch from "node-fetch";
-import * as customType from '../types/types'
-
-export async function testing_firebase_scope(url:string, options:customType.options, next_page_token:string="", return_array=[]):Promise<any> {
-    const response:any = await (await fetch(url+next_page_token, options)).json()
-    return_array = return_array.concat(response.content)
-    if(response.next_page_token != undefined){
-        return testing_firebase_scope(url, options, "&next_page_token="+response.next_page_token, return_array)
-    }
-    return return_array   
+/**
+ * Keeps sending request aslong respons contains next_page_token
+ * @param {string} url Current year
+ * @param {customType.options} options
+ * @param {string} nextPageToken
+ * @param {Promise<any>} returnArray
+ * @return {Promise<any>} Array of url response.content
+ */
+export async function retriveReepayList(url:string,
+    options:customType.options,
+    nextPageToken="",
+    returnArray=[]):Promise<any> {
+  const response:any = await (await fetch(url+nextPageToken, options)).json();
+  returnArray = returnArray.concat(response.content);
+  if (response.nextPageToken != undefined) {
+    return retriveReepayList(url, options, "&next_page_token="+
+                                response.nextPageToken, returnArray);
+  }
+  return returnArray;
 }
