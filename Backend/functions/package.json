@@ -8,19 +8,24 @@
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "test": "mocha --require ts-node/register test/**/*.test.ts"
+    "test": "mocha --require ts-node/register test/**/*.test.ts",
+    "kill": "lsof -t -i:5001 -i:5002 -i:8080 -i:9000 -i:9099 -i:9199 -i:9090 -i:8085 | xargs kill -9"
   },
   "engines": {
     "node": "16"
   },
   "main": "lib/src/index.js",
   "dependencies": {
+    "@sendgrid/mail": "^7.6.2",
+    "firebase": "^9.6.10",
     "firebase-admin": "^10.0.2",
     "firebase-functions": "^3.18.0",
     "node-fetch": "^2.6.7"
   },
   "devDependencies": {
     "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.1.0",
+    "@types/node-fetch": "^2.6.1",
     "@typescript-eslint/eslint-plugin": "^5.12.0",
     "@typescript-eslint/parser": "^5.12.0",
     "chai": "^4.3.6",

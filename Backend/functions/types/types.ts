@@ -7,4 +7,10 @@ export type options = {
 export type headers = {
     "Content-Type": string,
     "Authorization": string
-}
+};
+export type msg = {
+    "to": string,
+    "from": string,
+    "subject": string,
+    "template_id": string
+  };
