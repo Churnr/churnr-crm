@@ -8,7 +8,7 @@
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "test": "mocha --require ts-node/register test/**/*.test.ts",
+    "test": "mocha --require ts-node/register test/httpUtils.test.ts",
     "kill": "lsof -t -i:5001 -i:5002 -i:8080 -i:9000 -i:9099 -i:9199 -i:9090 -i:8085 | xargs kill -9"
   },
   "engines": {
@@ -36,6 +36,7 @@
     "mocha": "^9.2.2",
     "nock": "^13.2.4",
     "optionator": "^0.9.1",
+    "ts-node": "^10.7.0",
     "typescript": "^4.5.4"
   },
   "private": true

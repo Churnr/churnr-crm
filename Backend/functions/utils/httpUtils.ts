@@ -16,9 +16,9 @@ import fetch from "node-fetch";
     returnArray=[]):Promise<any> {
   const response:any = await (await fetch(url+nextPageToken, options)).json();
   returnArray = returnArray.concat(response.content);
-  if (response.nextPageToken != undefined) {
-    return retriveReepayList(url, options, "&next_page_token="+
-                                response.nextPageToken, returnArray);
+  if (response.next_page_token != undefined) {
+    return await retriveReepayList(url, options, "&next_page_token="+
+                                response.next_page_token, returnArray);
   }
   return returnArray;
 }
