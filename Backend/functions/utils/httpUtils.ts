@@ -10,7 +10,7 @@ import fetch from "node-fetch";
  * @param {Promise<any>} returnArray
  * @return {Promise<any>} Array of url response.content
  */
- export async function retriveReepayList(url:string,
+export async function retriveReepayList(url:string,
     options:customType.options,
     nextPageToken="",
     returnArray=[]):Promise<any> {

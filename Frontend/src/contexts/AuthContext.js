@@ -8,6 +8,7 @@ export function useAuth() {
     return useContext(AuthContext)
 }
 
+
 export function AuthProvider({ children}) {
     const [ currentUser, setCurrentUser] = useState()
     const [loading, setLoading] = useState(true)
@@ -16,7 +17,7 @@ export function AuthProvider({ children}) {
         return signInWithEmailAndPassword(auth, email, password)
     }
 
-    function logout(){
+    async function logout(){
         return signOut(auth)
 
     }
