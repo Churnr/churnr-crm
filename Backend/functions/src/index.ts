@@ -4,9 +4,17 @@ import * as admin from "firebase-admin";
 import * as customType from "../types/types";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import * as httpUtils from "../utils/httpUtils";
+import * as cors from "cors";
+import * as middleware from "../middleware/middleware"
+import * as express from "express"
+const app = express();
 admin.initializeApp();
-
-
+const options2: cors.CorsOptions = {
+  origin: 'http://localhost:3000'
+};
+app.use(cors(options2))
+app.use(express.json());
+app.use(middleware.validateFirebaseIdToken);
 
 // const db = getFirestore(app);
 // const citiesRef = collection(db, "cities");
@@ -18,7 +26,7 @@ admin.initializeApp();
 //      5. Save remaining data
 export const fetchDunningInvoices =
 functions.region("europe-west2").pubsub.schedule("0 23 * * *")
-    .timeZone("Europe/London").onRun(async (context) => {
+    .timeZone("Europe/Copenhagen").onRun(async (context) => {
       const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
 
       const headers: customType.headers = {
@@ -49,3 +57,37 @@ functions.region("europe-west2").pubsub.schedule("0 23 * * *")
     });
 
 
+
+
+export const helloWorld = functions.https.onRequest(async (req, res) => {
+  console.log("not working")
+
+      const invoiceIdArray:Array<string> = [];
+      const dbInvoice = await admin.firestore()
+          .collection("test").listDocuments();
+      for (const s of dbInvoice) {
+        const QueryDocumentSnapshot = await s.get();
+        const data: any = QueryDocumentSnapshot.data();
+        const dataID: string = data.test; 
+        console.log(dataID)
+        invoiceIdArray.push(dataID);
+      }
+      // check user access or do whatever we need here
+      res.json(invoiceIdArray);
+  
+});
+
+app.get("/helloWorld2", (req:functions.Request<any>,res:functions.Response<any>) => {
+  console.log("hello World")
+  res.json("Hello World")
+})
+// const allowedOrigins1 = 'http://localhost:3000';
+
+// const options2: cors.CorsOptions = {
+//   origin: allowedOrigins1
+// };
+// app.use(cors(options2))
+
+
+exports.app = functions.https.onRequest(app)
+ 

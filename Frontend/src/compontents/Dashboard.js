@@ -16,7 +16,7 @@ const handleSubmit = async () => {
   const headers = {
       'Authorization': token
   }
-  const response = await ( await fetch('http://localhost:5001/churnr-system/us-central1/helloWorld', {headers})).json();
+  const response = await ( await fetch('http://localhost:5001/churnr-system/us-central1/app/helloWorld2', {headers})).json();
   setRespone(response)
   console.log(response)
 }
@@ -38,7 +38,7 @@ return (
     </tr>
   </thead>
   <tbody>
-    {respone.map(row => {
+    {/* {respone.map(row => {
         return (
         <tr>
         <td key={row.FirstName}>{row.FirstName}</td>
@@ -48,7 +48,7 @@ return (
             <button >Send email</button>
           </td>
         </tr>
-      )})}
+      )})} */}
       
   </tbody>
 </Table>
