@@ -17,5 +17,7 @@ jobs:
       uses: actions/checkout@main
     - name: Deploy to Firebase
       uses: BIGG-Kaymo/deploy-firebase-functions@v1.0.1
+      with: 
+        node-version: '16'
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM }}
