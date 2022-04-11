@@ -12,8 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: pwd
+      - run: ls
       - run: cd Frontend
       - run: ls
+      - run: pwd
       - run: npm ci && npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
