@@ -40,3 +40,19 @@ export async function validateFirebaseIdToken (req:any, res:any, next:any){
         return;
     }
 };
+
+export async function validateIpAddress (req:any, res:any, next:any){
+    var ip = req.header('x-forwarded-for') || req.connection.remoteAddress;
+    try{
+        if(ip == "localhost"){
+            next();
+            return;
+        }else{
+            throw 'Request comeing from an unauthorized IP';
+        }
+    }catch(error){
+        console.error('Unauthorized:', error);
+        res.status(403).send('Unauthorized');
+        return;
+    }
+}
