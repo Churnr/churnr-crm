@@ -1,13 +1,13 @@
 import React , { useState} from 'react'
 import {auth} from '../firebase.js'
-import {Button, Card, Alert, Table } from 'react-bootstrap'
+import { Table } from 'react-bootstrap'
 import { useAuth } from '../contexts/AuthContext'
-import { useNavigate } from 'react-router-dom'
+// import { useNavigate } from 'react-router-dom'
 import Navbar from './Navbar.js'
 
 export default function Dashboard() {
-const [error, setError] = useState('')
-const {currentUser, logout} = useAuth()
+
+const {currentUser} = useAuth()
 const [respone, setRespone] = useState([])
 
 const handleSubmit = async () => {
@@ -18,7 +18,7 @@ const handleSubmit = async () => {
   }
   const response = await ( await fetch('http://localhost:5001/churnr-system/us-central1/app/helloWorld2', {headers})).json();
   setRespone(response)
-  console.log(response)
+  console.log(respone)
 }
 return (
 <div style={{minHeight: "100vh"}}>
@@ -26,7 +26,7 @@ return (
 <Navbar/>
   <button onClick={handleSubmit}>Press me</button>
         <h2 className='text-center mb-4'>Dashboard</h2>
-        {error && <Alert variant='danger'>{error}</Alert>}
+
         <strong> Email: </strong> {currentUser.email}
         <Table striped bordered hover variant="dark">
   <thead>

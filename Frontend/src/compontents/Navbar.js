@@ -3,7 +3,7 @@ import {Navbar, Container, NavDropdown, Nav, Button } from 'react-bootstrap'
 import { useAuth } from '../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
 export default function Navbar_site() {
-    const {currentUser, logout} = useAuth()
+    const { logout} = useAuth()
     const navigate = useNavigate();
     const [error, setError] = useState('')
 async function handleLogout() {
@@ -36,7 +36,7 @@ async function handleLogout() {
         </NavDropdown>
       </Nav>
     </Navbar.Collapse>
-    <Button variant='light' size="sm" onClick={handleLogout}>Log Out</Button>
+    <Button variant='light' size="sm" onClick={handleLogout}>Log Out {error}</Button>
   </Container>
 </Navbar>
   )
