@@ -47,8 +47,8 @@ jobs:
       run: |
         npm install
       working-directory: ./Backend/functions
+    - run: cd ./Backend
     - name:  Deploy to Firebase
-      run: cd Backend
       uses: w9jds/firebase-action@master
       with:
           args: deploy --only functions
