@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@master
       - name: test
         run: npm test
-        working-directory: Backend
+        working-directory: Backend/functions
       - name: check dist
         run: ls
       # - name: Download Artifact
