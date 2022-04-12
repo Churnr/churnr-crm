@@ -48,9 +48,9 @@ jobs:
         npm install
       working-directory: ./Backend/functions
     - name:  Deploy to Firebase
+      run: cd Backend
       uses: w9jds/firebase-action@master
       with:
-          working-directory: ./Backend
           args: deploy --only functions
       env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM }}
