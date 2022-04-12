@@ -15,8 +15,9 @@ jobs:
       - name: Install functions dependencies
         run: ls && npm ci
         working-directory: ./Backend/functions
-      - name: check dist
-        run: ls
+      - name: test
+        run: npm test
+        working-directory: Backend/functions
       # - name: Archive Production Artifact
       #   uses: actions/upload-artifact@master
       #   with:
@@ -35,9 +36,6 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
-      - name: test
-        run: npm test
-        working-directory: Backend/functions
       - name: check dist
         run: ls
       # - name: Download Artifact
