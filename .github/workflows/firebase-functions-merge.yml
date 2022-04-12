@@ -15,10 +15,13 @@ jobs:
       - name: Install functions dependencies
         run: ls && npm ci
         working-directory: ./Backend/functions
+      - name: check dist
+        run: ls
       - name: Archive Production Artifact
         uses: actions/upload-artifact@master
         with:
           name: lib
+          path: ./Backend/functions/lib
   deploy:
     name: Deploy
     needs: build
@@ -26,10 +29,13 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
+      - name: check dist
+        run: ls
       - name: Download Artifact
         uses: actions/download-artifact@master
         with:
           name: lib
+          path: ./Backend/functions/lib
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@master
         with:
