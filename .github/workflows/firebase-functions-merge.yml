@@ -29,6 +29,8 @@
 
 name: Firebase function deploy
 
+# Controls when the action will run. Triggers the workflow on push
+# events but only for the master branch
 on:
   push:
     branches: [ main ]
@@ -44,11 +46,11 @@ jobs:
     - name: Install npm packages
       run: |
         npm install
-        cd ./Backend/functions
-    - name: Deploy to Firebase
-      run: cd ./Backend
+      working-directory: ./Backend/functions
+    - name:  Deploy to Firebase
       uses: w9jds/firebase-action@master
       with:
+          working-directory: ./Backend
           args: deploy --only functions
       env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM }}
