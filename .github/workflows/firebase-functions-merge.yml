@@ -7,7 +7,7 @@ env:
   SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
 jobs:
   build:
-    name: Build
+    name: Build, Test and Deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -18,38 +18,15 @@ jobs:
       - name: test
         run: npm test
         working-directory: Backend/functions
-      - name: ls fuck shit
-        run: ls *
-        working-directory: Backend
-      - name: Archive Production Artifact
-        uses: actions/upload-artifact@master
-        with:
-          name: lib
-          path: |
-                Backend/functions/lib/middleware/build
-                Backend/functions/lib/src/build
-                Backend/functions/lib/types/build
-                Backend/functions/lib/utils/build
-
-
-  deploy:
-    name: Deploy
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@master
-      - name: check dist
-        run: ls
-      # - name: Download Artifact
-      #   uses: actions/download-artifact@master
+      # - name: Archive Production Artifact
+      #   uses: actions/upload-artifact@master
       #   with:
       #     name: lib
       #     path: |
-      #           Backend/functions/lib/middleware
-      #           Backend/functions/lib/src
-      #           Backend/functions/lib/types
-      #           Backend/functions/lib/utils
+      #           Backend/functions/lib/middleware/build
+      #           Backend/functions/lib/src/build
+      #           Backend/functions/lib/types/build
+      #           Backend/functions/lib/utils/build
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@master
         with:
@@ -57,3 +34,30 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM }}
           PROJECT_PATH: ./Backend
+
+
+  # deploy:
+  #   name: Deploy
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout Repo
+  #       uses: actions/checkout@master
+  #     - name: check dist
+  #       run: ls
+  #     # - name: Download Artifact
+  #     #   uses: actions/download-artifact@master
+  #     #   with:
+  #     #     name: lib
+  #     #     path: |
+  #     #           Backend/functions/lib/middleware
+  #     #           Backend/functions/lib/src
+  #     #           Backend/functions/lib/types
+  #     #           Backend/functions/lib/utils
+  #     - name: Deploy to Firebase
+  #       uses: w9jds/firebase-action@master
+  #       with:
+  #         args: deploy --only functions
+  #       env:
+  #         FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM }}
+  #         PROJECT_PATH: ./Backend
