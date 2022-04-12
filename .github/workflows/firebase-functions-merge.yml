@@ -37,7 +37,7 @@ on:
 
 env: 
   SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-
+# This should work now... YES!
 jobs:
   build:
     runs-on: ubuntu-latest
