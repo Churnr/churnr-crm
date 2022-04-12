@@ -20,7 +20,7 @@ jobs:
         working-directory: Backend/functions
       - name: ls fuck shit
         run: ls *
-        working-directory: Backend/functions/lib
+        working-directory: Backend
       - name: Archive Production Artifact
         uses: actions/upload-artifact@master
         with:
