@@ -17,15 +17,17 @@ jobs:
         working-directory: ./Backend/functions
       - name: check dist
         run: ls
-      - name: Archive Production Artifact
-        uses: actions/upload-artifact@master
-        with:
-          name: lib
-          path: |
-                Backend/functions/lib/middleware
-                Backend/functions/lib/src
-                Backend/functions/lib/types
-                Backend/functions/lib/utils
+      # - name: Archive Production Artifact
+      #   uses: actions/upload-artifact@master
+      #   with:
+      #     name: lib
+      #     path: |
+      #           Backend/functions/lib/middleware
+      #           Backend/functions/lib/src
+      #           Backend/functions/lib/types
+      #           Backend/functions/lib/utils
+
+
   deploy:
     name: Deploy
     needs: build
@@ -33,17 +35,20 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
+      - name: test
+        run: npm test
+        working-directory: Backend
       - name: check dist
         run: ls
-      - name: Download Artifact
-        uses: actions/download-artifact@master
-        with:
-          name: lib
-          path: |
-                Backend/functions/lib/middleware
-                Backend/functions/lib/src
-                Backend/functions/lib/types
-                Backend/functions/lib/utils
+      # - name: Download Artifact
+      #   uses: actions/download-artifact@master
+      #   with:
+      #     name: lib
+      #     path: |
+      #           Backend/functions/lib/middleware
+      #           Backend/functions/lib/src
+      #           Backend/functions/lib/types
+      #           Backend/functions/lib/utils
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@master
         with:
