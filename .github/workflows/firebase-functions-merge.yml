@@ -22,10 +22,10 @@ jobs:
         with:
           name: lib
           path: |
-                ./Backend/functions/lib/middleware
-                ./Backend/functions/lib/src
-                ./Backend/functions/lib/types
-                ./Backend/functions/lib/utils
+                Backend/functions/lib/middleware
+                Backend/functions/lib/src
+                Backend/functions/lib/types
+                Backend/functions/lib/utils
   deploy:
     name: Deploy
     needs: build
@@ -40,10 +40,10 @@ jobs:
         with:
           name: lib
           path: |
-                ./Backend/functions/lib/middleware
-                ./Backend/functions/lib/src
-                ./Backend/functions/lib/types
-                ./Backend/functions/lib/utils
+                Backend/functions/lib/middleware
+                Backend/functions/lib/src
+                Backend/functions/lib/types
+                Backend/functions/lib/utils
       - name: Deploy to Firebase
         uses: w9jds/firebase-action@master
         with:
