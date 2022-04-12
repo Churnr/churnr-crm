@@ -66,7 +66,6 @@ jobs:
       run: cd ./Backend
       uses: w9jds/firebase-action@master
       with:
-          args: deploy --only functions
-          path: ./Backend        
+          args: deploy --only functions      
       env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM }}
