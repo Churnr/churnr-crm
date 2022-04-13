@@ -36,7 +36,7 @@ jobs:
         with:
           args: deploy --only functions
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
       - name: Debug log
         if: always()
         run: ls && cat firebase-debug.log
