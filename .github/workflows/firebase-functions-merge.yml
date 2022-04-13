@@ -37,7 +37,7 @@ jobs:
           args: deploy --only functions
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM }}
-        if: failure()
+      - name: Debug log
         run: ls && cat firebase-debug.log
 
 
