@@ -12,11 +12,13 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
       - name: Install functions dependencies
         run: ls && npm ci
         working-directory: ./Backend/functions
-      - name: see env variables
-        run: printenv  
       - name: test
         run: npm test
         working-directory: Backend/functions
