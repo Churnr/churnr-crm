@@ -38,6 +38,7 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM }}
       - name: Debug log
+        if: always()
         run: ls && cat firebase-debug.log
 
 
