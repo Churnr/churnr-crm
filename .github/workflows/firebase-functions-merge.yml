@@ -15,6 +15,8 @@ jobs:
       - name: Install functions dependencies
         run: ls && npm ci
         working-directory: ./Backend/functions
+      - name: see env variables
+        run: printenv  
       - name: test
         run: npm test
         working-directory: Backend/functions
@@ -33,7 +35,6 @@ jobs:
           args: deploy --only functions
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM }}
-          PROJECT_PATH: ./Backend
 
 
   # deploy:
