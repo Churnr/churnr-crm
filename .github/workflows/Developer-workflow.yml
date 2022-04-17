@@ -8,7 +8,7 @@ on:
       - 'main'
 jobs:
   Build-And-Deploy-Backend-Dev:
-    name: Build and Deploy backend to Development Project
+    name: Build and Deploy Backend to Development Project if changes were made
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
@@ -21,9 +21,32 @@ jobs:
           filters: |
               backend:
                 - 'Backend/**'
-      - name: Changes were made to the Backend
+      - name: Is Backend Changed?
         if: steps.changes.outputs.backend == 'true'
         run: echo "Changes were made to the backend"
-      - run: echo ${{ github.ref }}
+  Build-And-Deploy-Frontend-Dev:
+    name: Build and Deploy Frontend to Development Project if changes were made
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: Looking for changes to the Frontend
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          base: ${{ github.ref }}
+          filters: |
+              frontend:
+                - 'Frontend/**'
+      - name: Is Frontend Changed?
+        if: steps.changes.outputs.backend == 'true'
+        uses: actions/checkout@v2
+        run: npm ci && npm run build
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM_DEVELOPMENT }}'
+          channelId: live
+          projectId: churnr-system-development
 
 

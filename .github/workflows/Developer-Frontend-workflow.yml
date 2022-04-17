@@ -1,0 +1,12 @@
+name: Build and Deploy for Development project Frontend
+on:
+  push:
+    path:
+      - 'CHURNR-CRM/Frontend/**'
+    branches-ignore:
+      - 'main'
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Frontend dev workflow"
