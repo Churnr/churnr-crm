@@ -9,7 +9,6 @@ on:
 jobs:
   Build-And-Deploy-Backend-Dev:
     name: Build and Deploy backend to Development Project
-    description: If changes were made to any files in the Backend folder, they will be build and deployed.
     runs-on: ubuntu-latest
     steps:
       - uses: dorny/paths-filter@v2
