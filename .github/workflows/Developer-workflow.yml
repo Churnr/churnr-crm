@@ -2,7 +2,7 @@ name: Build and Deploy for Development project
 on:
   push:
     path:
-      - 'CHURNR-CRM/Backend/**'
+      - 'Backend/**'
       - 'Frontend/**'
     branches-ignore:
       - 'main'
@@ -15,11 +15,12 @@ jobs:
         uses: actions/checkout@v2
       - name: Looking for changes to the Backend
         uses: dorny/paths-filter@v2
+        ref: ${GITHUB_REF##*/}
         id: changes
         with:
            filters: |
               backend:
-                - 'CHURNR-CRM/Backend/**'
+                - 'Backend/**'
       - name: Changes were made to the Backend
         if: steps.changes.outputs.backend == 'true'
         run: echo "Changes were made to the backend"
