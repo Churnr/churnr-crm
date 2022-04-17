@@ -24,7 +24,7 @@ jobs:
         if: steps.changes.outputs.backend == 'true'
         run: echo "Changes were made to the backend"
       - name: Changes were NOT made to the Backend
-        if: steps.changes.outputs.frontend == 'false'
+        if: steps.changes.outputs.backend == 'false'
         run: echo "Changes were NOT made to the backend"
 
 
