@@ -38,10 +38,11 @@ jobs:
           filters: |
               frontend:
                 - 'Frontend/**'
-      - name: Is Frontend Changed?
-        if: steps.changes.outputs.backend == 'true'
-        uses: actions/checkout@v2
+      - name: 'If Frontend Changed: Install dependecies and run build'
+        if: steps.changes.outputs.frontend == 'true'
         run: npm ci && npm run build
+        working-directory: ./Frontend
+      - name: 'If Frontend Changed: Deploy Frontend with firebase hosting'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
