@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v2
-      - name: Looking for changes
+      - name: Looking for changes to the Backend
         uses: dorny/paths-filter@v2
         id: changes
         with:
@@ -23,8 +23,4 @@ jobs:
       - name: Changes were made to the Backend
         if: steps.changes.outputs.backend == 'true'
         run: echo "Changes were made to the backend"
-      - name: Changes were NOT made to the Backend
-        if: steps.changes.outputs.backend == 'false'
-        run: echo "Changes were NOT made to the backend"
-
 
