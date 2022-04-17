@@ -1,0 +1,28 @@
+name: Build and Deploy for Development project
+on:
+  push:
+    path:
+      - 'Backend/**'
+      - 'Frontend/**'
+    branches-ignore:
+      - 'main'
+jobs:
+  Build-And-Deploy-Backend-Dev:
+    name: Build and Deploy backend to Development Project
+    description: If changes were made to any files in the Backend folder, they will be build and deployed.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+           filters: |
+              backend:
+                - 'Backend/**'
+      - name: Changes were made to the Backend
+        if: steps.changes.outputs.backend == 'true'
+        run: echo "Changes were made to the backend"
+      - name: Changes were NOT made to the Backend
+        if: steps.changes.outputs.frontend == 'false'
+        run: echo "Changes were NOT made to the backend"
+
+
