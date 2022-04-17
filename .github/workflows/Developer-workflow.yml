@@ -11,6 +11,8 @@ jobs:
     name: Build and Deploy backend to Development Project
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
       - uses: dorny/paths-filter@v2
         id: changes
         with:
