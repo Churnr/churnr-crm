@@ -58,5 +58,5 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM_DEVELOPMENT }}'
           channelId: live
           projectId: churnr-system-development
-
+      
 
