@@ -7,13 +7,13 @@ on:
     branches-ignore:
       - 'main'
 env:
-  REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
-  REACT_APP_AUT_DOMAIN: ${{ secrets.REACT_APP_AUT_DOMAIN }}
-  REACT_APP_PROJECT_ID: ${{ secrets.REACT_APP_PROJECT_ID }}
-  REACT_APP_STORGE_BUCKET: ${{ secrets.REACT_APP_STORGE_BUCKET }}
-  REACT_APP_MESSAGE_SENDER_ID: ${{ secrets.REACT_APP_MESSAGE_SENDER_ID }}
-  REACT_APP_APP_ID: ${{ secrets.REACT_APP_APP_ID }}
-  REACT_APP_MEASERUMENT_ID: ${{ secrets.REACT_APP_MEASERUMENT_ID }}
+  REACT_APP_API_KEY: ${{ secrets.DEV_REACT_APP_API_KEY }}
+  REACT_APP_AUT_DOMAIN: ${{ secrets.DEV_REACT_APP_AUT_DOMAIN }}
+  REACT_APP_PROJECT_ID: ${{ secrets.DEV_REACT_APP_PROJECT_ID }}
+  REACT_APP_STORGE_BUCKET: ${{ secrets.DEV_REACT_APP_STORGE_BUCKET }}
+  REACT_APP_MESSAGE_SENDER_ID: ${{ secrets.DEV_REACT_APP_MESSAGE_SENDER_ID }}
+  REACT_APP_APP_ID: ${{ secrets.DEV_REACT_APP_APP_ID }}
+  REACT_APP_MEASERUMENT_ID: ${{ secrets.DEV_REACT_APP_MEASERUMENT_ID }}
 jobs:
   Build-And-Deploy-Backend-Dev:
     name: Build and Deploy Backend to Development Project if changes were made
