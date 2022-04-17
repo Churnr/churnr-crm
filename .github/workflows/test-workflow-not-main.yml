@@ -1,8 +1,6 @@
 name: Build and Deploy for Development project
 on:
   push:
-    branches:
-      - '*'
     branches-ignore:
       - 'main'
 jobs:
