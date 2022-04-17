@@ -50,12 +50,13 @@ jobs:
         if: steps.changes.outputs.frontend == 'true'
         run: npm ci && npm run build
         working-directory: ./Frontend
-      - if: steps.changes.outputs.frontend == 'true'
+      - name: 'If Frontend Changed: Deploy to Firebase'  
+        if: steps.changes.outputs.frontend == 'true'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM_DEVELOPMENT }}'
           channelId: live
-          projectId: churnr-system
+          projectId: churnr-system-development
 
 
