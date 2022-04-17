@@ -14,11 +14,11 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v2
       - name: Looking for changes to the Backend
-        base: ${{ github.ref }}
         uses: dorny/paths-filter@v2
         id: changes
         with:
-           filters: |
+          base: ${{ github.ref }}
+          filters: |
               backend:
                 - 'Backend/**'
       - name: Changes were made to the Backend
