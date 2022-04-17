@@ -2,7 +2,7 @@ name: Build and Deploy for Development project Frontend
 on:
   push:
     path:
-      - 'Frontend/**'
+      - 'CHURNR-CRM/Frontend/**'
     branches-ignore:
       - 'main'
 jobs:

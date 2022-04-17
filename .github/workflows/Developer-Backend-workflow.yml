@@ -1,8 +1,8 @@
-name: Build and Deploy for Development project
+name: Build and Deploy for Development project Backend
 on:
   push:
     path:
-      - 'Backend/**'
+      - 'CHURNR-CRM/Backend/**'
     branches-ignore:
       - 'main'
 jobs:
