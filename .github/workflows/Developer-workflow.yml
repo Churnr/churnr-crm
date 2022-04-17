@@ -23,5 +23,5 @@ jobs:
       - name: Changes were made to the Backend
         if: steps.changes.outputs.backend == 'true'
         run: echo "Changes were made to the backend"
-      -run: echo ${{ github.ref }}
+      - run: echo ${{ github.ref }}
 
