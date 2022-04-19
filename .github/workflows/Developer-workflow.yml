@@ -1,9 +1,6 @@
 name: Build and Deploy for Development project
 on:
   push:
-    path:
-      - 'Backend/**'
-      - 'Frontend/**'
     branches-ignore:
       - 'main'
 env:
@@ -39,6 +36,7 @@ jobs:
         run: npm run test
         working-directory: ./Backend
       - name: 'If Backend Changed: Deploy to Firebase'
+        if: steps.changes.outputs.backend == 'true'
         uses: w9jds/firebase-action@master
         with:
           args: deploy --only functions
