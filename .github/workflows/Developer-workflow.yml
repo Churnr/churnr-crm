@@ -42,8 +42,8 @@ jobs:
         uses: w9jds/firebase-action@master
         with:
           args: deploy --only functions
-          env:
-            FIREBASE_TOKEN: ${{ secrets.DEV_FIREBASE_TOKEN }}
+        env:
+          FIREBASE_TOKEN: ${{ secrets.DEV_FIREBASE_TOKEN }}
               
   Build-And-Deploy-Frontend-Dev:
     name: Build and Deploy Frontend to Development Project if changes were made
