@@ -29,7 +29,7 @@ jobs:
                 - 'Backend/**'
       - name: 'If Backend Changed: Install dependecies'
         if: steps.changes.outputs.backend == 'true'
-        run: Install dependecies
+        run: npm ci
         working-directory: ./Backend
       - name: 'If Backend Changed: Run Test'
         if: steps.changes.outputs.backend == 'true'
