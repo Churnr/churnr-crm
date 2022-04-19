@@ -61,7 +61,7 @@ jobs:
                 - 'Frontend/**'
       - name: 'If Frontend Changed: Install dependecies and run build'
         if: steps.changes.outputs.frontend == 'true'
-          run: npm ci && npm run build
+        run: npm ci && npm run build
       - name: 'If Frontend Changed: Run Test'
         if: steps.changes.outputs.frontend == 'true'
         run: echo 'Needs Test File'
