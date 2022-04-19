@@ -30,11 +30,11 @@ jobs:
       - name: 'If Backend Changed: Install dependecies'
         if: steps.changes.outputs.backend == 'true'
         run: npm ci
-        working-directory: ./Backend
+        working-directory: ./Backend/functions
       - name: 'If Backend Changed: Run Test'
         if: steps.changes.outputs.backend == 'true'
         run: npm run test
-        working-directory: ./Backend
+        working-directory: ./Backend/functions
       - name: 'If Backend Changed: Deploy to Firebase'
         if: steps.changes.outputs.backend == 'true'
         uses: w9jds/firebase-action@master
@@ -60,6 +60,7 @@ jobs:
       - name: 'If Frontend Changed: Install dependecies and run build'
         if: steps.changes.outputs.frontend == 'true'
         run: npm ci && npm run build
+        working-directory: ./Frontend
       - name: 'If Frontend Changed: Run Test'
         if: steps.changes.outputs.frontend == 'true'
         run: echo 'Needs Test File'
