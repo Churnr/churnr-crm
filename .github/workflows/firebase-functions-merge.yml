@@ -36,7 +36,7 @@ jobs:
         with:
           args: deploy --only functions
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          FIREBASE_TOKEN: ${{ secrets.PROD_FIREBASE_TOKEN }}
 
   # deploy:
   #   name: Deploy

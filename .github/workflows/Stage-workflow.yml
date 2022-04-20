@@ -1,0 +1,78 @@
+name: Build and Deploy for Development
+on:
+  push:
+    branches:
+      - 'main'
+env:
+  REACT_APP_API_KEY: ${{ secrets.STAGE_REACT_APP_API_KEY }}
+  REACT_APP_AUT_DOMAIN: ${{ secrets.STAGE_REACT_APP_AUT_DOMAIN }}
+  REACT_APP_PROJECT_ID: ${{ secrets.STAGE_REACT_APP_PROJECT_ID }}
+  REACT_APP_STORGE_BUCKET: ${{ secrets.STAGE_REACT_APP_STORGE_BUCKET }}
+  REACT_APP_MESSAGE_SENDER_ID: ${{ secrets.STAGE_REACT_APP_MESSAGE_SENDER_ID }}
+  REACT_APP_APP_ID: ${{ secrets.STAGE_REACT_APP_APP_ID }}
+  REACT_APP_MEASERUMENT_ID: ${{ secrets.STAGE_REACT_APP_MEASERUMENT_ID }}
+
+jobs:
+  Build-And-Deploy-Backend-Dev:
+    name: Build and Deploy Backend to Stage if changes were made
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: Looking for changes to the Backend
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          base: ${{ github.ref }}
+          filters: |
+              backend:
+                - 'Backend/**'
+      - name: 'If Backend Changed: Install dependecies'
+        if: steps.changes.outputs.backend == 'true'
+        run: npm ci
+        working-directory: ./Backend/functions
+      - name: 'If Backend Changed: Run Test'
+        if: steps.changes.outputs.backend == 'true'
+        run: npm run test
+        working-directory: ./Backend/functions
+      - name: 'If Backend Changed: Deploy to Firebase'
+        if: steps.changes.outputs.backend == 'true'
+        uses: w9jds/firebase-action@master
+        with:
+          args: deploy --only functions
+        env:
+          FIREBASE_TOKEN: ${{ secrets.STAGE_FIREBASE_TOKEN }}
+              
+  Build-And-Deploy-Frontend-Dev:
+    name: Build and Deploy Frontend to Stage if changes were made
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: Looking for changes to the Frontend
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          base: ${{ github.ref }}
+          filters: |
+              frontend:
+                - 'Frontend/**'
+      - name: 'If Frontend Changed: Install dependecies and run build'
+        if: steps.changes.outputs.frontend == 'true'
+        run: npm ci && npm run build
+        working-directory: ./Frontend
+      - name: 'If Frontend Changed: Run Test'
+        if: steps.changes.outputs.frontend == 'true'
+        run: echo 'Needs Test File'
+        working-directory: ./Frontend
+      - name: 'If Frontend Changed: Deploy to Firebase'  
+        if: steps.changes.outputs.frontend == 'true'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM_STAGE }}'
+          channelId: live
+          projectId: churnr-system-stage
+          
+
+
