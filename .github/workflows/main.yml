@@ -8,7 +8,13 @@ on:
         default: 'warning'
       tags:
         required: true
-        description: 'tag'  
+        description: 'Tag'
+      release_name:
+        required: true
+        description: 'Release name'
+      body:
+        required: true
+        description: 'Body'
 
 env:
   REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
@@ -19,13 +25,27 @@ env:
   REACT_APP_APP_ID: ${{ secrets.REACT_APP_APP_ID }}
   REACT_APP_MEASERUMENT_ID: ${{ secrets.REACT_APP_MEASERUMENT_ID }}
 
+  run: echo "${{ github.event.inputs.tags }}"
+
 jobs:
-  Test:
-    name: Test
+  Release:
+    name: Create Release
     runs-on: ubuntu-latest
     steps:
-    - name: test
-      run: echo "${{ github.event.inputs.tags }}"
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.event.inputs.tags }}
+          release_name: Release ${{ github.event.inputs.release_name }}
+          body: ${{ github.event.inputs.body }}
+           
+          draft: true
+          prerelease: false
   Build-And-Deploy-Backend-Dev:
     name: Build and Deploy Backend to Production if changes were made.
     runs-on: ubuntu-latest
