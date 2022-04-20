@@ -4,17 +4,17 @@ on:
     branches-ignore:
       - 'main'
 env:
-  REACT_APP_API_KEY: ${{ secrets.DEV_REACT_APP_API_KEY }}
-  REACT_APP_AUT_DOMAIN: ${{ secrets.DEV_REACT_APP_AUT_DOMAIN }}
-  REACT_APP_PROJECT_ID: ${{ secrets.DEV_REACT_APP_PROJECT_ID }}
-  REACT_APP_STORGE_BUCKET: ${{ secrets.DEV_REACT_APP_STORGE_BUCKET }}
-  REACT_APP_MESSAGE_SENDER_ID: ${{ secrets.DEV_REACT_APP_MESSAGE_SENDER_ID }}
-  REACT_APP_APP_ID: ${{ secrets.DEV_REACT_APP_APP_ID }}
-  REACT_APP_MEASERUMENT_ID: ${{ secrets.DEV_REACT_APP_MEASERUMENT_ID }}
+  REACT_APP_API_KEY: ${{ secrets.STAGE_REACT_APP_API_KEY }}
+  REACT_APP_AUT_DOMAIN: ${{ secrets.STAGE_REACT_APP_AUT_DOMAIN }}
+  REACT_APP_PROJECT_ID: ${{ secrets.STAGE_REACT_APP_PROJECT_ID }}
+  REACT_APP_STORGE_BUCKET: ${{ secrets.STAGE_REACT_APP_STORGE_BUCKET }}
+  REACT_APP_MESSAGE_SENDER_ID: ${{ secrets.STAGE_REACT_APP_MESSAGE_SENDER_ID }}
+  REACT_APP_APP_ID: ${{ secrets.STAGE_REACT_APP_APP_ID }}
+  REACT_APP_MEASERUMENT_ID: ${{ secrets.STAGE_REACT_APP_MEASERUMENT_ID }}
 
 jobs:
   Build-And-Deploy-Backend-Dev:
-    name: Build and Deploy Backend to Development if changes were made
+    name: Build and Deploy Backend to Stage if changes were made
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
@@ -41,10 +41,10 @@ jobs:
         with:
           args: deploy --only functions
         env:
-          FIREBASE_TOKEN: ${{ secrets.DEV_FIREBASE_TOKEN }}
+          FIREBASE_TOKEN: ${{ secrets.STAGE_FIREBASE_TOKEN }}
               
   Build-And-Deploy-Frontend-Dev:
-    name: Build and Deploy Frontend to Development if changes were made
+    name: Build and Deploy Frontend to Stage if changes were made
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
@@ -67,11 +67,13 @@ jobs:
         working-directory: ./Frontend
       - name: 'If Frontend Changed: Deploy to Firebase'  
         if: steps.changes.outputs.frontend == 'true'
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM_DEVELOPMENT }}'
-          channelId: ${{ github.ref }}
-          projectId: churnr-system-development
+        run: firebase --project "churnr-system-stage" --token "${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM_STAGE }}" hosting:channel:deploy "${{ github.ref }}"
+        # uses: FirebaseExtended/action-hosting-deploy@v0
+        # with:
+        #   repoToken: '${{ secrets.GITHUB_TOKEN }}'
+        #   firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM_STAGE }}'
+        #   channelId: live
+        #   projectId: churnr-system-stage
+          
 
 
