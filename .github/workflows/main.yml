@@ -6,8 +6,8 @@ on:
         description: 'Log level'     
         required: true
         default: 'warning'
-      tags:
-        description: 'Test scenario tags'  
+    tags:
+      description: 'Test scenario tags'  
 
 env:
   REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
