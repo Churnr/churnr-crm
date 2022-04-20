@@ -1,7 +1,7 @@
 name: Build and Deploy for Development
 on:
   push:
-    branches-ignore:
+    branches:
       - 'main'
 env:
   REACT_APP_API_KEY: ${{ secrets.DEV_REACT_APP_API_KEY }}

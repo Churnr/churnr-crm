@@ -67,13 +67,13 @@ jobs:
         working-directory: ./Frontend
       - name: 'If Frontend Changed: Deploy to Firebase'  
         if: steps.changes.outputs.frontend == 'true'
-        run: firebase --project "churnr-system-stage" --token "${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM_STAGE }}" hosting:channel:deploy "${{ github.ref }}"
-        # uses: FirebaseExtended/action-hosting-deploy@v0
-        # with:
-        #   repoToken: '${{ secrets.GITHUB_TOKEN }}'
-        #   firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM_STAGE }}'
-        #   channelId: live
-        #   projectId: churnr-system-stage
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM_STAGE }}'
+          channelId: live
+          expires: 7d
+          projectId: churnr-system-stage
           
 
 
