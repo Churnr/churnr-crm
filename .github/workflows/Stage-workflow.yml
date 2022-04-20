@@ -1,7 +1,7 @@
 name: Build and Deploy for Development
 on:
   push:
-    branches-ignore:
+    branches:
       - 'main'
 env:
   REACT_APP_API_KEY: ${{ secrets.STAGE_REACT_APP_API_KEY }}
@@ -72,7 +72,6 @@ jobs:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM_STAGE }}'
           channelId: live
-          expires: 7d
           projectId: churnr-system-stage
           
 
