@@ -24,67 +24,57 @@ app.use(middleware.validateFirebaseIdToken);
 //      3. Check if same customer, but different invoice ids
 //      4. Cross reference with Current invoice collection and Reepay API
 //      5. Save remaining data
-export const fetchDunningInvoices =
-functions.region("europe-west2").pubsub.schedule("0 23 * * *")
-    .timeZone("Europe/Copenhagen").onRun(async (context) => {
-      const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
+// export const fetchDunningInvoices =
+// functions.region("europe-west2").pubsub.schedule("0 23 * * *")
+//     .timeZone("Europe/Copenhagen").onRun(async (context) => {
+//       const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
 
-      const headers: customType.headers = {
-        "Content-Type": "application/json",
-        "Authorization": `Basic ${process.env.API_KEY_LALATOYS}`,
-      };
+//       const headers: customType.headers = {
+//         "Content-Type": "application/json",
+//         "Authorization": `Basic ${process.env.API_KEY_LALATOYS}`,
+//       };
 
-      const options: customType.options = {
-        method: "GET",
-        headers: headers,
-        json: true,
-      };
+//       const options: customType.options = {
+//         method: "GET",
+//         headers: headers,
+//         json: true,
+//       };
 
-      const invoiceIdArray =
-      await firestoreUtils.getInvoiceIdsFromCollection("ActiveDunning");
+//       const invoiceIdArray =
+//       await firestoreUtils.getInvoiceIdsFromCollection("ActiveDunning");
 
-      const contentArray: Array<any> =
-      await httpUtils.retriveReepayList(_url, options);
+//       const contentArray: Array<any> =
+//       await httpUtils.retriveReepayList(_url, options);
 
-      for (const dunningInvoices of contentArray) {
-        if (invoiceIdArray.indexOf(dunningInvoices.id) == -1) {
-          await admin.firestore().collection("ActivDunning")
-              .add(dunningInvoices);
-        }
-      }
+//       for (const dunningInvoices of contentArray) {
+//         if (invoiceIdArray.indexOf(dunningInvoices.id) == -1) {
+//           await admin.firestore().collection("ActivDunning")
+//               .add(dunningInvoices);
+//         }
+//       }
 
-      return null;
-    });
+//       return null;
+//     });
 
+// export const helloWorld = functions.https.onRequest(async (req, res) => {
+//   console.log("not working");
 
-export const helloWorld = functions.https.onRequest(async (req, res) => {
-  console.log("not working");
-
-  const invoiceIdArray:Array<string> = [];
-  const dbInvoice = await admin.firestore()
-      .collection("test").listDocuments();
-  for (const s of dbInvoice) {
-    const QueryDocumentSnapshot = await s.get();
-    const data: any = QueryDocumentSnapshot.data();
-    const dataID: string = data.test;
-    console.log(dataID);
-    invoiceIdArray.push(dataID);
-  }
-  // check user access or do whatever we need here
-  res.json(invoiceIdArray);
-});
-
-app.get("/helloWorld2", (req:functions.Request<any>,
+//   const invoiceIdArray:Array<string> = [];
+//   const dbInvoice = await admin.firestore()
+//       .collection("test").listDocuments();
+//   for (const s of dbInvoice) {
+//     const QueryDocumentSnapshot = await s.get();
+//     const data: any = QueryDocumentSnapshot.data();
+//     const dataID: string = data.test;
+//     console.log(dataID);
+//     invoiceIdArray.push(dataID);
+//   }
+//   // check user access or do whatever we need here
+//   res.json(invoiceIdArray);
+// });
+app.post("/helloWorld2", (req:functions.Request<any>,
     res:functions.Response<any>) => {
-  console.log("hello World");
   res.json("Hello World");
 });
-// const allowedOrigins1 = 'http://localhost:3000';
-
-// const options2: cors.CorsOptions = {
-//   origin: allowedOrigins1
-// };
-// app.use(cors(options2))
-
 
 exports.app = functions.https.onRequest(app);
