@@ -1,4 +1,4 @@
-name: Build and Deploy for Development
+name: Development Deploy
 on:
   push:
     branches-ignore:
