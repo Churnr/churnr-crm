@@ -1,0 +1,61 @@
+name: Build and Deploy for Production
+on: 
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'warning'
+      tags:
+        description: 'Test scenario tags'  
+
+env:
+  REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
+  REACT_APP_AUT_DOMAIN: ${{ secrets.REACT_APP_AUT_DOMAIN }}
+  REACT_APP_PROJECT_ID: ${{ secrets.REACT_APP_PROJECT_ID }}
+  REACT_APP_STORGE_BUCKET: ${{ secrets.REACT_APP_STORGE_BUCKET }}
+  REACT_APP_MESSAGE_SENDER_ID: ${{ secrets.REACT_APP_MESSAGE_SENDER_ID }}
+  REACT_APP_APP_ID: ${{ secrets.REACT_APP_APP_ID }}
+  REACT_APP_MEASERUMENT_ID: ${{ secrets.REACT_APP_MEASERUMENT_ID }}
+
+jobs:
+  Build-And-Deploy-Backend-Dev:
+    name: Build and Deploy Backend to Production if changes were made.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code.
+        uses: actions/checkout@v2
+      - name: 'Install dependecies.'
+        run: npm ci
+        working-directory: ./Backend/functions
+      - name: 'Run Test.'
+        run: npm run test
+        working-directory: ./Backend/functions
+      - name: 'Deploy to Firebase.'
+        uses: w9jds/firebase-action@master
+        with:
+          args: deploy --only functions
+        env:
+          FIREBASE_TOKEN: ${{ secrets.PROD_FIREBASE_TOKEN }}
+              
+  Build-And-Deploy-Frontend-Dev:
+    name: Build and Deploy Frontend to Production if changes were made.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: 'Install dependecies and run build'
+        run: npm ci && npm run build
+        working-directory: ./Frontend
+      - name: 'Run Test'
+        run: echo 'Needs Test File'
+        working-directory: ./Frontend
+      - name: 'Deploy to Firebase'  
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CHURNR_SYSTEM}}'
+          channelId: live
+          projectId: churnr-system
+
+
