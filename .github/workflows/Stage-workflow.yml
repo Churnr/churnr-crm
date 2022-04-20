@@ -42,6 +42,7 @@ jobs:
           args: deploy --only functions
         env:
           FIREBASE_TOKEN: ${{ secrets.STAGE_FIREBASE_TOKEN }}
+          PROJECT_ID: churnr-system-stage
               
   Build-And-Deploy-Frontend-Dev:
     name: Build and Deploy Frontend to Stage if changes were made
