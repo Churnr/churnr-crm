@@ -4,17 +4,17 @@ import * as admin from "firebase-admin";
 import * as customType from "../types/types";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import * as httpUtils from "../utils/httpUtils";
-// import * as cors from "cors";
-// import * as middleware from "../middleware/middleware";
+import * as cors from "cors";
+import * as middleware from "../middleware/middleware";
 import * as express from "express";
 const app = express();
 admin.initializeApp();
-// const options2: cors.CorsOptions = {
-//   origin: "http://localhost:3000",
-// };
-// app.use(cors(options2));
+const options2: cors.CorsOptions = {
+  origin: "http://localhost:3000",
+};
+app.use(cors(options2));
 app.use(express.json());
-// app.use(middleware.validateFirebaseIdToken);
+app.use(middleware.validateFirebaseIdToken);
 
 // functions.region("europe-west2").pubsub.schedule("0 23 * * *")
 //     .timeZone("Europe/Copenhagen").onRun(async (context) => {

@@ -27,3 +27,8 @@ export type customer = {
     "flowEmails": number,
     "flowCalls": number,
 }
+
+export type templates = {
+    "templateIds": Map<string, string>
+}
+
