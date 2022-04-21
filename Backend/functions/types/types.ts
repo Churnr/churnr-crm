@@ -14,3 +14,16 @@ export type msg = {
     "subject": string,
     "template_id": string
   };
+
+export type customer = {
+    "companyName":string,
+    "paymentGateway":string,
+    "apiKey":string,
+    "emailGateway": string,
+    "emailGatewayUser": string,
+    "emailGatewayPassword": string,
+    "contactPerson": string,
+    "contactPersonEmail":string,
+    "flowEmails": number,
+    "flowCalls": number,
+}
