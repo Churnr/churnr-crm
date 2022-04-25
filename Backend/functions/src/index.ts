@@ -82,7 +82,7 @@ app.post("/createcustomer", async (req, res) => {
 });
 
 app.post("/halloworld", async (req, res) => {
-  const result = sendMessage("Hallo World", "C03CJBT6AE5");
+  const result = await sendMessage("Hallo World", "C03CJBT6AE5");
   functions.logger.log("result", result);
   res.send(200).send("ay okay");
 });
