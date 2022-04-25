@@ -93,6 +93,12 @@ export function validateSlackSigningSecret(req:any, res:any, next:any) {
   const requestBody = qs.stringify(req.body, {format: "RFC1738"});
   const timestamp = req.headers["x-slack-request-timestamp"];
 
+  if (slackSigningSecret == undefined) {
+    functions.logger.warn("slackApp/halloworld",
+        "Slack Signing Secret missing from enviroment");
+    return res.status(500).send("Internal server error");
+  }
+
   if (requestSignature == undefined || timestamp == undefined) {
     return res.status(400).send("Verification failed");
   }
@@ -108,7 +114,7 @@ export function validateSlackSigningSecret(req:any, res:any, next:any) {
       Buffer.from(requestSignature, "utf8"))) {
     next();
   } else {
-    return res.status(400).send("Verification failed");
+    return res.status(403).send("Verification failed");
   }
 }
 
