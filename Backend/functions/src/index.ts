@@ -89,34 +89,18 @@ slackApp.post("/halloworld", async (req, res) => {
     text: "nice...",
     channel: "C03CJBT6AE5",
   };
-  const response = await slackUtils
-      .requestSlack("POST", "chat.postMessage", payload);
-  functions.logger.log("request", req);
-  functions.logger.log("response", response);
-  res.status(200).send("ay Okay");
-});
 
-slack.post("/halloworld", async (req, res) => {
-  if (await slackUtils.validateSlackSigningSecret(req)) {
-    const payload = {
-      text: "nice...",
-      channel: "C03CJBT6AE5",
-    };
-    const response = await slackUtils
-        .requestSlack("POST", "chat.postMessage", payload);
-    functions.logger.log("request", req);
-    functions.logger.log("response", response);
+  try {
+    await slackUtils.requestSlack("POST", "chat.postMessage", payload);
     res.status(200).send("ay Okay");
-  } else {
-    res.status(301).send("Unauthorized");
+  } catch (error) {
+    functions.logger.warn("slackApp/halloworld", error);
+    res.status(503).send("Service unavailable for now");
   }
 });
 
 exports.app = functions.https.onRequest(app);
 exports.slackApp = functions
-    .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
-    .https.onRequest(slackApp);
-exports.slack = functions
     .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
     .https.onRequest(slackApp);
 

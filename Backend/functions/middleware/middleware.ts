@@ -102,8 +102,7 @@ export function validateSlackSigningSecret(req:any, res:any, next:any) {
                    crypto.createHmac("sha256", slackSigningSecret)
                        .update(sigBasestring, "utf8")
                        .digest("hex");
-  functions.logger.log("mySignature", mySignature);
-  functions.logger.log("requestSignature", requestSignature);
+
   if (crypto.timingSafeEqual(
       Buffer.from(mySignature, "utf8"),
       Buffer.from(requestSignature, "utf8"))) {
