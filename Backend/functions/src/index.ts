@@ -84,6 +84,7 @@ app.post("/halloworld", async (req, res) => {
   const result = slackApp.publishMessage("Hallo World", "C03BZ4Z446A");
   functions.logger.log("something", result);
   console.log(req, res);
+  res.status(200).send();
 });
 exports.app = functions.https.onRequest(app);
 
