@@ -113,6 +113,6 @@ app.post("/createcustomer", async (req, res) => {
 
 app.post("/halloworld", async (req, res) => {
   console.log(req);
-  res.status(200);
+  res.status(200).send("ay okay");
 });
 exports.app = functions.https.onRequest(app);
