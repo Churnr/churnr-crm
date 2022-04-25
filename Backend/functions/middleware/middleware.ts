@@ -90,8 +90,6 @@ export function validateSlackSigningSecret(req:any, res:any, next:any) {
   const slackSigningSecret = process.env.SLACK_SIGNING_SECRET!;
   const requestSignature = req.headers["x-slack-signature"] as string;
   const requestTimestamp = req.headers["x-slack-request-timestamp"];
-  const requestBody = req.body();
-  
   const hmac = crypto.createHmac("sha256", slackSigningSecret);
 
   try {
