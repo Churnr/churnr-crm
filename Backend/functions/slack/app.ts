@@ -26,12 +26,13 @@ const conversationId = "C03BZ4Z446A";
  * Gets invoice ids from invoice collection from firestore
  * and push it to array of strings - invoiceIdArray
  * @param {string} text
- * @param {string} channel
+ * @param {string} channelId
  * @return {Array<string>} Array of invoice ids
  */
-export async function publishMessage(text:string, channel:string) {
+export async function publishMessage(text:string, channelId:string) {
   const result = await web.chat.postMessage({
-    text: "Hello world!",
-    channel: conversationId,
+    text: text,
+    channel: channelId,
   });
+  return result;
 }
