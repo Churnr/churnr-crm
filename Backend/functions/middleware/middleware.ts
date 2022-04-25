@@ -100,7 +100,6 @@ export function validateSlackSigningSecret(req:any, res:any, next:any) {
     hmac.update(base);
     functions.logger.log("hmac", hmac.digest("hex"));
     functions.logger.log("hash", hash);
-    tsscmp
     if (tsscmp(hash, hmac.digest("hex"))) {
       next();
       return;
