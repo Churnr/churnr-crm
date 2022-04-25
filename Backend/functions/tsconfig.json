@@ -7,7 +7,8 @@
     "strict": true,
     "lib": ["ES2020"],
     "module": "CommonJS",
-    "target": "ES2020"
+    "target": "ES2020",
+    "allowSyntheticDefaultImports": true
   },
   "compileOnSave": true,
   "include": [
