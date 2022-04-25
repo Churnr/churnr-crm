@@ -6,11 +6,12 @@ import * as customType from "../types/types";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import * as httpUtils from "../utils/httpUtils";
 // import * as cors from "cors";
-// import * as middleware from "../middleware/middleware";
+import * as middleware from "../middleware/middleware";
 import {requestSlack} from "../utils/slackUtils";
 import * as express from "express";
 const app = express();
-const slack = express();
+const slackApp = express();
+slackApp.use(middleware.validateSlackSigningSecret);
 admin.initializeApp();
 // const options2: cors.CorsOptions = {
 //   origin: "http://localhost:3000",
@@ -82,7 +83,7 @@ app.post("/createcustomer", async (req, res) => {
   }
 });
 
-slack.post("/halloworld", async (req, res) => {
+slackApp.post("/halloworld", async (req, res) => {
   const payload = {
     text: "nice...",
     channel: "C03CJBT6AE5",
@@ -94,7 +95,8 @@ slack.post("/halloworld", async (req, res) => {
 });
 
 exports.app = functions.https.onRequest(app);
-exports.slack = functions.runWith({secrets: ["SLACK_TOKEN"]})
-    .https.onRequest(slack);
+exports.slackApp = functions
+    .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
+    .https.onRequest(slackApp);
 
 

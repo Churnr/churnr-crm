@@ -1,4 +1,6 @@
 import * as admin from "firebase-admin";
+import * as crypto from "crypto";
+import tsscmp from "tsscmp";
 
 /**
  * Firebase auth id token validation middleware
@@ -74,5 +76,37 @@ export async function validateIpAddress(req:any, res:any, next:any) {
     console.error("Unauthorized:", error);
     res.status(403).send("Unauthorized");
     return;
+  }
+}
+/**
+ * pending
+ * @param {any}req Request object
+ * @param {any}res Response object
+ * @param {any}next Next object
+ * @return {any} return nothing
+ */
+export async function validateSlackSigningSecret(req:any, res:any, next:any) {
+  const slackSigningSecret = "your-signing-secret";
+
+  const requestSignature = req.headers["x-slack-signature"] as string;
+  const requestTimestamp = req.headers["x-slack-request-timestamp"];
+
+  const hmac = crypto.createHmac("sha256", slackSigningSecret);
+
+  try {
+    const [version, hash] = requestSignature.split("=");
+    const base = `${version}:${requestTimestamp}:${JSON.stringify(req.body)}`;
+    hmac.update(base);
+
+    if (tsscmp(hash, hmac.digest("hex"))) {
+      next();
+      return;
+    } else {
+      res.status(403).send("Unauthorized");
+      return;
+    }
+  } catch (error) {
+    console.error("Unauthorized:", error);
+    res.status(403).send("Unauthorized");
   }
 }
