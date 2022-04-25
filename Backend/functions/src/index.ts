@@ -10,6 +10,7 @@ import * as httpUtils from "../utils/httpUtils";
 import {requestSlack} from "../utils/slackUtils";
 import * as express from "express";
 const app = express();
+const slack = express();
 admin.initializeApp();
 // const options2: cors.CorsOptions = {
 //   origin: "http://localhost:3000",
@@ -81,27 +82,19 @@ app.post("/createcustomer", async (req, res) => {
   }
 });
 
-app.post("/halloworld", async (req, res) => {
+slack.post("/halloworld", async (req, res) => {
   const payload = {
     text: "nice...",
     channel: "C03CJBT6AE5",
   };
   const response = await requestSlack("POST", "chat.postMessage", payload);
+  functions.logger.log("request", req);
   functions.logger.log("response", response);
   res.status(200).send("ay Okay");
 });
 
-exports.halloworld = functions.runWith({secrets: ["SLACK_TOKEN"]})
-    .https.onRequest(async (req, res) => {
-      const payload = {
-        text: "nice...",
-        channel: "C03CJBT6AE5",
-      };
-      const response = await requestSlack("POST", "chat.postMessage", payload);
-      functions.logger.log("response", response);
-      res.status(200).send("ay Okay");
-    });
-
 exports.app = functions.https.onRequest(app);
+exports.slack = functions.runWith({secrets: ["SLACK_TOKEN"]})
+    .https.onRequest(slack);
 
 
