@@ -33,6 +33,7 @@ export async function publishMessage(text:string, channelId:string) {
   const token = process.env.SLACK_TOKEN;
   const web = new slack.WebClient(token);
   const result = await web.chat.postMessage({
+    token: token,
     text: text,
     channel: channelId,
   });
