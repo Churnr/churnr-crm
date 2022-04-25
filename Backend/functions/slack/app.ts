@@ -30,6 +30,8 @@ const conversationId = "C03BZ4Z446A";
  * @return {Array<string>} Array of invoice ids
  */
 export async function publishMessage(text:string, channelId:string) {
+  const token = process.env.SLACK_TOKEN;
+  const web = new slack.WebClient(token);
   const result = await web.chat.postMessage({
     text: text,
     channel: channelId,
