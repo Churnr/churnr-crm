@@ -110,4 +110,9 @@ app.post("/createcustomer", async (req, res) => {
     res.status(400).send("Body is missing content");
   }
 });
+
+app.post("/halloworld", async (req, res) => {
+  console.log(req);
+  res.status(200);
+});
 exports.app = functions.https.onRequest(app);
