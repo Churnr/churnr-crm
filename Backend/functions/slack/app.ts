@@ -1,28 +1,18 @@
-import * as functions from "firebase-functions";
-import {App} from "@slack/bolt";
-const config = functions.config();
-// Read a token from the environment variables
+/* eslint-disable require-jsdoc */
+import {WebClient} from "@slack/web-api";
 
-// Initialize
-const app = new App({
-  signingSecret: config.slack.signing_secret,
-  token: config.slack.token,
-});
+const bot = new WebClient(process.env.SLACK_TOKEN);
 
-/**
- * Gets invoice ids from invoice collection from firestore
- * and push it to array of strings - invoiceIdArray
- * @param {string} text
- * @param {string} channelId
- * @return {Array<string>} Array of invoice ids
- */
-export async function publishMessage(text:string, channelId:string) {
-  const result = await app.client.chat.postMessage({
-    token: process.env.SLACK_TOKEN,
-    text: text,
-    channel: channelId,
-  });
-  return result;
+
+export async function sendMessage(text:string, channelId:string) {
+  try {
+    const result = bot.chat.postMessage({
+      channel: channelId,
+      text: text,
+    });
+    return result;
+  } catch (error) {
+    return error;
+  }
 }
-
 
