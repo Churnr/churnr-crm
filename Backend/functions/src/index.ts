@@ -97,7 +97,6 @@ slackApp.post("/halloworld", async (req, res) => {
 });
 
 slack.post("/halloworld", async (req, res) => {
-  functions.logger.log("request", slackUtils.validateSlackSigningSecret(req));
   if (await slackUtils.validateSlackSigningSecret(req)) {
     const payload = {
       text: "nice...",

@@ -1,6 +1,7 @@
 import * as admin from "firebase-admin";
 import tsscmp from "tsscmp";
 import * as crypto from "crypto";
+import * as functions from "firebase-functions";
 
 /**
  * Firebase auth id token validation middleware
@@ -95,6 +96,9 @@ export function validateSlackSigningSecret(req:any, res:any, next:any) {
 
   try {
     const [version, hash] = requestSignature.split("=");
+    functions.logger.log("version", version);
+    functions.logger.log("requestTimestamp", requestTimestamp);
+    functions.logger.log("req.body", JSON.stringify(req.body));
     const base = `${version}:${requestTimestamp}:${JSON.stringify(req.body)}`;
     hmac.update(base);
 
