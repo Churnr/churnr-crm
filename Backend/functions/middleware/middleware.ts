@@ -1,6 +1,6 @@
 import * as admin from "firebase-admin";
-import * as crypto from "crypto";
 import tsscmp from "tsscmp";
+import * as crypto from "crypto";
 
 /**
  * Firebase auth id token validation middleware
@@ -78,14 +78,14 @@ export async function validateIpAddress(req:any, res:any, next:any) {
     return;
   }
 }
+
 /**
  * pending
  * @param {any}req Request object
  * @param {any}res Response object
  * @param {any}next Next object
- * @return {any} return nothing
  */
-export async function validateSlackSigningSecret(req:any, res:any, next:any) {
+export function validateSlackSigningSecret(req:any, res:any, next:any) {
   const slackSigningSecret = "your-signing-secret";
 
   const requestSignature = req.headers["x-slack-signature"] as string;

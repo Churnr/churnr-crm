@@ -6,12 +6,13 @@ import * as customType from "../types/types";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import * as httpUtils from "../utils/httpUtils";
 // import * as cors from "cors";
-// import * as middleware from "../middleware/middleware";
-import {requestSlack} from "../utils/slackUtils";
+import * as middleware from "../middleware/middleware";
+import * as slackUtils from "../utils/slackUtils";
 import * as express from "express";
 const app = express();
 const slackApp = express();
-// slackApp.use(middleware.validateSlackSigningSecret);
+const slack = express();
+slackApp.use(middleware.validateSlackSigningSecret);
 admin.initializeApp();
 // const options2: cors.CorsOptions = {
 //   origin: "http://localhost:3000",
@@ -88,14 +89,34 @@ slackApp.post("/halloworld", async (req, res) => {
     text: "nice...",
     channel: "C03CJBT6AE5",
   };
-  const response = await requestSlack("POST", "chat.postMessage", payload);
+  const response = await slackUtils
+      .requestSlack("POST", "chat.postMessage", payload);
   functions.logger.log("request", req);
   functions.logger.log("response", response);
   res.status(200).send("ay Okay");
 });
 
+slack.post("/halloworld", async (req, res) => {
+  if (slackUtils.validateSlackSigningSecret(req)) {
+    const payload = {
+      text: "nice...",
+      channel: "C03CJBT6AE5",
+    };
+    const response = await slackUtils
+        .requestSlack("POST", "chat.postMessage", payload);
+    functions.logger.log("request", req);
+    functions.logger.log("response", response);
+    res.status(200).send("ay Okay");
+  } else {
+    res.status(301).send("Unauthorized");
+  }
+});
+
 exports.app = functions.https.onRequest(app);
 exports.slackApp = functions
+    .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
+    .https.onRequest(slackApp);
+exports.slack = functions
     .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
     .https.onRequest(slackApp);
 
