@@ -1,5 +1,4 @@
 import * as admin from "firebase-admin";
-import tsscmp from "tsscmp";
 import * as crypto from "crypto";
 import * as functions from "firebase-functions";
 import * as qs from "qs";
