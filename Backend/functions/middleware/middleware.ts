@@ -88,6 +88,7 @@ export async function validateIpAddress(req:any, res:any, next:any) {
  */
 export function validateSlackSigningSecret(req:any, res:any, next:any) {
   const slackSigningSecret = process.env.SLACK_SIGNING_SECRET!;
+  functions.logger.log("s", process.env.SLACK_SIGNING_SECRET);
   const requestSignature = req.headers["x-slack-signature"] as string;
   const requestTimestamp = req.headers["x-slack-request-timestamp"];
   const hmac = crypto.createHmac("sha256", slackSigningSecret);
