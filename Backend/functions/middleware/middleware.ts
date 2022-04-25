@@ -87,7 +87,7 @@ export async function validateIpAddress(req:any, res:any, next:any) {
  * @param {any}next Next object
  */
 export function validateSlackSigningSecret(req:any, res:any, next:any) {
-  const slackSigningSecret = "your-signing-secret";
+  const slackSigningSecret = process.env.SLACK_SIGNING_SECRET!;
 
   const requestSignature = req.headers["x-slack-signature"] as string;
   const requestTimestamp = req.headers["x-slack-request-timestamp"];
@@ -112,3 +112,31 @@ export function validateSlackSigningSecret(req:any, res:any, next:any) {
     res.status(403).send("Unauthorized");
   }
 }
+
+
+// export function validateSlackSigningSecret(req:any, res:any, next:any) {
+//   const slackSigningSecret = "your-signing-secret";
+
+//   const requestSignature = req.headers["x-slack-signature"] as string;
+//   const requestTimestamp = req.headers["x-slack-request-timestamp"];
+
+//   const hmac = crypto.createHmac("sha256", slackSigningSecret);
+
+//   try {
+//     const [version, hash] = requestSignature.split("=");
+// const base = `${version}:${requestTimestamp}:${JSON.stringify(req.body)}`;
+//     hmac.update(base);
+//     functions.logger.log("hmac", hmac.digest("hex"));
+//     functions.logger.log("hash", hash);
+//     if (tsscmp(hash, hmac.digest("hex"))) {
+//       next();
+//       return;
+//     } else {
+//       res.status(403).send("Unauthorized");
+//       return;
+//     }
+//   } catch (error) {
+//     console.error("Unauthorized:", error);
+//     res.status(403).send("Unauthorized");
+//   }
+// }
