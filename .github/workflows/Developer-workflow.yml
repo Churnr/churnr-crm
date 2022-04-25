@@ -11,6 +11,8 @@ env:
   REACT_APP_MESSAGE_SENDER_ID: ${{ secrets.DEV_REACT_APP_MESSAGE_SENDER_ID }}
   REACT_APP_APP_ID: ${{ secrets.DEV_REACT_APP_APP_ID }}
   REACT_APP_MEASERUMENT_ID: ${{ secrets.DEV_REACT_APP_MEASERUMENT_ID }}
+  SLACK_SIGNING_SECRET: ${{secrets.SLACK_SIGNING_SECRET}}
+  SLACK_TOKEN: ${{secrets.SLACK_TOKEN}}
 
 jobs:
   Build-And-Deploy-Backend-Dev:
@@ -35,6 +37,12 @@ jobs:
         if: steps.changes.outputs.backend == 'true'
         run: npm run test
         working-directory: ./Backend/functions
+      - name: installing firebase
+        run: npm install -g firebase-tools
+      - name: Set slack.signing_secret
+        run: firebase functions:config:set slack.signing_secret=${{secrets.SLACK_SIGNING_SECRET}}
+      - name: Set slack.bot_token
+        run: firebase functions:config:set slack.bot_token=${{secrets.SLACK_TOKEN}}
       - name: 'If Backend Changed: Deploy to Firebase'
         if: steps.changes.outputs.backend == 'true'
         uses: w9jds/firebase-action@master
@@ -42,8 +50,6 @@ jobs:
           args: deploy --only functions
         env:
           FIREBASE_TOKEN: ${{ secrets.DEV_FIREBASE_TOKEN }}
-          SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
-          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
           PROJECT_ID: churnr-system-development
               
   Build-And-Deploy-Frontend-Dev:
