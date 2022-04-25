@@ -81,10 +81,10 @@ app.post("/createcustomer", async (req, res) => {
 });
 
 app.post("/halloworld", async (req, res) => {
-  const result = slackApp.publishMessage("Hallo World", "C03BZ4Z446A");
+  const result = slackApp.publishMessage("Hallo World", "C03CJBT6AE5");
   functions.logger.log("something", result);
   console.log(req, res);
-  res.status(200).send();
+  res.status(200).send("test");
 });
 exports.app = functions.https.onRequest(app);
 
