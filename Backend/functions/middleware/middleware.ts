@@ -96,12 +96,11 @@ export function validateSlackSigningSecret(req:any, res:any, next:any) {
 
   try {
     const [version, hash] = requestSignature.split("=");
-    functions.logger.log("version", version);
-    functions.logger.log("requestTimestamp", requestTimestamp);
-    functions.logger.log("req.body", JSON.stringify(req.body));
     const base = `${version}:${requestTimestamp}:${JSON.stringify(req.body)}`;
     hmac.update(base);
-
+    functions.logger.log("hmac", hmac.digest("hex"));
+    functions.logger.log("hash", hash);
+    tsscmp
     if (tsscmp(hash, hmac.digest("hex"))) {
       next();
       return;
