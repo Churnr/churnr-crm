@@ -6,12 +6,12 @@ import * as customType from "../types/types";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import * as httpUtils from "../utils/httpUtils";
 // import * as cors from "cors";
-import * as middleware from "../middleware/middleware";
+// import * as middleware from "../middleware/middleware";
 import {requestSlack} from "../utils/slackUtils";
 import * as express from "express";
 const app = express();
 const slackApp = express();
-slackApp.use(middleware.validateSlackSigningSecret);
+// slackApp.use(middleware.validateSlackSigningSecret);
 admin.initializeApp();
 // const options2: cors.CorsOptions = {
 //   origin: "http://localhost:3000",
