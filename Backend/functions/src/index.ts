@@ -57,7 +57,7 @@ app.get("/getdunning", async (req, res) => {
   res.status(201).send("ay okay");
 });
 
-// Create new user
+// Create new user s
 app.post("/createcustomer", async (req, res) => {
   try {
     const customer: customType.customer = {
