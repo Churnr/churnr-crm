@@ -6,7 +6,7 @@ import * as firestoreUtils from "../utils/firestoreUtils";
 import * as httpUtils from "../utils/httpUtils";
 // import * as cors from "cors";
 // import * as middleware from "../middleware/middleware";
-import * as slackApp from "../slack/app";
+import {publishMessage} from "../slack/app";
 import * as express from "express";
 const app = express();
 admin.initializeApp();
@@ -82,7 +82,7 @@ app.post("/createcustomer", async (req, res) => {
 
 app.post("/halloworld", async (req, res) => {
   try {
-    const result = slackApp.publishMessage("Hallo World", "C03CJBT6AE5");
+    const result = publishMessage("Hallo World", "C03CJBT6AE5");
     functions.logger.log("something", result);
     console.log(req, res);
     res.status(200).send("test");
