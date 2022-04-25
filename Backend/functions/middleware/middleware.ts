@@ -92,6 +92,11 @@ export function validateSlackSigningSecret(req:any, res:any, next:any) {
   const requestSignature = req.headers["x-slack-signature"];
   const requestBody = qs.stringify(req.body, {format: "RFC1738"});
   const timestamp = req.headers["x-slack-request-timestamp"];
+
+  if (requestSignature == undefined || timestamp == undefined) {
+    return res.status(400).send("Verification failed");
+  }
+
   const sigBasestring = "v0:" + timestamp + ":" + requestBody;
   const mySignature = "v0=" +
                    crypto.createHmac("sha256", slackSigningSecret)
