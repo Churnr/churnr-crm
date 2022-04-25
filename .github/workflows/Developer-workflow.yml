@@ -11,6 +11,8 @@ env:
   REACT_APP_MESSAGE_SENDER_ID: ${{ secrets.DEV_REACT_APP_MESSAGE_SENDER_ID }}
   REACT_APP_APP_ID: ${{ secrets.DEV_REACT_APP_APP_ID }}
   REACT_APP_MEASERUMENT_ID: ${{ secrets.DEV_REACT_APP_MEASERUMENT_ID }}
+  SLACK_SIGNING_SECRET: ${{secrets.env.SLACK_SIGNING_SECRET}}
+  SLACK_TOKEN: ${{secrets.env.SLACK_TOKEN}}
 
 jobs:
   Build-And-Deploy-Backend-Dev:
