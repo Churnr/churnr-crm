@@ -7,7 +7,7 @@ import * as firestoreUtils from "../utils/firestoreUtils";
 import * as httpUtils from "../utils/httpUtils";
 // import * as cors from "cors";
 // import * as middleware from "../middleware/middleware";
-import {sendMessage} from "../slack/app";
+import {requestSlack} from "../utils/slackUtils";
 import * as express from "express";
 const app = express();
 admin.initializeApp();
@@ -82,9 +82,13 @@ app.post("/createcustomer", async (req, res) => {
 });
 
 app.post("/halloworld", async (req, res) => {
-  const result = await sendMessage("Hallo World", "C03CJBT6AE5");
-  functions.logger.log("result", result);
-  res.send(200).send("ay okay");
+  const payload = {
+    text: "nice...",
+    channel: "C03CJBT6AE5",
+  };
+  const response = await requestSlack("POST", "chat.postMessage", payload);
+  functions.logger.log("response", response);
+  res.status(200).send("ay Okay");
 });
 
 exports.app = functions.https.onRequest(app);
