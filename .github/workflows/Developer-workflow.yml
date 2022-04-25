@@ -37,6 +37,10 @@ jobs:
         if: steps.changes.outputs.backend == 'true'
         run: npm run test
         working-directory: ./Backend/functions
+      - name: Set slack.signing_secret
+        run: firebase functions:config:set slack.signing_secret=${{secrets.SLACK_SIGNING_SECRET}}
+      - name: Set slack.bot_token
+        run: firebase functions:config:set slack.bot_token=${{secrets.SLACK_TOKEN}}
       - name: 'If Backend Changed: Deploy to Firebase'
         if: steps.changes.outputs.backend == 'true'
         uses: w9jds/firebase-action@master

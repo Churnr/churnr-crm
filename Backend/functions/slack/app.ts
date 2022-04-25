@@ -1,10 +1,12 @@
+import * as functions from "firebase-functions";
 import {App} from "@slack/bolt";
+const config = functions.config();
 // Read a token from the environment variables
 
 // Initialize
 const app = new App({
-  signingSecret: process.env.SLACK_SIGNING_SECRET,
-  token: process.env.SLACK_TOKEN,
+  signingSecret: config.slack.signing_secret,
+  token: config.slack.bot_token,
 });
 
 /**
