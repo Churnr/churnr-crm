@@ -66,10 +66,10 @@ slackApp.post("/createcustomer", async (req, res) => {
   const data = Buffer.from(JSON.stringify(req.body));
   await slackUtils.slackAcknowledgmentResponse(req, "Request recived");
   await pubsubClient.topic("create-customer").publish(data);
-  res.status(200).send("Created new Customer");
+  res.status(200).send("Handling process: Create Customer");
 });
 
-exports.helloPubSub = functions.pubsub.topic("create-customer").onPublish(async (message) => {
+exports.createCustomer = functions.pubsub.topic("create-customer").onPublish(async (message) => {
   const data = JSON.parse(Buffer.from(message.data, "base64").toString("utf-8"));
   const customer = await slackUtils.retriveCustomerInfoFromSlackReq(data.text);
   await firestoreUtils.addCustomerToFirestore(customer, customer.companyName);
