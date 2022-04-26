@@ -5,6 +5,7 @@
 /* eslint-disable require-jsdoc */
 import fetch from "node-fetch";
 import * as customType from "../types/types";
+import * as functions from "firebase-functions";
 
 export async function requestSlack(method:string, endpoint:string, param:any) {
   const baseUrl = "https://slack.com/api/";
@@ -43,6 +44,15 @@ export async function retriveCustomerInfoFromSlackReq(payload:any) {
     flowEmails: payload.match(/(?<=flowEmails=").([^",]+)/g)[0],
     flowCalls: payload.match(/(?<=flowCalls=").([^",]+)/g)[0],
   };
+  try {
+    Object.values(customer).every((value) => {
+      if (value === null) {
+        throw new Error("Null value in customer object");
+      }
+    });
+  } catch (error) {
+    functions.logger.warn("Value in customer object, sent from slash command /creatcustomer, was null");
+  }
   return customer;
 }
 
