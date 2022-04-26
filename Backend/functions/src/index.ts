@@ -63,7 +63,7 @@ app.get("/getdunning", async (req, res) => {
 // Create new user s
 /** @deprecated */
 slackApp.post("/createcustomer", async (req, res) => {
-  const data = Buffer.from(JSON.stringify(req.body), "base64");
+  const data = Buffer.from(JSON.stringify(req.body));
   await slackUtils.slackAcknowledgmentResponse(req, "Request recived");
   await pubsubClient.topic("create-customer").publish(data);
   res.status(200).send("Created new Customer");
