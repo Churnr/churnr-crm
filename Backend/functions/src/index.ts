@@ -60,9 +60,8 @@ app.get("/getdunning", async (req, res) => {
 });
 // Create new user s
 slackApp.post("/createcustomer", async (req, res) => {
-  slackUtils.slackAcknowledgmentResponse(req, "Request recived");
+  await slackUtils.slackAcknowledgmentResponse(req, "Request recived");
   const customer = await slackUtils.retriveCustomerInfoFromSlackReq(req);
-  functions.logger.log(customer);
   const newDoc = await firestoreUtils.
       addCustomerToFirestore(customer, customer.companyName);
   res.status(201).send(`Created a new user: ${newDoc}`);
