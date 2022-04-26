@@ -69,11 +69,17 @@ slackApp.post("/createcustomer", async (req, res) => {
   res.status(200).send("Handling process: Create Customer");
 });
 
-exports.createCustomer = functions.pubsub.topic("create-customer").onPublish(async (message) => {
+exports.createCustomer = functions.pubsub.topic("create-customer").onPublish((message) => {
   const data = JSON.parse(Buffer.from(message.data, "base64").toString("utf-8"));
   try {
-    const customer = await slackUtils.retriveCustomerInfoFromSlackReq(data.text);
-    await firestoreUtils.addCustomerToFirestore(customer, customer.companyName);
+    const customer = slackUtils.retriveCustomerInfoFromSlackReq(data.text);
+    firestoreUtils.addCustomerToFirestore(customer, customer.companyName);
+
+    const payload = {
+      text: `${customer.companyName} was added to the customer database.`,
+      channel: "C03CJBT6AE5",
+    };
+    slackUtils.requestSlack("POST", "chat.postMessage", payload);
   } catch (error) {
     functions.logger.error("pubsub topic(create-customer): ", error);
   }
