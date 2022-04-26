@@ -34,15 +34,15 @@ export async function requestSlack(method:string, endpoint:string, param:any) {
 export async function retriveCustomerInfoFromSlackReq(req:any) {
   const payload = req.body.text;
   const customer: customType.customer = {
-    companyName: payload.match(/(?<=companyName=").([^",]+)/g),
-    paymentGateway: payload.match(/(?<=paymentGateway=").([^",]+)/g),
-    apiKey: payload.match(/(?<=apiKey=").([^",]+)/g),
-    emailGateway: payload.match(/(?<=emailGateway=").([^",]+)/g),
-    emailGatewayUser: payload.match(/(?<=emailGatewayUser=").([^",]+)/g),
-    emailGatewayPassword: payload.match(/(?<=emailGatewayPassword=").([^",]+)/g),
-    contactPerson: payload.match(/(?<=contactPerson=").([^",]+)/g),
-    flowEmails: payload.match(/(?<=flowEmails=").([^",]+)/g),
-    flowCalls: payload.match(/(?<=flowCalls=").([^",]+)/g),
+    companyName: payload.match(/(?<=companyName=").([^",]+)/g)[0],
+    paymentGateway: payload.match(/(?<=paymentGateway=").([^",]+)/g)[0],
+    apiKey: payload.match(/(?<=apiKey=").([^",]+)/g)[0],
+    emailGateway: payload.match(/(?<=emailGateway=").([^",]+)/g)[0],
+    emailGatewayUser: payload.match(/(?<=emailGatewayUser=").([^",]+)/g)[0],
+    emailGatewayPassword: payload.match(/(?<=emailGatewayPassword=").([^",]+)/g)[0],
+    contactPerson: payload.match(/(?<=contactPerson=").([^",]+)/g)[0],
+    flowEmails: payload.match(/(?<=flowEmails=").([^",]+)/g)[0],
+    flowCalls: payload.match(/(?<=flowCalls=").([^",]+)/g)[0],
   };
   return customer;
 }
