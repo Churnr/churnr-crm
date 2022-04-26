@@ -31,8 +31,7 @@ export async function requestSlack(method:string, endpoint:string, param:any) {
   return response;
 }
 
-export async function retriveCustomerInfoFromSlackReq(req:any) {
-  const payload = req.body.text;
+export async function retriveCustomerInfoFromSlackReq(payload:any) {
   const customer: customType.customer = {
     companyName: payload.match(/(?<=companyName=").([^",]+)/g)[0],
     paymentGateway: payload.match(/(?<=paymentGateway=").([^",]+)/g)[0],

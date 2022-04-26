@@ -71,7 +71,7 @@ slackApp.post("/createcustomer", async (req, res) => {
 
 exports.helloPubSub = functions.pubsub.topic("create-customer").onPublish(async (message) => {
   const data = JSON.parse(Buffer.from(message.data, "base64").toString("utf-8"));
-  const customer = await slackUtils.retriveCustomerInfoFromSlackReq(data);
+  const customer = await slackUtils.retriveCustomerInfoFromSlackReq(data.text);
   await firestoreUtils.addCustomerToFirestore(customer, customer.companyName);
 });
 
