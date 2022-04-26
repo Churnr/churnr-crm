@@ -61,11 +61,14 @@ app.get("/getdunning", async (req, res) => {
 // Create new user s
 slackApp.post("/createcustomer", async (req, res) => {
   await slackUtils.slackAcknowledgmentResponse(req, "Request recived");
-  const customer = await slackUtils.retriveCustomerInfoFromSlackReq(req);
+  const customer = await slackUtils
+      .retriveCustomerInfoFromSlackReq(context);
   const newDoc = await firestoreUtils.
       addCustomerToFirestore(customer, customer.companyName);
-  res.status(201).send(`Created a new user: ${newDoc}`);
+  functions.logger.log(newDoc);
+  res.status(200).send(`Created a new user: ${newDoc}`);
 });
+
 
 slackApp.post("/halloworld", async (req, res) => {
   const payload = {
