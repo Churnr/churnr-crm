@@ -47,3 +47,20 @@ export async function retriveCustomerInfoFromSlackReq(req:any) {
   return customer;
 }
 
+export async function slackAcknowledgmentResponse(req:any, responseText:string) {
+  const responseUrl = req.body.response_url;
+  const headers = {
+    "Authorization": "Bearer " + process.env.SLACK_TOKEN,
+    "Content-type": "application/json",
+  };
+  const options = {
+    headers: headers,
+    method: "POST",
+    body: JSON.stringify({
+      text: responseText,
+    }),
+  };
+  const response = await fetch(responseUrl, options);
+  return response;
+}
+
