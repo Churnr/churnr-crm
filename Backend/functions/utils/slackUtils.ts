@@ -4,6 +4,7 @@
 /* eslint-disable max-len */
 /* eslint-disable require-jsdoc */
 import fetch from "node-fetch";
+import * as customType from "../types/types";
 
 export async function requestSlack(method:string, endpoint:string, param:any) {
   const baseUrl = "https://slack.com/api/";
@@ -29,3 +30,20 @@ export async function requestSlack(method:string, endpoint:string, param:any) {
 
   return response;
 }
+
+export async function retriveCustomerInfoFromSlackReq(req:any) {
+  const payload = req.body.text;
+  const customer: customType.customer = {
+    companyName: payload.match(/(?<=companyName=").([^",]+)/g),
+    paymentGateway: payload.match(/(?<=paymentGateway=").([^",]+)/g),
+    apiKey: payload.match(/(?<=apiKey=").([^",]+)/g),
+    emailGateway: payload.match(/(?<=emailGateway=").([^",]+)/g),
+    emailGatewayUser: payload.match(/(?<=emailGatewayUser=").([^",]+)/g),
+    emailGatewayPassword: payload.match(/(?<=emailGatewayPassword=").([^",]+)/g),
+    contactPerson: payload.match(/(?<=contactPerson=").([^",]+)/g),
+    flowEmails: payload.match(/(?<=flowEmails=").([^",]+)/g),
+    flowCalls: payload.match(/(?<=flowCalls=").([^",]+)/g),
+  };
+  return customer;
+}
+

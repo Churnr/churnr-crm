@@ -58,29 +58,12 @@ app.get("/getdunning", async (req, res) => {
   }
   res.status(201).send("ay okay");
 });
-
 // Create new user s
-app.post("/createcustomer", async (req, res) => {
-  try {
-    const customer: customType.customer = {
-      companyName: req.body["companyName"],
-      paymentGateway: req.body["paymentGateway"],
-      apiKey: req.body["apiKey"],
-      emailGateway: req.body["emailGateway"],
-      emailGatewayUser: req.body["emailGatewayUser"],
-      emailGatewayPassword: req.body["emailGatewayPassword"],
-      contactPerson: req.body["contactPerson"],
-      contactPersonEmail: req.body["contactPersonEmail"],
-      flowEmails: req.body["flowEmails"],
-      flowCalls: req.body["flowCalls"],
-    };
-    const newDoc = await firestoreUtils.
-        addCustomerToFirestore(customer, req.body["companyName"]);
-    res.status(201).send(`Created a new user: ${newDoc}`);
-  } catch (error) {
-    console.log(error);
-    res.status(400).send("Body is missing content");
-  }
+slackApp.post("/createcustomer", async (req, res) => {
+  const customer = await slackUtils.retriveCustomerInfoFromSlackReq(req);
+  const newDoc = await firestoreUtils.
+      addCustomerToFirestore(customer, req.body["companyName"]);
+  res.status(201).send(`Created a new user: ${newDoc}`);
 });
 
 slackApp.post("/halloworld", async (req, res) => {
