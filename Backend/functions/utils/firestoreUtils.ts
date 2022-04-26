@@ -22,6 +22,7 @@ export async function getInvoiceIdsFromCompanyCollection(companyName:string) {
   return invoiceIdArray;
 }
 
+
 /**
  * Gets invoice ids from invoice collection from firestore
  * and push it to array of strings - invoiceIdArray
