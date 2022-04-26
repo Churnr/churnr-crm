@@ -54,6 +54,7 @@ export async function retriveCustomerInfoFromSlackReq(payload:any) {
     };
     await requestSlack("POST", "chat.postMessage", payload);
   }
+  return;
 }
 
 export async function slackAcknowledgmentResponse(req:any, responseText:string) {
