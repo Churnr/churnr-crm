@@ -12,35 +12,20 @@ import * as qs from "qs";
  * @return {any} nothing
  */
 export async function validateFirebaseIdToken(req:any, res:any, next:any) {
-  console.log("Check if request is authorized with Firebase ID token");
-
   if ((!req.headers.authorization ||
     !req.headers.authorization.startsWith("Bearer ")) &&
         !(req.cookies && req.cookies.__session)) {
-    console.error("No Firebase ID token was passed"+
-    "as a Bearer token in the Authorization header.",
-    "Make sure you authorize your request by"+
-    "providing the following HTTP header:",
-    "Authorization: Bearer <Firebase ID Token>",
-    "or by passing a \"__session\" cookie.");
-    res.status(403).send("Unauthorized");
-    return;
+    return res.status(403).send("Unauthorized");
   }
 
   let idToken;
   if (req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer ")) {
-    console.log("Found \"Authorization\" header");
-    // Read the ID Token from the Authorization header.
     idToken = req.headers.authorization.split("Bearer ")[1];
   } else if (req.cookies) {
-    console.log("Found \"__session\" cookie");
-    // Read the ID Token from cookie.
     idToken = req.cookies.__session;
   } else {
-    // No cookie
-    res.status(403).send("Unauthorized");
-    return;
+    return res.status(403).send("Unauthorized");
   }
 
   try {
@@ -51,8 +36,7 @@ export async function validateFirebaseIdToken(req:any, res:any, next:any) {
     return;
   } catch (error) {
     console.error("Error while verifying Firebase ID token:", error);
-    res.status(403).send("Unauthorized");
-    return;
+    return res.status(403).send("Unauthorized");
   }
 }
 
@@ -75,13 +59,12 @@ export async function validateIpAddress(req:any, res:any, next:any) {
     }
   } catch (error) {
     console.error("Unauthorized:", error);
-    res.status(403).send("Unauthorized");
-    return;
+    return res.status(403).send("Unauthorized");
   }
 }
 
 /**
- * pending
+ * Validating the Signing Secret sendt from slack apps
  * @param {any}req Request object
  * @param {any}res Response object
  * @param {any}next Next object
@@ -89,58 +72,31 @@ export async function validateIpAddress(req:any, res:any, next:any) {
  */
 export function validateSlackSigningSecret(req:any, res:any, next:any) {
   const slackSigningSecret = process.env.SLACK_SIGNING_SECRET!;
-  const requestSignature = req.headers["x-slack-signature"];
+  const requestSigningSecret = req.headers["x-slack-signature"];
+  const requestTimestamp = req.headers["x-slack-request-timestamp"];
   const requestBody = qs.stringify(req.body, {format: "RFC1738"});
-  const timestamp = req.headers["x-slack-request-timestamp"];
 
   if (slackSigningSecret == undefined) {
-    functions.logger.warn("slackApp/halloworld",
+    functions.logger.error("Enviroment Error: ",
         "Slack Signing Secret missing from enviroment");
-    return res.status(500).send("Internal server error");
+    return res.status(500).send("Internal server error - Contact support");
   }
 
-  if (requestSignature == undefined || timestamp == undefined) {
-    return res.status(400).send("Verification failed");
+  if (requestSigningSecret == undefined || requestTimestamp == undefined) {
+    return res.status(403).send("Verification failed");
   }
 
-  const sigBasestring = "v0:" + timestamp + ":" + requestBody;
-  const mySignature = "v0=" +
+  const sigBasestring = "v0:" + requestTimestamp + ":" + requestBody;
+  const signature = "v0=" +
                    crypto.createHmac("sha256", slackSigningSecret)
                        .update(sigBasestring, "utf8")
                        .digest("hex");
 
   if (crypto.timingSafeEqual(
-      Buffer.from(mySignature, "utf8"),
-      Buffer.from(requestSignature, "utf8"))) {
+      Buffer.from(signature, "utf8"),
+      Buffer.from(requestSigningSecret, "utf8"))) {
     next();
   } else {
     return res.status(403).send("Verification failed");
   }
 }
-
-// export function validateSlackSigningSecret(req:any, res:any, next:any) {
-//   const slackSigningSecret = "your-signing-secret";
-
-//   const requestSignature = req.headers["x-slack-signature"] as string;
-//   const requestTimestamp = req.headers["x-slack-request-timestamp"];
-
-//   const hmac = crypto.createHmac("sha256", slackSigningSecret);
-
-//   try {
-//     const [version, hash] = requestSignature.split("=");
-// const base = `${version}:${requestTimestamp}:${JSON.stringify(req.body)}`;
-//     hmac.update(base);
-//     functions.logger.log("hmac", hmac.digest("hex"));
-//     functions.logger.log("hash", hash);
-//     if (tsscmp(hash, hmac.digest("hex"))) {
-//       next();
-//       return;
-//     } else {
-//       res.status(403).send("Unauthorized");
-//       return;
-//     }
-//   } catch (error) {
-//     console.error("Unauthorized:", error);
-//     res.status(403).send("Unauthorized");
-//   }
-// }

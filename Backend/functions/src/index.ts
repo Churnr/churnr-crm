@@ -11,7 +11,6 @@ import * as slackUtils from "../utils/slackUtils";
 import * as express from "express";
 const app = express();
 const slackApp = express();
-const slack = express();
 slackApp.use(middleware.validateSlackSigningSecret);
 admin.initializeApp();
 // const options2: cors.CorsOptions = {
