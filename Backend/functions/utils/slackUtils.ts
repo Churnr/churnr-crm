@@ -33,27 +33,27 @@ export async function requestSlack(method:string, endpoint:string, param:any) {
 }
 
 export async function retriveCustomerInfoFromSlackReq(payload:any) {
-  const customer: customType.customer = {
-    companyName: payload.match(/(?<=companyName=").([^",]+)/g)[0],
-    paymentGateway: payload.match(/(?<=paymentGateway=").([^",]+)/g)[0],
-    apiKey: payload.match(/(?<=apiKey=").([^",]+)/g)[0],
-    emailGateway: payload.match(/(?<=emailGateway=").([^",]+)/g)[0],
-    emailGatewayUser: payload.match(/(?<=emailGatewayUser=").([^",]+)/g)[0],
-    emailGatewayPassword: payload.match(/(?<=emailGatewayPassword=").([^",]+)/g)[0],
-    contactPerson: payload.match(/(?<=contactPerson=").([^",]+)/g)[0],
-    flowEmails: payload.match(/(?<=flowEmails=").([^",]+)/g)[0],
-    flowCalls: payload.match(/(?<=flowCalls=").([^",]+)/g)[0],
-  };
   try {
-    Object.values(customer).every((value) => {
-      if (value === null) {
-        throw new Error("Null value in customer object");
-      }
-    });
+    const customer: customType.customer = {
+      companyName: payload.match(/(?<=companyName=").([^",]+)/g)[0],
+      paymentGateway: payload.match(/(?<=paymentGateway=").([^",]+)/g)[0],
+      apiKey: payload.match(/(?<=apiKey=").([^",]+)/g)[0],
+      emailGateway: payload.match(/(?<=emailGateway=").([^",]+)/g)[0],
+      emailGatewayUser: payload.match(/(?<=emailGatewayUser=").([^",]+)/g)[0],
+      emailGatewayPassword: payload.match(/(?<=emailGatewayPassword=").([^",]+)/g)[0],
+      contactPerson: payload.match(/(?<=contactPerson=").([^",]+)/g)[0],
+      flowEmails: payload.match(/(?<=flowEmails=").([^",]+)/g)[0],
+      flowCalls: payload.match(/(?<=flowCalls=").([^",]+)/g)[0],
+    };
+    return customer;
   } catch (error) {
     functions.logger.warn("Value in customer object, sent from slash command /creatcustomer, was null");
+    const payload = {
+      text: "Customer Creation failed - null value found",
+      channel: "C03CJBT6AE5",
+    };
+    await requestSlack("POST", "chat.postMessage", payload);
   }
-  return customer;
 }
 
 export async function slackAcknowledgmentResponse(req:any, responseText:string) {
