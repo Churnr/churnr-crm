@@ -63,7 +63,7 @@ app.get("/getdunning", async (req, res) => {
 // Create new user s
 /** @deprecated */
 slackApp.post("/createcustomer", async (req, res) => {
-  const data = Buffer.from(JSON.stringify(req.body));
+  const data = Buffer.from(JSON.stringify(req.body), "base64");
   await slackUtils.slackAcknowledgmentResponse(req, "Request recived");
   await pubsubClient.topic("create-customer").publish(data);
   res.status(200).send("Created new Customer");
@@ -71,7 +71,7 @@ slackApp.post("/createcustomer", async (req, res) => {
 
 exports.helloPubSub = functions.pubsub.topic("create-customer").onPublish(async (message) => {
   const buff = Buffer.from(message.data, "base64");
-  const data = buff.toJSON();
+  const data = buff.toString("base64");
   functions.logger.warn("LOOK HERE", data);
   const customer = await slackUtils.retriveCustomerInfoFromSlackReq(message);
   await firestoreUtils.addCustomerToFirestore(customer, customer.companyName);
