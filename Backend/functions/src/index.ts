@@ -63,7 +63,7 @@ slackApp.post("/createcustomer", async (req, res) => {
   const customer = await slackUtils.retriveCustomerInfoFromSlackReq(req);
   functions.logger.log(customer);
   const newDoc = await firestoreUtils.
-      addCustomerToFirestore(customer, req.body["companyName"]);
+      addCustomerToFirestore(customer, customer.companyName);
   res.status(201).send(`Created a new user: ${newDoc}`);
 });
 
@@ -86,5 +86,4 @@ exports.app = functions.https.onRequest(app);
 exports.slackApp = functions
     .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
     .https.onRequest(slackApp);
-
 
