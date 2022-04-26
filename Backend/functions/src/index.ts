@@ -75,7 +75,7 @@ exports.createCustomer = functions.pubsub.topic("create-customer").onPublish(asy
     const customer = await slackUtils.retriveCustomerInfoFromSlackReq(data.text);
     await firestoreUtils.addCustomerToFirestore(customer, customer.companyName);
   } catch (error) {
-    functions.logger.error("pubsub topic: create-customer: ", error);
+    functions.logger.error("pubsub topic(create-customer): ", error);
   }
 });
 

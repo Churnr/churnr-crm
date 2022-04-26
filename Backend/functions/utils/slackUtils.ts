@@ -32,7 +32,7 @@ export async function requestSlack(method:string, endpoint:string, param:any) {
   return response;
 }
 
-export async function retriveCustomerInfoFromSlackReq(payload:any) {
+export function retriveCustomerInfoFromSlackReq(payload:any) {
   try {
     const customer: customType.customer = {
       companyName: payload.match(/(?<=companyName=").([^",]+)/g)[0],
@@ -51,9 +51,8 @@ export async function retriveCustomerInfoFromSlackReq(payload:any) {
       text: "Customer Creation failed - null value found",
       channel: "C03CJBT6AE5",
     };
-    await requestSlack("POST", "chat.postMessage", payload);
-    functions.logger.warn("Value in customer object, sent from slash command /creatcustomer, was null");
-    throw error;
+    requestSlack("POST", "chat.postMessage", payload);
+    throw new Error("Value in customer object, sent from slash command /creatcustomer, was null");
   }
 }
 
