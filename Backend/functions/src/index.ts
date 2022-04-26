@@ -64,12 +64,11 @@ app.get("/getdunning", async (req, res) => {
 /** @deprecated */
 slackApp.post("/createcustomer", async (req, res) => {
   const data = Buffer.from(JSON.stringify(req.body));
-  await slackUtils.slackAcknowledgmentResponse(req, "Request recived");
   await pubsubClient.topic("create-customer").publish(data);
   res.status(200).send("Handling process: Create Customer");
 });
 
-exports.createCustomer = functions.pubsub.topic("create-customer").onPublish((message) => {
+exports.createCustomer = functions.pubsub.topic("create-customer").onPublish(async (message) => {
   const data = JSON.parse(Buffer.from(message.data, "base64").toString("utf-8"));
   try {
     const customer = slackUtils.retriveCustomerInfoFromSlackReq(data.text);
@@ -79,7 +78,7 @@ exports.createCustomer = functions.pubsub.topic("create-customer").onPublish((me
       text: `${customer.companyName} was added to the customer database.`,
       channel: "C03CJBT6AE5",
     };
-    slackUtils.requestSlack("POST", "chat.postMessage", payload);
+    await slackUtils.requestSlack("POST", "chat.postMessage", payload);
   } catch (error) {
     functions.logger.error("pubsub topic(create-customer): ", error);
   }
