@@ -44,7 +44,7 @@ export async function getCustomers() {
  * Gets invoice ids from invoice collection from firestore
  * and push it to array of strings - invoiceIdArray
  * @param {string}customer collection name in firestore
- * @param {string}companyName coma
+ * @param {string}companyName companyName
  * @return {Array<string>} Array of invoice ids
  */
 export async function addCustomerToFirestore(customer:types.customer,
