@@ -5,10 +5,12 @@ import * as admin from "firebase-admin";
 import * as customType from "../types/types";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import * as httpUtils from "../utils/httpUtils";
+import {PubSub} from "@google-cloud/pubsub";
 // import * as cors from "cors";
 import * as middleware from "../middleware/middleware";
 import * as slackUtils from "../utils/slackUtils";
 import * as express from "express";
+const pubsubClient = new PubSub();
 const app = express();
 const slackApp = express();
 slackApp.use(middleware.validateSlackSigningSecret);
@@ -61,14 +63,18 @@ app.get("/getdunning", async (req, res) => {
 // Create new user s
 slackApp.post("/createcustomer", async (req, res) => {
   await slackUtils.slackAcknowledgmentResponse(req, "Request recived");
-  const customer = await slackUtils
-      .retriveCustomerInfoFromSlackReq(context);
-  const newDoc = await firestoreUtils.
-      addCustomerToFirestore(customer, customer.companyName);
-  functions.logger.log(newDoc);
-  res.status(200).send(`Created a new user: ${newDoc}`);
+  await pubsubClient
+      .topic("create-customer")
+      .publisher
+      .publish(Buffer.from(JSON.stringify(req)));
+  res.status(200).send("Created new Customer");
 });
 
+exports.helloPubSub = functions.pubsub.topic("create-customer").onPublish(async (message) => {
+  functions.logger.warn(message);
+  const customer = await slackUtils.retriveCustomerInfoFromSlackReq(message);
+  await firestoreUtils.addCustomerToFirestore(customer, customer.companyName);
+});
 
 slackApp.post("/halloworld", async (req, res) => {
   const payload = {
