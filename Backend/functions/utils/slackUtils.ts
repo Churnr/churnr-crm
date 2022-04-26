@@ -5,7 +5,6 @@
 /* eslint-disable require-jsdoc */
 import fetch from "node-fetch";
 import * as customType from "../types/types";
-import * as functions from "firebase-functions";
 
 export async function requestSlack(method:string, endpoint:string, param:any) {
   const baseUrl = "https://slack.com/api/";
