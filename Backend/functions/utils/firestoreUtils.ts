@@ -53,3 +53,14 @@ export async function addCustomerToFirestore(customer:types.customer,
   admin.firestore().collection("Customers").doc(companyName).set(customer);
   return newDoc;
 }
+
+/**
+ * Gets invoice ids from invoice collection from firestore
+ * and push it to array of strings - invoiceIdArray
+ * @return {Map} Array of invoice ids
+ */
+export async function getDunningUrlsFromFirestore() {
+  const dbURLS: any = await (await admin.firestore().collection("companyUrl").doc("duningurl").get()).data();
+  const urls = dbURLS.Urls;
+  return urls;
+}

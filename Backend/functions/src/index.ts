@@ -1,33 +1,33 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-// import * as sendGrid from "@sendgrid/mail";
 import * as customType from "../types/types";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import * as httpUtils from "../utils/httpUtils";
 import {PubSub} from "@google-cloud/pubsub";
 // import * as cors from "cors";
-import * as middleware from "../middleware/middleware";
+// import * as middleware from "../middleware/middleware";
 import * as slackUtils from "../utils/slackUtils";
 import * as express from "express";
+
+admin.initializeApp();
+
 const pubsubClient = new PubSub();
 const app = express();
 const slackApp = express();
-slackApp.use(middleware.validateSlackSigningSecret);
-admin.initializeApp();
-// const options2: cors.CorsOptions = {
-//   origin: "http://localhost:3000",
-// };
-// app.use(cors(options2));
+
+// Enables middleware for slackApp endpoints
 app.use(express.json());
 // app.use(middleware.validateFirebaseIdToken);
+// Enables middleware for slackApp endpoints
+// slackApp.use(middleware.validateSlackSigningSecret);
 
 app.get("/getdunning", async (req, res) => {
   const customers:any = await firestoreUtils.getCustomers();
+  const urls = await firestoreUtils.getDunningUrlsFromFirestore();
   for (const customer of customers) {
     const customerName :any = customer.companyName;
     const customerApiKey :any = customer.apiKey;
-    console.log(customerName, customerApiKey);
 
     const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
 
@@ -79,25 +79,15 @@ exports.createCustomer = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGN
           text: `${customer.companyName} was added to the customer database.`,
           channel: "C03CJBT6AE5",
         };
-        await slackUtils.requestSlack("POST", "chat.postMessage", payload);
+        slackUtils.requestSlack("POST", "chat.postMessage", payload);
       } catch (error) {
         functions.logger.error("pubsub topic(create-customer): ", error);
       }
     });
 
-slackApp.post("/halloworld", async (req, res) => {
-  const payload = {
-    text: "nice...",
-    channel: "C03CJBT6AE5",
-  };
-
-  try {
-    await slackUtils.requestSlack("POST", "chat.postMessage", payload);
-    res.status(200).send("ay Okay");
-  } catch (error) {
-    functions.logger.warn("slackApp/halloworld", error);
-    res.status(503).send("Service unavailable for now");
-  }
+slackApp.get("/halloworld", async (req, res) => {
+  firestoreUtils.getDunningUrlsFromFirestore();
+  res.status(200).send("fedt!");
 });
 
 exports.app = functions.https.onRequest(app);
