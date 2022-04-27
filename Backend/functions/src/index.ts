@@ -60,7 +60,7 @@ app.get("/getdunning", async (req, res) => {
   }
   res.status(201).send("ay okay");
 });
-// Create new user s
+// Kig på publishmessage istedet for publish
 /** @deprecated */
 slackApp.post("/createcustomer", async (req, res) => {
   const data = Buffer.from(JSON.stringify(req.body));
@@ -68,21 +68,22 @@ slackApp.post("/createcustomer", async (req, res) => {
   res.status(200).send("Handling process: Create Customer");
 });
 
-exports.createCustomer = functions.pubsub.topic("create-customer").onPublish(async (message) => {
-  const data = JSON.parse(Buffer.from(message.data, "base64").toString("utf-8"));
-  try {
-    const customer = slackUtils.retriveCustomerInfoFromSlackReq(data.text);
-    firestoreUtils.addCustomerToFirestore(customer, customer.companyName);
+exports.createCustomer = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
+    .pubsub.topic("create-customer").onPublish(async (message) => {
+      const data = JSON.parse(Buffer.from(message.data, "base64").toString("utf-8"));
+      try {
+        const customer = slackUtils.retriveCustomerInfoFromSlackReq(data.text);
+        firestoreUtils.addCustomerToFirestore(customer, customer.companyName);
 
-    const payload = {
-      text: `${customer.companyName} was added to the customer database.`,
-      channel: "C03CJBT6AE5",
-    };
-    await slackUtils.requestSlack("POST", "chat.postMessage", payload);
-  } catch (error) {
-    functions.logger.error("pubsub topic(create-customer): ", error);
-  }
-});
+        const payload = {
+          text: `${customer.companyName} was added to the customer database.`,
+          channel: "C03CJBT6AE5",
+        };
+        await slackUtils.requestSlack("POST", "chat.postMessage", payload);
+      } catch (error) {
+        functions.logger.error("pubsub topic(create-customer): ", error);
+      }
+    });
 
 slackApp.post("/halloworld", async (req, res) => {
   const payload = {
