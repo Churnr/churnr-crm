@@ -1,7 +1,7 @@
 import {expect} from 'chai';
 import {describe, it} from "mocha";
 import * as nock from "nock";
-import * as httpUtils from "../utils/httpUtils";
+import * as reepayUtils from "../utils/reepayUtils";
 import * as customType from "../types/types";
 // import * as nock from 'nock';
 // import * as test from 'firebase-functions-test'
@@ -36,6 +36,6 @@ describe('Testing httpUtils.ts', () => {
             headers: headers,
             json: true,
         };
-      expect(await httpUtils.retriveReepayList("https://test.net/retriveReepayList/test",options)).to.eql(["1","2","3"]);
+      expect(await reepayUtils.retriveReepayList("https://test.net/retriveReepayList/test",options)).to.eql(["1","2","3"]);
     });
   });

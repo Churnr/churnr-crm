@@ -72,3 +72,10 @@ export async function slackAcknowledgmentResponse(req:any, responseText:string) 
   return response;
 }
 
+export async function sendMessageToChannel(message:string, channelId:string) {
+  const payload = {
+    text: message,
+    channel: channelId,
+  };
+  requestSlack("POST", "chat.postMessage", payload);
+}
