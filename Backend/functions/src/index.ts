@@ -103,8 +103,8 @@ slackApp.get("/halloworld", async (req, res) => {
   const customers:any = await firestoreUtils.getCustomers();
   for (const customer of customers) {
     const customerName :any = customer.companyName;
-    const customerApiKey :any = customer.apiKey;
-    const paymentGateway : any = customer.paymentGateway;
+    // const customerApiKey :any = customer.apiKey;
+    // const paymentGateway : any = customer.paymentGateway;
 
     firestoreUtils.getInvoiceIdsFromCompanyCollection(customerName);
   }
