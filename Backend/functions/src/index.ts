@@ -22,15 +22,28 @@ app.use(express.json());
 // Enables middleware for slackApp endpoints
 // slackApp.use(middleware.validateSlackSigningSecret);
 
+
+// eslint-disable-next-line require-jsdoc
+function getKeyByValue(object:any, value:string) {
+  for (const [key, values] of Object.entries(object)) {
+    console.log(`what ${key}: ${values}`);
+    if (key == value) {
+      return values;
+    }
+  }
+}
 app.get("/getdunning", async (req, res) => {
   const customers:any = await firestoreUtils.getCustomers();
-  const urls = await firestoreUtils.getDunningUrlsFromFirestore();
+  const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
+  console.log(typeof urls);
   for (const customer of customers) {
     const customerName :any = customer.companyName;
     const customerApiKey :any = customer.apiKey;
+    const paymentGateway : any = customer.paymentGateway;
 
-    const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
-
+    const url = getKeyByValue(urls, paymentGateway) as string;
+    console.log("WORKS????", url);
+    // const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
     const headers: customType.headers = {
       "Content-Type": "application/json",
       "Authorization": `Basic ${customerApiKey}`,
@@ -44,9 +57,10 @@ app.get("/getdunning", async (req, res) => {
 
     const invoiceIdArray =
     await firestoreUtils.getInvoiceIdsFromCompanyCollection(customerName);
+    console.log(invoiceIdArray);
 
     const contentArray: Array<any> =
-    await httpUtils.retriveReepayList(_url, options);
+    await httpUtils.retriveReepayList(url, options);
 
     for (const dunningInvoices of contentArray) {
       if (invoiceIdArray.indexOf(dunningInvoices.id) == -1) {
@@ -54,7 +68,7 @@ app.get("/getdunning", async (req, res) => {
             .collection("Customers")
             .doc(customerName)
             .collection("ActiveDunning")
-            .add(dunningInvoices);
+            .doc(dunningInvoices.id).set(dunningInvoices);
       }
     }
   }
@@ -86,7 +100,14 @@ exports.createCustomer = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGN
     });
 
 slackApp.get("/halloworld", async (req, res) => {
-  firestoreUtils.getDunningUrlsFromFirestore();
+  const customers:any = await firestoreUtils.getCustomers();
+  for (const customer of customers) {
+    const customerName :any = customer.companyName;
+    const customerApiKey :any = customer.apiKey;
+    const paymentGateway : any = customer.paymentGateway;
+
+    firestoreUtils.getInvoiceIdsFromCompanyCollection(customerName);
+  }
   res.status(200).send("fedt!");
 });
 

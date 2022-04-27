@@ -9,7 +9,8 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "test": "mocha --require ts-node/register test/httpUtils.test.ts",
-    "kill": "lsof -t -i:5001 -i:5002 -i:8080 -i:9000 -i:9099 -i:9199 -i:9090 -i:8085 | xargs kill -9"
+    "kill": "lsof -t -i:5001 -i:5002 -i:8080 -i:9000 -i:9099 -i:9199 -i:9090 -i:8085 | xargs kill -9",
+    "kill2": "taskkill /f /im java.exe"
   },
   "engines": {
     "node": "16"

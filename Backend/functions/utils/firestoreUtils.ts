@@ -9,16 +9,12 @@ import * as types from "../types/types";
  */
 export async function getInvoiceIdsFromCompanyCollection(companyName:string) {
   const invoiceIdArray:Array<string> = [];
-  const dbInvoice = await admin.firestore()
-      .collection("Customers")
-      .doc(companyName)
-      .collection("ActiveDunning").listDocuments();
-  for (const s of dbInvoice) {
-    const QueryDocumentSnapshot = await s.get();
-    const data: any = QueryDocumentSnapshot.data();
-    const dataID: string = data.id;
-    invoiceIdArray.push(dataID);
-  }
+  const sfRef = admin.firestore().collection("Customers").doc(companyName).collection("ActiveDunning");
+  const collections = await sfRef.listDocuments();
+  console.log(collections);
+  collections.forEach((collection) => {
+    invoiceIdArray.push(collection.id);
+  });
   return invoiceIdArray;
 }
 
@@ -64,3 +60,17 @@ export async function getDunningUrlsFromFirestore() {
   const urls = dbURLS.Urls;
   return urls;
 }
+
+
+// export async function addDunningInvoices(listOfInvoices:Array<any>,) {
+//   for (const dunningInvoices of contentArray) {
+//     if (invoiceIdArray.indexOf(dunningInvoices.id) == -1) {
+//       await admin.firestore()
+//           .collection("Customers")
+//           .doc(customerName)
+//           .collection("ActiveDunning")
+//           .add(dunningInvoices);
+//     }
+//   }
+// }
+// }
