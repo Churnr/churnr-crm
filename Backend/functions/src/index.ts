@@ -8,7 +8,6 @@ import {PubSub} from "@google-cloud/pubsub";
 // import * as middleware from "../middleware/middleware";
 import * as slackUtils from "../utils/slackUtils";
 import * as express from "express";
-
 admin.initializeApp();
 
 const pubsubClient = new PubSub();
@@ -35,42 +34,42 @@ function getKeyByValue(object:any, value:string) {
  * Reepay ready
  */
 app.get("/getdunning", async (req, res) => {
-  const customers:any = await firestoreUtils.getCustomers();
-  const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
-  for (const customer of customers) {
-    const customerName :string = customer.companyName;
-    const customerApiKey :string = customer.apiKey;
-    const paymentGateway : string = customer.paymentGateway;
-    const url = getKeyByValue(urls, paymentGateway) as string;
+  const companys:any = await firestoreUtils.getCompanys();
+  // const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
+  console.log(companys);
+  for (const company of companys) {
+    const companyName :string = company.companyName;
+    const companyApykey :string = company.apiKey;
+    const paymentGateway : string = company.paymentGateway;
+    console.log(paymentGateway);
+    // const url = getKeyByValue(urls, paymentGateway) as string;
 
     if (paymentGateway === "Reepay") {
-      const options = reepayUtils.createHttpOptionsForReepay(customerApiKey);
-      const contentArray: Array<any> =
-          await reepayUtils.retriveReepayList(url, options);
-      await reepayUtils.addNewReepayInvoicesToCustomerInFirestore(contentArray, customerName);
+      reepayUtils.reepayLogic(companyApykey, companyName);
     }
   }
   res.status(201).send("ay okay");
-});
+}
+);
 
 // Kig på publishmessage istedet for publish
 /** @deprecated */
-slackApp.post("/createcustomer", async (req, res) => {
+slackApp.post("/createcompany", async (req, res) => {
   const data = Buffer.from(JSON.stringify(req.body));
-  await pubsubClient.topic("create-customer").publish(data);
-  res.status(200).send("Handling process: Create Customer");
+  await pubsubClient.topic("create-company").publish(data);
+  res.status(200).send("Handling process: Create Company");
 });
 
-exports.createCustomer = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
-    .pubsub.topic("create-customer").onPublish(async (message) => {
+exports.createCompany = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
+    .pubsub.topic("create-company").onPublish(async (message) => {
       const data = JSON.parse(Buffer.from(message.data, "base64").toString("utf-8"));
 
       try {
-        const customer = slackUtils.retriveCustomerInfoFromSlackReq(data.text);
-        firestoreUtils.addCustomerToFirestore(customer, customer.companyName);
-        slackUtils.sendMessageToChannel(`${customer.companyName} was added to the customer database.`, "C03CJBT6AE5");
+        const company = slackUtils.retriveCompanyInfoFromSlackReq(data.text);
+        firestoreUtils.addCompanyToFirestore(company, company.companyName);
+        slackUtils.sendMessageToChannel(`${company.companyName} was added to the company database.`, "C03CJBT6AE5");
       } catch (error) {
-        functions.logger.error("pubsub topic(create-customer): ", error);
+        functions.logger.error("pubsub topic(create-company): ", error);
       }
     });
 

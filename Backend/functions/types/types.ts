@@ -15,7 +15,7 @@ export type msg = {
     "template_id": string
   };
 
-export type customer = {
+export type company = {
     "companyName":string,
     "paymentGateway":string,
     "apiKey":string,
@@ -31,3 +31,19 @@ export type templates = {
     "templateIds": Map<string, string>
 }
 
+export type customer = {
+    "first_name":string,
+    "last_name":string,
+    "handle":string
+    "email":string,
+    "phone": number,
+    "created": string,
+    "dunning_invoices": number,
+    "active_subscriptions": number,
+    "expired_subscriptions": number,
+    "cancelled_invoices": number,
+    "settled_invoices": number,
+    "pending_invoices": number,
+    "trial_active_subscriptions": number,
+    "subscriptions": number,
+}
