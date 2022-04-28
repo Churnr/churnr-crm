@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import * as customType from "../types/types";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import * as reepayUtils from "../utils/reepayUtils";
 import {PubSub} from "@google-cloud/pubsub";
@@ -33,49 +32,27 @@ function getKeyByValue(object:any, value:string) {
 }
 /**
  * Fetches invoices in dunning state from paymentGateway
+ * Reepay ready
  */
 app.get("/getdunning", async (req, res) => {
   const customers:any = await firestoreUtils.getCustomers();
   const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
-  console.log(typeof urls);
   for (const customer of customers) {
-    const customerName :any = customer.companyName;
-    const customerApiKey :any = customer.apiKey;
-    const paymentGateway : any = customer.paymentGateway;
-
+    const customerName :string = customer.companyName;
+    const customerApiKey :string = customer.apiKey;
+    const paymentGateway : string = customer.paymentGateway;
     const url = getKeyByValue(urls, paymentGateway) as string;
-    console.log("WORKS????", url);
-    // const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
-    const headers: customType.headers = {
-      "Content-Type": "application/json",
-      "Authorization": `Basic ${customerApiKey}`,
-    };
 
-    const options: customType.options = {
-      method: "GET",
-      headers: headers,
-      json: true,
-    };
-
-    const invoiceIdArray =
-    await firestoreUtils.getInvoiceIdsFromCompanyCollection(customerName);
-    console.log(invoiceIdArray);
-
-    const contentArray: Array<any> =
-    await reepayUtils.retriveReepayList(url, options);
-
-    for (const dunningInvoices of contentArray) {
-      if (invoiceIdArray.indexOf(dunningInvoices.id) == -1) {
-        await admin.firestore()
-            .collection("Customers")
-            .doc(customerName)
-            .collection("ActiveDunning")
-            .doc(dunningInvoices.id).set(dunningInvoices);
-      }
+    if (paymentGateway === "Reepay") {
+      const options = reepayUtils.createHttpOptionsForReepay(customerApiKey);
+      const contentArray: Array<any> =
+          await reepayUtils.retriveReepayList(url, options);
+      await reepayUtils.addNewReepayInvoicesToCustomerInFirestore(contentArray, customerName);
     }
   }
   res.status(201).send("ay okay");
 });
+
 // Kig på publishmessage istedet for publish
 /** @deprecated */
 slackApp.post("/createcustomer", async (req, res) => {
@@ -97,23 +74,10 @@ exports.createCustomer = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGN
       }
     });
 
+/**
+ * Test endpoint
+*/
 slackApp.get("/halloworld", async (req, res) => {
-  const customers:any = await firestoreUtils.getCustomers();
-  const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
-  for (const customer of customers) {
-    const customerName :string = customer.companyName;
-    const customerApiKey :string = customer.apiKey;
-    const paymentGateway : string = customer.paymentGateway;
-    const url = getKeyByValue(urls, paymentGateway) as string;
-
-    if (paymentGateway === "Reepay") {
-      const options = reepayUtils.createHttpOptionsForReepay(customerApiKey);
-      const contentArray: Array<any> =
-          await reepayUtils.retriveReepayList(url, options);
-      await reepayUtils.addNewReepayInvoicesToCustomerInFirestore(contentArray, customerName);
-    }
-  }
-
   res.status(200).send("fedt!");
   // const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
 });
