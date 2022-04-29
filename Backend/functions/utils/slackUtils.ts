@@ -43,6 +43,7 @@ export function retriveCompanyInfoFromSlackReq(payload:any) {
       contactPerson: payload.match(/(?<=contactPerson=").([^",]+)/g)[0],
       flowEmails: payload.match(/(?<=flowEmails=").([^",]+)/g)[0],
       flowCalls: payload.match(/(?<=flowCalls=").([^",]+)/g)[0],
+      templates: new Map(),
     };
     return company;
   } catch (error) {
@@ -52,6 +53,24 @@ export function retriveCompanyInfoFromSlackReq(payload:any) {
     };
     requestSlack("POST", "chat.postMessage", payload);
     throw new Error("Value in company object, sent from slash command /creatcompany, was null");
+  }
+}
+
+export function retriveSendEmailInfoFromSlackReq(payload:any) {
+  try {
+    const emailRequest: customType.emailRequest = {
+      companyName: payload.match(/(?<=companyName=").([^",]+)/g)[0],
+      customerId: payload.mach(/(?<=customerId=").([^",]+)/g)[0],
+      templateId: payload.match(/(?<=templateId=").([^",]+)/g)[0],
+    };
+    return emailRequest;
+  } catch (error) {
+    const payload = {
+      text: "emailRequest Creation failed - null value found",
+      channel: "C03CJBT6AE5",
+    };
+    requestSlack("POST", "chat.postMessage", payload);
+    throw new Error("Value in emailRequest object, sent from slash command /sendemail, was null");
   }
 }
 

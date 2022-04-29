@@ -134,3 +134,29 @@ export async function deleteAndMoveDoc(companyName:string, collectionNameMoveFro
   return newDoc;
 }
 
+/**
+ * Moves and deletes doc from given collection and moves to given collection
+ * @param {string} companyName
+ * @param {string} customerId
+ * @return {admin.firestore.WriteResult} newDoc
+ */
+export async function getCustomerFromFirestore(companyName:string, customerId:string) {
+  const dataFrom = await admin.firestore().collection("Companys").doc(companyName)
+      .collection("Customers").doc(customerId).get();
+  const docFrom = dataFrom.data();
+  if (docFrom === undefined) {
+    throw new Error("The doc you wanted to move was undefined");
+  }
+  return docFrom;
+}
+
+/**
+ * Moves and deletes doc from given collection and moves to given collection
+ * @param {string} companyName
+ * @param {string} FieldName
+ * @return {admin.firestore.WriteResult} newDoc
+ */
+export async function getFieldValueFromComapnyInFirestore(companyName:string, FieldName:string) {
+  const templateMap = await (await admin.firestore().collection("Companys").doc(companyName).get()).get(FieldName);
+  return templateMap;
+}

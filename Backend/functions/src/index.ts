@@ -3,6 +3,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import * as reepayUtils from "../utils/reepayUtils";
+import * as sendgridUtils from "../utils/sendgridUtils";
 import {PubSub} from "@google-cloud/pubsub";
 // import * as cors from "cors";
 import * as middleware from "../middleware/middleware";
@@ -17,7 +18,6 @@ const slackApp = express();
 // Enables middleware for slackApp endpoints
 app.use(express.json());
 app.use(middleware.validateFirebaseIdToken);
-// Enables middleware for slackApp endpoints
 slackApp.use(middleware.validateSlackSigningSecret);
 
 
@@ -77,7 +77,8 @@ exports.createCompany = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNI
  * Test endpoint
 */
 slackApp.get("/halloworld", async (req, res) => {
-  firestoreUtils.deleteAndMoveDoc("LaLatoys", "ActiveDunning", "Retained", "veYsUHctMywniuFO0aEF");
+  const template = firestoreUtils.getFieldValueFromComapnyInFirestore("LaLatoys", "templateMap");
+  sendgridUtils.sendEmail("LaLatoys", "cus22", "t2");
   res.status(200).send("fedt!");
   // const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
 });

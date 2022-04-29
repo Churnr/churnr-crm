@@ -25,10 +25,17 @@ export type company = {
     "contactPerson": string,
     "flowEmails": number,
     "flowCalls": number,
+    "templates": Map<string, string>,
 }
 
 export type templates = {
     "templateIds": Map<string, string>
+}
+
+export type emailRequest = {
+    "companyName":string,
+    "customerId":string,
+    "templateId":string,
 }
 
 export type customer = {
