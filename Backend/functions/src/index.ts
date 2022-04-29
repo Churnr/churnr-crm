@@ -22,35 +22,37 @@ app.use(express.json());
 
 
 // eslint-disable-next-line require-jsdoc
-function getKeyByValue(object:any, value:string) {
-  for (const [key, values] of Object.entries(object)) {
-    if (key == value) {
-      return values;
-    }
-  }
-}
+// function getKeyByValue(object:any, value:string) {
+//   for (const [key, values] of Object.entries(object)) {
+//     if (key == value) {
+//       return values;
+//     }
+//   }
+// }
 /**
  * Fetches invoices in dunning state from paymentGateway
  * Reepay ready
  */
-app.get("/getdunning", async (req, res) => {
-  const companys:any = await firestoreUtils.getCompanys();
-  // const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
-  console.log(companys);
-  for (const company of companys) {
-    const companyName :string = company.companyName;
-    const companyApykey :string = company.apiKey;
-    const paymentGateway : string = company.paymentGateway;
-    console.log(paymentGateway);
-    // const url = getKeyByValue(urls, paymentGateway) as string;
+export const fetchDunningInvoices =
+ functions.region("europe-west2").pubsub.schedule("0 23 * * *")
+     .timeZone("Europe/Copenhagen").onRun(async (context) => {
+       const companys:any = await firestoreUtils.getCompanys();
+       // const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
+       console.log(companys);
+       for (const company of companys) {
+         const companyName :string = company.companyName;
+         const companyApykey :string = company.apiKey;
+         const paymentGateway : string = company.paymentGateway;
+         console.log(paymentGateway);
+         // const url = getKeyByValue(urls, paymentGateway) as string;
 
-    if (paymentGateway === "Reepay") {
-      reepayUtils.reepayLogic(companyApykey, companyName);
-    }
-  }
-  res.status(201).send("ay okay");
-}
-);
+         if (paymentGateway === "Reepay") {
+           reepayUtils.reepayLogic(companyApykey, companyName);
+         }
+       }
+       return null;
+     }
+     );
 
 // Kig på publishmessage istedet for publish
 /** @deprecated */
@@ -77,12 +79,13 @@ exports.createCompany = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNI
  * Test endpoint
 */
 slackApp.get("/halloworld", async (req, res) => {
+  firestoreUtils.deleteAndMoveDoc("LaLatoys", "ActiveDunning", "Retained", "veYsUHctMywniuFO0aEF");
   res.status(200).send("fedt!");
   // const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
 });
 
 exports.app = functions.https.onRequest(app);
 exports.slackApp = functions
-    .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
+    // .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
     .https.onRequest(slackApp);
 

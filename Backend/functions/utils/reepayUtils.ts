@@ -147,25 +147,19 @@ export async function reepayLogic(companyApikey: string, companyName:string) {
       if (eventsArray[0].event_type == "invoice_dunning_cancelled") {
         // Rykkes fra activdunning til retained
         if (eventsArray[1].event_type == "invoice_settled") {
-          // firestoreUtils.deleteAndMoveDoc("");
+          firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "Retained", dunningInvoices.id);
         } else if (eventsArray[1].event_type == "invoice_cancelled") {
-          // firestoreUtils.deleteAndMoveDoc();
+          firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "OnHold", dunningInvoices.id);
         }
       } else if (eventsArray[0].event_type == "invoice_settled") {
-        return;
+        firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "Retained", dunningInvoices.id);
       } else if (eventsArray[0].event_type == "invoice_cancelled") {
-        return;
+        firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "OnHold", dunningInvoices.id);
       } else if (eventsArray[0].event_type == "invoice_failed" ||
                  eventsArray[0].event_type == "invoice_refund" ||
                  eventsArray[0].event_type == "invoice_reactivate") {
         functions.logger.error("EVENT_TYPE IS NOT SUPPORTED!!!", eventsArray[0].event_type);
       }
-
-      // if invoice_dunning_cancelled
-      // if invoice_cancelled
-      // if invoice_settled
-      // if invoice_failed || invoice_refund || invoice_reactivate
-      // Retained
     }
     // Append dunning invoces to company ActiveDunning collection
     await firestoreUtils.addDataToDocInCollectionUnderCompany("ActivDunning", companyName,

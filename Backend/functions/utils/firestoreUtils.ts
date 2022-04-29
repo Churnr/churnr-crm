@@ -121,9 +121,10 @@ export async function addInvoceToCustomer(companyName:string,
  */
 export async function deleteAndMoveDoc(companyName:string, collectionNameMoveFrom:string,
     collectionNameMoveTo:string, docId: string): Promise<admin.firestore.WriteResult> {
-  const dataFrom = admin.firestore().collection("Companys").doc(companyName)
-      .collection(collectionNameMoveFrom).doc(docId);
-  const docFrom = (await dataFrom.get()).data();
+  const dataFrom = await admin.firestore().collection("Companys").doc(companyName)
+      .collection(collectionNameMoveFrom).doc(docId).get();
+  const docFrom = dataFrom.data();
+  console.log(docFrom);
   if (docFrom === undefined) {
     throw new Error("The doc you wanted to move was undefined");
   }
