@@ -5,7 +5,7 @@ import * as firestoreUtils from "../utils/firestoreUtils";
 import * as reepayUtils from "../utils/reepayUtils";
 import {PubSub} from "@google-cloud/pubsub";
 // import * as cors from "cors";
-// import * as middleware from "../middleware/middleware";
+import * as middleware from "../middleware/middleware";
 import * as slackUtils from "../utils/slackUtils";
 import * as express from "express";
 admin.initializeApp();
@@ -16,9 +16,9 @@ const slackApp = express();
 
 // Enables middleware for slackApp endpoints
 app.use(express.json());
-// app.use(middleware.validateFirebaseIdToken);
+app.use(middleware.validateFirebaseIdToken);
 // Enables middleware for slackApp endpoints
-// slackApp.use(middleware.validateSlackSigningSecret);
+slackApp.use(middleware.validateSlackSigningSecret);
 
 
 // eslint-disable-next-line require-jsdoc
@@ -38,12 +38,10 @@ export const fetchDunningInvoices =
      .timeZone("Europe/Copenhagen").onRun(async (context) => {
        const companys:any = await firestoreUtils.getCompanys();
        // const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
-       console.log(companys);
        for (const company of companys) {
          const companyName :string = company.companyName;
          const companyApykey :string = company.apiKey;
          const paymentGateway : string = company.paymentGateway;
-         console.log(paymentGateway);
          // const url = getKeyByValue(urls, paymentGateway) as string;
 
          if (paymentGateway === "Reepay") {

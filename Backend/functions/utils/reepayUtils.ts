@@ -86,7 +86,6 @@ export async function getCustomerInfoFromReepay(options: customType.options,
     customerId: string): Promise<customType.customer> {
   const url = `https://api.reepay.com/v1/customer/${customerId}`;
   const customerObject = await (await fetch(url, options)).json();
-  console.log(customerObject);
   const customer: customType.customer = {
     first_name: customerObject.first_name,
     last_name: customerObject.last_name,
@@ -157,7 +156,9 @@ export async function reepayLogic(companyApikey: string, companyName:string) {
         firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "OnHold", dunningInvoices.id);
       } else if (eventsArray[0].event_type == "invoice_failed" ||
                  eventsArray[0].event_type == "invoice_refund" ||
-                 eventsArray[0].event_type == "invoice_reactivate") {
+                 eventsArray[0].event_type == "invoice_reactivate" ||
+                 eventsArray[0].event_type == "invoice_credited" ||
+                 eventsArray[0].event_type == "invoice_changed") {
         functions.logger.error("EVENT_TYPE IS NOT SUPPORTED!!!", eventsArray[0].event_type);
       }
     }

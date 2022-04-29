@@ -124,7 +124,6 @@ export async function deleteAndMoveDoc(companyName:string, collectionNameMoveFro
   const dataFrom = await admin.firestore().collection("Companys").doc(companyName)
       .collection(collectionNameMoveFrom).doc(docId).get();
   const docFrom = dataFrom.data();
-  console.log(docFrom);
   if (docFrom === undefined) {
     throw new Error("The doc you wanted to move was undefined");
   }
