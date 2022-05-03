@@ -70,9 +70,13 @@ export function createHttpOptionsForReepay(apiKey:string) {
  * @return {Promise<object[]>} response
  */
 export async function getReepayInvoiceEvents(options: customType.options, invoiceId: string): Promise<any[]> {
-  const url = `https://api.reepay.com/v1/event?invoice=${invoiceId}`;
-  const response = await (await fetch(url, options)).json();
-  return response.body.content;
+  try {
+    const url = `https://api.reepay.com/v1/event?invoice=${invoiceId}`;
+    const response = await (await fetch(url, options)).json();
+    return response.content;
+  } catch (error) {
+    throw new Error("getReepayInvoiceEvents");
+  }
 }
 
 
@@ -119,6 +123,7 @@ export async function reepayLogic(companyApikey: string, companyName:string) {
       await retriveReepayList("https://api.reepay.com/v1/list/invoice?size=100&state=dunning", options);
 
   // hent invoice ids fra DB
+  // ActiveDunning : HUSK AT ÆNDRE DETTE LORT!
   const firebaseInvoiceIdArray =
   await firestoreUtils.getDocIdsFromCompanyCollection(companyName, "ActiveDunning");
   // hent customer ids fra DB
@@ -126,7 +131,7 @@ export async function reepayLogic(companyApikey: string, companyName:string) {
   await firestoreUtils.getDocIdsFromCompanyCollection(companyName, "Customers");
   for (const dunningInvoices of reepayInvoiceArray) {
     // krydsreferer invoices, så kun nye er tilstede
-    if (firebaseInvoiceIdArray.indexOf(dunningInvoices.id) == -1) {
+    if (firebaseInvoiceIdArray.indexOf(dunningInvoices.handle) == -1) {
       // tjek om kunden på invocesen eksisterer i db, if true: append invoices til collection.
       if (firebaseCustomerIdArray.indexOf(dunningInvoices.customer) == -1) {
         // if false: opret customer i companys customer colletion og append invoces til collection
@@ -140,50 +145,43 @@ export async function reepayLogic(companyApikey: string, companyName:string) {
       } else {
         await firestoreUtils.addInvoceToCustomer(companyName, dunningInvoices.customer, dunningInvoices);
       }
+      await firestoreUtils.addDataToDocInCollectionUnderCompany("ActiveDunning", companyName,
+          dunningInvoices, dunningInvoices.handle);
     }
-    /**
-     * reepay array:
-     * invoice 4
-     * invoice 5
-     * invoice 6
-     *
-     * firebase array:
-     * invoice 1
-     * invoice 2
-     * invoice 3
-     * invoice 4
-     * invoice 5 (new)
-     * invoice 6 (new)
-     */
-    // reepay invoice array, skal tjekke om dem den har fået med findes i firebase .indexOf(fbDunningInvoices) == -1)
-    // all invoices der er i firebase active dunning som ikke er i reepay dunning list
-    for (const fbDunningInvoices of firebaseInvoiceIdArray) {
-      if (reepayInvoiceArray.findIndex((item) => item.id != fbDunningInvoices)) {
-        const eventsArray = await getReepayInvoiceEvents(options, fbDunningInvoices);
-        // Tjekke event status
-        if (eventsArray[0].event_type == "invoice_dunning_cancelled") {
-        // Rykkes fra activdunning til retained
-          if (eventsArray[1].event_type == "invoice_settled") {
-            firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "Retained", fbDunningInvoices);
-          } else if (eventsArray[1].event_type == "invoice_cancelled") {
-            firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "OnHold", fbDunningInvoices);
-          }
-        } else if (eventsArray[0].event_type == "invoice_settled") {
+  }
+  // reepay invoice array, skal tjekke om dem den har fået med findes i firebase .indexOf(fbDunningInvoices) == -1)
+  // all invoices der er i firebase active dunning som ikke er i reepay dunning list
+  const reepayInvoiceIdArray = reepayInvoiceArray.map((a) => {
+    return a.handle;
+  });
+
+  for (const fbDunningInvoices of firebaseInvoiceIdArray) {
+    console.log(fbDunningInvoices, "before if");
+    if (reepayInvoiceIdArray.indexOf(fbDunningInvoices) == -1) {
+    // if (reepayInvoiceArray.findIndex((item) => item.handle != fbDunningInvoices)) {
+      console.log(fbDunningInvoices, "after if");
+      const eventsArray = await getReepayInvoiceEvents(options, fbDunningInvoices);
+      // Tjekke event status
+      if (eventsArray[0].event_type == "invoice_dunning_cancelled") {
+        // Rykkes fra activedunning til retained
+        if (eventsArray[1].event_type == "invoice_settled") {
           firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "Retained", fbDunningInvoices);
-        } else if (eventsArray[0].event_type == "invoice_cancelled") {
+        } else if (eventsArray[1].event_type == "invoice_cancelled") {
           firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "OnHold", fbDunningInvoices);
-        } else if (eventsArray[0].event_type == "invoice_failed" ||
-                 eventsArray[0].event_type == "invoice_refund" ||
-                 eventsArray[0].event_type == "invoice_reactivate" ||
-                 eventsArray[0].event_type == "invoice_credited" ||
-                 eventsArray[0].event_type == "invoice_changed") {
-          functions.logger.error("EVENT_TYPE IS NOT SUPPORTED!!!", eventsArray[0].event_type);
         }
+      } else if (eventsArray[0].event_type == "invoice_settled") {
+        firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "Retained", fbDunningInvoices);
+      } else if (eventsArray[0].event_type == "invoice_cancelled") {
+        firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "OnHold", fbDunningInvoices);
+      } else if (eventsArray[0].event_type == "invoice_failed" ||
+      eventsArray[0].event_type == "invoice_refund" ||
+      eventsArray[0].event_type == "invoice_reactivate" ||
+      eventsArray[0].event_type == "invoice_credited" ||
+                eventsArray[0].event_type == "invoice_changed") {
+        functions.logger.error("EVENT_TYPE IS NOT SUPPORTED!!!", eventsArray[0].event_type);
       }
     }
-    // Append dunning invoces to company ActiveDunning collection
-    await firestoreUtils.addDataToDocInCollectionUnderCompany("ActivDunning", companyName,
-        dunningInvoices, dunningInvoices.id);
   }
 }
+
 

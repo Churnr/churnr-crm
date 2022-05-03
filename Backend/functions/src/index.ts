@@ -77,13 +77,16 @@ exports.createCompany = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNI
  * Test endpoint
 */
 slackApp.get("/halloworld", async (req, res) => {
-  firestoreUtils.deleteAndMoveDoc("LaLatoys", "ActiveDunning", "Retained", "veYsUHctMywniuFO0aEF");
+  const list = firestoreUtils.getDocIdsFromCompanyCollection("Lalatoys", "ActivDunning");
+  for (const id of await list) {
+    firestoreUtils.deleteAndMoveDoc("Lalatoys", "ActivDunning", "ActiveDunning", id);
+  }
   res.status(200).send("fedt!");
   // const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
 });
 
 exports.app = functions.https.onRequest(app);
 exports.slackApp = functions
-    // .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
+    .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
     .https.onRequest(slackApp);
 

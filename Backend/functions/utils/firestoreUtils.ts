@@ -107,7 +107,7 @@ export async function addInvoceToCustomer(companyName:string,
       .collection("Customers")
       .doc(customerId)
       .collection("Invoces")
-      .doc(invoceObject.id).set(invoceObject);
+      .doc(invoceObject.handle).set(invoceObject);
   return newDoc;
 }
 
