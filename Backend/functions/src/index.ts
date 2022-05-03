@@ -83,7 +83,7 @@ slackApp.get("/halloworld", async (req, res) => {
   // const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
 });
 
-export const halloworld = functions.region("europe-west2").pubsub.schedule("0 23 * * *")
+export const testing = functions.region("europe-west2").pubsub.schedule("0 23 * * *")
     .timeZone("Europe/Copenhagen").onRun(async (context) => {
       try {
         const list = await firestoreUtils.getDocIdsFromCompanyCollection("Lalatoys", "ActivDunning");
