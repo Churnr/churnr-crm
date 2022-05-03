@@ -115,20 +115,20 @@ export async function getCustomerInfoFromReepay(options: customType.options,
  */
 export async function reepayLogic(companyApikey: string, companyName:string) {
   const options = createHttpOptionsForReepay(companyApikey);
-  const invoiceArray: Array<any> =
+  const reepayInvoiceArray: Array<any> =
       await retriveReepayList("https://api.reepay.com/v1/list/invoice?size=100&state=dunning", options);
 
   // hent invoice ids fra DB
-  const invoiceIdArray =
+  const firebaseInvoiceIdArray =
   await firestoreUtils.getDocIdsFromCompanyCollection(companyName, "ActiveDunning");
   // hent customer ids fra DB
-  const customerIdArray =
+  const firebaseCustomerIdArray =
   await firestoreUtils.getDocIdsFromCompanyCollection(companyName, "Customers");
-  for (const dunningInvoices of invoiceArray) {
+  for (const dunningInvoices of reepayInvoiceArray) {
     // krydsreferer invoices, så kun nye er tilstede
-    if (invoiceIdArray.indexOf(dunningInvoices.id) == -1) {
+    if (firebaseInvoiceIdArray.indexOf(dunningInvoices.id) == -1) {
       // tjek om kunden på invocesen eksisterer i db, if true: append invoices til collection.
-      if (customerIdArray.indexOf(dunningInvoices.customer) == -1) {
+      if (firebaseCustomerIdArray.indexOf(dunningInvoices.customer) == -1) {
         // if false: opret customer i companys customer colletion og append invoces til collection
         // get customer object fra reepay
         const customer = await getCustomerInfoFromReepay(options, dunningInvoices.customer);
@@ -140,26 +140,45 @@ export async function reepayLogic(companyApikey: string, companyName:string) {
       } else {
         await firestoreUtils.addInvoceToCustomer(companyName, dunningInvoices.customer, dunningInvoices);
       }
-    } else {
-      const eventsArray = await getReepayInvoiceEvents(options, dunningInvoices.id);
-      // Tjekke event status
-      if (eventsArray[0].event_type == "invoice_dunning_cancelled") {
+    }
+    /**
+     * reepay array:
+     * invoice 4
+     * invoice 5
+     * invoice 6
+     *
+     * firebase array:
+     * invoice 1
+     * invoice 2
+     * invoice 3
+     * invoice 4
+     * invoice 5 (new)
+     * invoice 6 (new)
+     */
+    // reepay invoice array, skal tjekke om dem den har fået med findes i firebase .indexOf(fbDunningInvoices) == -1)
+    // all invoices der er i firebase active dunning som ikke er i reepay dunning list
+    for (const fbDunningInvoices of firebaseInvoiceIdArray) {
+      if (reepayInvoiceArray.findIndex((item) => item.id != fbDunningInvoices)) {
+        const eventsArray = await getReepayInvoiceEvents(options, dunningInvoices.id);
+        // Tjekke event status
+        if (eventsArray[0].event_type == "invoice_dunning_cancelled") {
         // Rykkes fra activdunning til retained
-        if (eventsArray[1].event_type == "invoice_settled") {
+          if (eventsArray[1].event_type == "invoice_settled") {
+            firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "Retained", dunningInvoices.id);
+          } else if (eventsArray[1].event_type == "invoice_cancelled") {
+            firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "OnHold", dunningInvoices.id);
+          }
+        } else if (eventsArray[0].event_type == "invoice_settled") {
           firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "Retained", dunningInvoices.id);
-        } else if (eventsArray[1].event_type == "invoice_cancelled") {
+        } else if (eventsArray[0].event_type == "invoice_cancelled") {
           firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "OnHold", dunningInvoices.id);
-        }
-      } else if (eventsArray[0].event_type == "invoice_settled") {
-        firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "Retained", dunningInvoices.id);
-      } else if (eventsArray[0].event_type == "invoice_cancelled") {
-        firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "OnHold", dunningInvoices.id);
-      } else if (eventsArray[0].event_type == "invoice_failed" ||
+        } else if (eventsArray[0].event_type == "invoice_failed" ||
                  eventsArray[0].event_type == "invoice_refund" ||
                  eventsArray[0].event_type == "invoice_reactivate" ||
                  eventsArray[0].event_type == "invoice_credited" ||
                  eventsArray[0].event_type == "invoice_changed") {
-        functions.logger.error("EVENT_TYPE IS NOT SUPPORTED!!!", eventsArray[0].event_type);
+          functions.logger.error("EVENT_TYPE IS NOT SUPPORTED!!!", eventsArray[0].event_type);
+        }
       }
     }
     // Append dunning invoces to company ActiveDunning collection
