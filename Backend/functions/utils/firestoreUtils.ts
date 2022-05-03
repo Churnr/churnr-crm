@@ -18,15 +18,6 @@ export async function getDocIdsFromCompanyCollection(companyName:string, collect
   return docIdArray;
 }
 
-// export async function getInvoiceIdsFromCompanyCollection(companyName:string) {
-//   const invoiceIdArray:Array<string> = [];
-//   const sfRef = admin.firestore().collection("Companys").doc(companyName).collection("ActiveDunning");
-//   const collections = await sfRef.listDocuments();
-//   collections.forEach((collection) => {
-//     invoiceIdArray.push(collection.id);
-//   });
-//   return invoiceIdArray;
-// }
 
 /**
  * Gets invoice ids from invoice collection from firestore
@@ -44,17 +35,6 @@ export async function getCompanys(): Promise<string[]> {
   }
   return companyArray;
 }
-
-/**
- * Gets invoice ids from invoice collection from firestore
- * and push it to array of strings - invoiceIdArray
- * @return {Map} Array of invoice ids
- */
-// export async function getDunningUrlsFromFirestore(): Promise<Map<string, string>> {
-//   const dbURLS: any = await (await admin.firestore().collection("companyUrl").doc("duningurl").get()).data();
-//   const urls = dbURLS.Urls;
-//   return urls;
-// }
 
 /**
  * Gets invoice ids from invoice collection from firestore
@@ -129,7 +109,7 @@ export async function deleteAndMoveDoc(companyName:string, collectionNameMoveFro
       throw new Error("The doc you wanted to move was undefined");
     }
     admin.firestore().collection("Companys").doc(companyName)
-        .collection(collectionNameMoveTo).doc(docId).set(docFrom);
+        .collection(collectionNameMoveTo).doc(docFrom.handle).set(docFrom);
     const newDoc = await admin.firestore().collection("Companys").doc(companyName)
         .collection(collectionNameMoveFrom).doc(docId).delete();
     return newDoc;

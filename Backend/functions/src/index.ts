@@ -21,14 +21,6 @@ app.use(middleware.validateFirebaseIdToken);
 slackApp.use(middleware.validateSlackSigningSecret);
 
 
-// eslint-disable-next-line require-jsdoc
-// function getKeyByValue(object:any, value:string) {
-//   for (const [key, values] of Object.entries(object)) {
-//     if (key == value) {
-//       return values;
-//     }
-//   }
-// }
 /**
  * Fetches invoices in dunning state from paymentGateway
  * Reepay ready
@@ -83,20 +75,8 @@ slackApp.get("/halloworld", async (req, res) => {
   // const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
 });
 
-export const testing = functions.region("europe-west2").pubsub.schedule("0 23 * * *")
-    .timeZone("Europe/Copenhagen").onRun(async (context) => {
-      try {
-        const list = await firestoreUtils.getDocIdsFromCompanyCollection("Lalatoys", "ActivDunning");
-        for (const id of list) {
-          firestoreUtils.deleteAndMoveDoc("Lalatoys", "ActivDunning", "ActiveDunning", id);
-        }
-      } catch (error) {
-        functions.logger.error("pubsub topic(halloworld): ", error);
-      }
-    });
-
 exports.app = functions.https.onRequest(app);
 exports.slackApp = functions
-    .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
+    // .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
     .https.onRequest(slackApp);
 
