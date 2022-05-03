@@ -159,19 +159,19 @@ export async function reepayLogic(companyApikey: string, companyName:string) {
     // all invoices der er i firebase active dunning som ikke er i reepay dunning list
     for (const fbDunningInvoices of firebaseInvoiceIdArray) {
       if (reepayInvoiceArray.findIndex((item) => item.id != fbDunningInvoices)) {
-        const eventsArray = await getReepayInvoiceEvents(options, dunningInvoices.id);
+        const eventsArray = await getReepayInvoiceEvents(options, fbDunningInvoices);
         // Tjekke event status
         if (eventsArray[0].event_type == "invoice_dunning_cancelled") {
         // Rykkes fra activdunning til retained
           if (eventsArray[1].event_type == "invoice_settled") {
-            firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "Retained", dunningInvoices.id);
+            firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "Retained", fbDunningInvoices);
           } else if (eventsArray[1].event_type == "invoice_cancelled") {
-            firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "OnHold", dunningInvoices.id);
+            firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "OnHold", fbDunningInvoices);
           }
         } else if (eventsArray[0].event_type == "invoice_settled") {
-          firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "Retained", dunningInvoices.id);
+          firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "Retained", fbDunningInvoices);
         } else if (eventsArray[0].event_type == "invoice_cancelled") {
-          firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "OnHold", dunningInvoices.id);
+          firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "OnHold", fbDunningInvoices);
         } else if (eventsArray[0].event_type == "invoice_failed" ||
                  eventsArray[0].event_type == "invoice_refund" ||
                  eventsArray[0].event_type == "invoice_reactivate" ||
