@@ -80,13 +80,11 @@ slackApp.get("/halloworld", async (req, res) => {
   const data = Buffer.from(JSON.stringify(req.body));
   await pubsubClient.topic("halloworld").publish(data);
   res.status(200).send("Handling process: Create Company");
-
-  res.status(200).send("fedt!");
   // const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
 });
 
-exports.halloworld = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
-    .pubsub.topic("halloworld").onPublish(async (message) => {
+export const halloworld = functions.region("europe-west2").pubsub.schedule("0 23 * * *")
+    .timeZone("Europe/Copenhagen").onRun(async (context) => {
       try {
         const list = await firestoreUtils.getDocIdsFromCompanyCollection("Lalatoys", "ActivDunning");
         for (const id of list) {
@@ -96,6 +94,7 @@ exports.halloworld = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_
         functions.logger.error("pubsub topic(halloworld): ", error);
       }
     });
+
 exports.app = functions.https.onRequest(app);
 exports.slackApp = functions
     .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
