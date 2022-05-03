@@ -5,7 +5,7 @@ import * as firestoreUtils from "../utils/firestoreUtils";
 import * as reepayUtils from "../utils/reepayUtils";
 import {PubSub} from "@google-cloud/pubsub";
 // import * as cors from "cors";
-import * as middleware from "../middleware/middleware";
+// import * as middleware from "../middleware/middleware";
 import * as slackUtils from "../utils/slackUtils";
 import * as express from "express";
 admin.initializeApp();
@@ -16,9 +16,9 @@ const slackApp = express();
 
 // Enables middleware for slackApp endpoints
 app.use(express.json());
-app.use(middleware.validateFirebaseIdToken);
+// app.use(middleware.validateFirebaseIdToken);
 // Enables middleware for slackApp endpoints
-slackApp.use(middleware.validateSlackSigningSecret);
+// slackApp.use(middleware.validateSlackSigningSecret);
 
 
 // eslint-disable-next-line require-jsdoc
