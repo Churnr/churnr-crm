@@ -33,24 +33,24 @@ slackApp.use(middleware.validateSlackSigningSecret);
  * Fetches invoices in dunning state from paymentGateway
  * Reepay ready
  */
-export const fetchDunningInvoices =
- functions.region("europe-west2").pubsub.schedule("0 23 * * *")
-     .timeZone("Europe/Copenhagen").onRun(async (context) => {
-       const companys:any = await firestoreUtils.getCompanys();
-       // const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
-       for (const company of companys) {
-         const companyName :string = company.companyName;
-         const companyApykey :string = company.apiKey;
-         const paymentGateway : string = company.paymentGateway;
-         // const url = getKeyByValue(urls, paymentGateway) as string;
+// export const fetchDunningInvoices =
+//  functions.region("europe-west2").pubsub.schedule("0 23 * * *")
+//      .timeZone("Europe/Copenhagen").onRun(async (context) => {
+//        const companys:any = await firestoreUtils.getCompanys();
+//        // const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
+//        for (const company of companys) {
+//          const companyName :string = company.companyName;
+//          const companyApykey :string = company.apiKey;
+//          const paymentGateway : string = company.paymentGateway;
+//          // const url = getKeyByValue(urls, paymentGateway) as string;
 
-         if (paymentGateway === "Reepay") {
-           reepayUtils.reepayLogic(companyApykey, companyName);
-         }
-       }
-       return null;
-     }
-     );
+//          if (paymentGateway === "Reepay") {
+//            reepayUtils.reepayLogic(companyApykey, companyName);
+//          }
+//        }
+//        return null;
+//      }
+//      );
 
 // Kig på publishmessage istedet for publish
 /** @deprecated */
