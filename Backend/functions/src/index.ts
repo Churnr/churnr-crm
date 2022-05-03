@@ -77,9 +77,19 @@ exports.createCompany = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNI
  * Test endpoint
 */
 slackApp.get("/halloworld", async (req, res) => {
-  firestoreUtils.deleteAndMoveDoc("LaLatoys", "ActiveDunning", "Retained", "veYsUHctMywniuFO0aEF");
-  res.status(200).send("fedt!");
-  // const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
+  const companys:any = await firestoreUtils.getCompanys();
+  // const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
+  for (const company of companys) {
+    const companyName :string = company.companyName;
+    const companyApykey :string = company.apiKey;
+    const paymentGateway : string = company.paymentGateway;
+    // const url = getKeyByValue(urls, paymentGateway) as string;
+
+    if (paymentGateway === "Reepay") {
+      reepayUtils.reepayLogic(companyApykey, companyName);
+    }
+  }
+  res.status(200).send("testing....");
 });
 
 exports.app = functions.https.onRequest(app);
