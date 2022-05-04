@@ -3,10 +3,20 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable max-len */
 /* eslint-disable require-jsdoc */
+import { Response } from "firebase-functions/v1";
 import fetch from "node-fetch";
 import * as customType from "../types/types";
 
+/**
+ * uses method variable, endpoit variable and param variable to
+ * send request to slack
+ * @param {string} method GET/POST
+ * @param {string} endpoit Wuth api endpoint to use from slack
+ * @param {any} param request payload
+ * @return {customType.options} options
+ */
 export async function requestSlack(method:string, endpoint:string, param:any) {
+  try {
   const baseUrl = "https://slack.com/api/";
   const headers = {
     "Authorization": "Bearer " + process.env.SLACK_TOKEN,
@@ -29,8 +39,19 @@ export async function requestSlack(method:string, endpoint:string, param:any) {
   const response = await fetch(requestUrl, options);
 
   return response;
+  } catch (error) {
+    throw error
+  }
 }
 
+/**
+ * takes a payload, witch is usealy a string from slack request body.
+ * uses regex to find the different variables in the string
+ * and match them to the variable names in the company object.
+ * returns the object
+ * @param {any} param usually a string
+ * @return {customType.optcompany} object
+ */
 export function retriveCompanyInfoFromSlackReq(payload:any) {
   try {
     const company: customType.company = {
@@ -55,7 +76,15 @@ export function retriveCompanyInfoFromSlackReq(payload:any) {
   }
 }
 
+/**
+ * Function will use the response_url from the slack request
+ * to send an acknowledgment to the slakc user
+ * @param {string} req Slack request
+ * @param {string} responseText text to send to the user
+ * @return {Response} Slack response
+ */
 export async function slackAcknowledgmentResponse(req:any, responseText:string) {
+  try {
   const responseUrl = req.body.response_url;
   const headers = {
     "Authorization": "Bearer " + process.env.SLACK_TOKEN,
@@ -70,12 +99,24 @@ export async function slackAcknowledgmentResponse(req:any, responseText:string) 
   };
   const response = await fetch(responseUrl, options);
   return response;
+  } catch (error) {
+    throw error;
+  }
 }
 
+/**
+ * Function will send a message to the given channel
+ * @param {string} message message to send to the channel
+ * @param {string} channelId witch channel to send the message to
+ */
 export async function sendMessageToChannel(message:string, channelId:string) {
-  const payload = {
-    text: message,
-    channel: channelId,
-  };
-  requestSlack("POST", "chat.postMessage", payload);
+  try {
+    const payload = {
+      text: message,
+      channel: channelId,
+    };
+    requestSlack("POST", "chat.postMessage", payload);
+  } catch (error) {
+    throw error;
+  }
 }

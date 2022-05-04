@@ -3,7 +3,7 @@ import fetch from "node-fetch";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import * as functions from "firebase-functions";
 /**
- * Keeps sending request aslong respons contains next_page_token
+ * Keeps sending request aslong as respons contains next_page_token
  * @param {string} url Current year
  * @param {customType.options} options
  * @param {string} nextPageToken
@@ -15,6 +15,9 @@ export async function retriveReepayList(url:string,
     nextPageToken="",
     returnArray=[]):Promise<any> {
   const response:any = await (await fetch(url+nextPageToken, options)).json();
+  if (response.status == 404){
+    throw new Error("retriveReepayList: status 404")
+  }
   returnArray = returnArray.concat(response.content);
   if (response.next_page_token != undefined) {
     return await retriveReepayList(url, options, "&next_page_token="+
@@ -22,26 +25,6 @@ export async function retriveReepayList(url:string,
   }
   return returnArray;
 }
-
-
-// /**
-//  * Keeps sending request aslong respons contains next_page_token
-//  * @param {Array<any>} contentArray
-//  * @param {string} companyName
-//  */
-// export async function addNewReepayInvoicesToCompanyInFirestore(contentArray:Array<any>, companyName:string) {
-//   const invoiceIdArray =
-//     await firestoreUtils.getDocIdsFromCompanyCollection(companyName);
-//   for (const dunningInvoices of contentArray) {
-//     if (invoiceIdArray.indexOf(dunningInvoices.id) == -1) {
-//       await admin.firestore()
-//           .collection("Companys")
-//           .doc(companyName)
-//           .collection("ActiveDunning")
-//           .doc(dunningInvoices.id).set(dunningInvoices);
-//     }
-//   }
-// }
 
 /**
  * Creates HTTP options, with apikey, for reepay api requests
@@ -64,7 +47,7 @@ export function createHttpOptionsForReepay(apiKey:string) {
 }
 
 /**
- * Creates HTTP options, with apikey, for reepay api requests
+ * Retrives an invoice event from reepay
  * @param {customType.options} options
  * @param {string} invoiceId
  * @return {Promise<object[]>} response
@@ -75,19 +58,21 @@ export async function getReepayInvoiceEvents(options: customType.options, invoic
     const response = await (await fetch(url, options)).json();
     return response.content;
   } catch (error) {
-    throw new Error("getReepayInvoiceEvents");
+    throw error;
   }
 }
 
 
 /**
- * Creates HTTP options, with apikey, for reepay api requests
+ * Retrives a customers information from reepay.
+ * Creates a customer object from the given information
  * @param {customType.options} options
  * @param {string} customerId
- * @return {customType.options} options
+ * @return {customType.customer} customer object
  */
 export async function getCustomerInfoFromReepay(options: customType.options,
     customerId: string): Promise<customType.customer> {
+  try {
   const url = `https://api.reepay.com/v1/customer/${customerId}`;
   const customerObject = await (await fetch(url, options)).json();
   const customer: customType.customer = {
@@ -106,13 +91,22 @@ export async function getCustomerInfoFromReepay(options: customType.options,
     trial_active_subscriptions: customerObject.trial_active_subscriptions,
     subscriptions: customerObject.subscriptions,
   };
-
-
-  return customer;
+  return customer;  
+  } catch (error) {
+    throw error;
+  }
 }
 
 /**
- * Creates HTTP options, with apikey, for reepay api requests
+ * Firstly the functions fetches the dunninglist of a given company.
+ * Retrives the ids of exsisting invoices under the company in firestore
+ * Retrives the ids of ecsisting customer under the company in firestore
+ * Based on these information, the function will find new customers and invoces
+ * and append these to the firestore
+ * Secoundly the function creates a new list with invoices ids based on the list retrived from reepay.
+ * It will the crossrefrence the list with the id invocice list from firestore.
+ * invoces that exist in the list from firestore, and not the list from reepay, wil have their event status checked
+ * Based on the event status, the invoice will be moved to the proper collection.
  * @param {string} companyApikey
  * @param {string} companyName
  * @return {customType.options} options
@@ -121,27 +115,20 @@ export async function reepayLogic(companyApikey: string, companyName:string) {
   const options = createHttpOptionsForReepay(companyApikey);
   const reepayInvoiceArray: Array<any> =
       await retriveReepayList("https://api.reepay.com/v1/list/invoice?size=100&state=dunning", options);
-
-  // hent invoice ids fra DB
-  // ActiveDunning : HUSK AT ÆNDRE DETTE LORT!
   const firebaseInvoiceIdArray =
-  await firestoreUtils.getDocIdsFromCompanyCollection(companyName, "ActiveDunning");
-  // hent customer ids fra DB
+      await firestoreUtils.getDocIdsFromCompanyCollection(companyName, "ActiveDunning");
   const firebaseCustomerIdArray =
-  await firestoreUtils.getDocIdsFromCompanyCollection(companyName, "Customers");
+      await firestoreUtils.getDocIdsFromCompanyCollection(companyName, "Customers");
+
   for (const dunningInvoices of reepayInvoiceArray) {
-    // krydsreferer invoices, så kun nye er tilstede
     if (firebaseInvoiceIdArray.indexOf(dunningInvoices.handle) == -1) {
-      // tjek om kunden på invocesen eksisterer i db, if true: append invoices til collection.
       if (firebaseCustomerIdArray.indexOf(dunningInvoices.customer) == -1) {
-        // if false: opret customer i companys customer colletion og append invoces til collection
-        // get customer object fra reepay
+
         const customer = await getCustomerInfoFromReepay(options, dunningInvoices.customer);
-        // append customer object til firestore
         await firestoreUtils.addDataToDocInCollectionUnderCompany("Customers",
             companyName, customer, customer.handle);
-        // append invoice til customer invoces collection
         await firestoreUtils.addInvoceToCustomer(companyName, customer.handle, dunningInvoices);
+
       } else {
         await firestoreUtils.addInvoceToCustomer(companyName, dunningInvoices.customer, dunningInvoices);
       }
@@ -149,8 +136,7 @@ export async function reepayLogic(companyApikey: string, companyName:string) {
           dunningInvoices, dunningInvoices.handle);
     }
   }
-  // reepay invoice array, skal tjekke om dem den har fået med findes i firebase .indexOf(fbDunningInvoices) == -1)
-  // all invoices der er i firebase active dunning som ikke er i reepay dunning list
+
   const reepayInvoiceIdArray = reepayInvoiceArray.map((a) => {
     return a.handle;
   });
@@ -158,12 +144,9 @@ export async function reepayLogic(companyApikey: string, companyName:string) {
   for (const fbDunningInvoices of firebaseInvoiceIdArray) {
     console.log(fbDunningInvoices, "before if");
     if (reepayInvoiceIdArray.indexOf(fbDunningInvoices) == -1) {
-    // if (reepayInvoiceArray.findIndex((item) => item.handle != fbDunningInvoices)) {
       console.log(fbDunningInvoices, "after if");
       const eventsArray = await getReepayInvoiceEvents(options, fbDunningInvoices);
-      // Tjekke event status
       if (eventsArray[0].event_type == "invoice_dunning_cancelled") {
-        // Rykkes fra activedunning til retained
         if (eventsArray[1].event_type == "invoice_settled") {
           firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "Retained", fbDunningInvoices);
         } else if (eventsArray[1].event_type == "invoice_cancelled") {

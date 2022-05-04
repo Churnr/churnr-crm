@@ -2,93 +2,111 @@ import * as admin from "firebase-admin";
 import * as types from "../types/types";
 
 /**
- * Gets doc ids from invoice collection from firestore
- * and push it to array of strings - docIdArray
+ * Gets doc ids from a collection under a company from firestore
+ * and push it to array - docIdArray
  * @param {string}companyName collection name in firestore
  * @param {string}collectionName
  * @return {Promise<string[]>} Array of doc ids
  */
 export async function getDocIdsFromCompanyCollection(companyName:string, collectionName:string): Promise<string[]> {
-  const docIdArray:Array<string> = [];
-  const sfRef = admin.firestore().collection("Companys").doc(companyName).collection(collectionName);
-  const collections = await sfRef.listDocuments();
-  collections.forEach((collection) => {
-    docIdArray.push(collection.id);
-  });
-  return docIdArray;
+  try {
+    const docIdArray:Array<string> = [];
+    const sfRef = admin.firestore().collection("Companys").doc(companyName).collection(collectionName);
+    const collections = await sfRef.listDocuments();
+    collections.forEach((collection) => {
+      docIdArray.push(collection.id);
+    });
+    return docIdArray;
+  } catch (error) {
+    throw error;
+  }
 }
 
 
 /**
- * Gets invoice ids from invoice collection from firestore
- * and push it to array of strings - invoiceIdArray
- * @return {Promise<string[]>} Array of invoice ids
+ * Retrives company docs from firestore
+ * and push it to array of objects - companyArray
+ * @return {Promise<string[]>} Array of company objects
  */
 export async function getCompanys(): Promise<string[]> {
-  const companyArray:Array<string> = [];
-  const dbInvoice = await admin.firestore()
-      .collection("Companys").listDocuments();
-  for (const s of dbInvoice) {
-    const QueryDocumentSnapshot = await s.get();
-    const data: any = QueryDocumentSnapshot.data();
-    companyArray.push(data);
+  try {
+    const companyArray:Array<string> = [];
+    const dbInvoice = await admin.firestore()
+        .collection("Companys").listDocuments();
+    for (const s of dbInvoice) {
+      const QueryDocumentSnapshot = await s.get();
+      const data: any = QueryDocumentSnapshot.data();
+      companyArray.push(data);
+    }
+    return companyArray;
+  } catch (error) {
+    throw error;
   }
-  return companyArray;
 }
 
 /**
- * Gets invoice ids from invoice collection from firestore
- * and push it to array of strings - invoiceIdArray
- * @param {string}company collection name in firestore
+ * Creates a company doc with the given company object
+ * @param {types.company}company company object
  * @param {string}companyName companyName
- * @return {Array<string>} Array of invoice ids
+ * @return {admin.firestore.WriteResult} firestore WriteResult
  */
 export async function addCompanyToFirestore(company:types.company,
     companyName:string): Promise<admin.firestore.WriteResult> {
-  const newDoc = await
-  admin.firestore().collection("Companys").doc(companyName).set(company);
-  return newDoc;
+  try {
+    const newDoc = await
+    admin.firestore().collection("Companys").doc(companyName).set(company);
+    return newDoc;
+  } catch (error) {
+    throw error;
+  }
 }
 
 
 /**
- * Gets invoice ids from invoice collection from firestore
- * and push it to array of strings - invoiceIdArray
+ * Creats a doc in a collection under a companies doc
  * @param {string}collection collection name in firestore
  * @param {string}companyName companyName
- * @param {any} object
+ * @param {any} object 
  * @param {string} docId
- * @return {Array<string>} Array of invoice ids
+ * @return {admin.firestore.WriteResult} firestore WriteResult
  */
 export async function addDataToDocInCollectionUnderCompany(collection:string,
     companyName:string, object:any, docId:string): Promise<admin.firestore.WriteResult> {
-  const newDoc = await admin.firestore()
-      .collection("Companys")
-      .doc(companyName)
-      .collection(collection)
-      .doc(docId).set(object);
-  return newDoc;
+  try {
+    const newDoc = await admin.firestore()
+    .collection("Companys")
+    .doc(companyName)
+    .collection(collection)
+    .doc(docId).set(object);
+return newDoc;
+  } catch (error) {
+    throw error;
+  }
 }
 
 
 /**
- * Gets invoice ids from invoice collection from firestore
+ * adds an invoice object to a companies customer
  * and push it to array of strings - invoiceIdArray
  * @param {string}companyName collection name in firestore
  * @param {string}customerId customer id
  * @param {any} invoceObject invoice object
- * @return {Array<string>} Array of invoice ids
+ * @return {admin.firestore.WriteResult} firestore WriteResult
  */
 export async function addInvoceToCustomer(companyName:string,
     customerId:string, invoceObject:any): Promise<admin.firestore.WriteResult> {
-  const newDoc = await admin.firestore()
+  try {
+    const newDoc = await admin.firestore()
       .collection("Companys")
       .doc(companyName)
       .collection("Customers")
       .doc(customerId)
       .collection("Invoces")
       .doc(invoceObject.handle).set(invoceObject);
-  return newDoc;
+    return newDoc;
+  } catch (error) {
+    throw error;
+  }
 }
 
 /**
@@ -114,7 +132,6 @@ export async function deleteAndMoveDoc(companyName:string, collectionNameMoveFro
         .collection(collectionNameMoveFrom).doc(docId).delete();
     return newDoc;
   } catch (error) {
-    throw new Error("Could not move doc(s)");
+    throw error;
   }
 }
-
