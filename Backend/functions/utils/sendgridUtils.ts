@@ -1,6 +1,6 @@
 import * as firestoreUtils from "../utils/firestoreUtils";
 import * as sendGrid from "@sendgrid/mail";
-import {activeFlow, customer} from "../types/types"
+import {activeFlow, customer} from "../types/types";
 // Pre. Add map to customer, containing templateIds
 
 // Slash command ind param: companyName, customer.id, templateId;
@@ -57,11 +57,13 @@ function emailMessage(to:string, from:string, template:string, name:string) {
 // iterar over company list
 // ________________________________________
 
+// eslint-disable-next-line require-jsdoc
 export async function emailFlowLogic(companyName:string, companyEmail:string) {
   // Hent template map
   const templateMap = await firestoreUtils.getFieldValueFromComapnyInFirestore(companyName, "templateMap");
   // Hent activeflows fra company (skal være et array)
-  const activeFlowsArray: Array<activeFlow> = await firestoreUtils.getDocsFromCompanyCollection(companyName, "ActiveDunning");
+  const activeFlowsArray: Array<activeFlow> = await firestoreUtils.
+      getDocsFromCompanyCollection(companyName, "ActiveDunning");
   // iterer over liste af activeflows objecter
   for (const activeFlow of activeFlowsArray) {
     // if email answerd = true - ryk ned til endedflows
@@ -69,18 +71,15 @@ export async function emailFlowLogic(companyName:string, companyEmail:string) {
       continue;
     }
     // Hent kunde object
-    const customer: customer = await firestoreUtils.getCustomerFromFirestore(companyName, activeFlow.customerId);  
+    const customer: customer = await firestoreUtils.getCustomerFromFirestore(companyName, activeFlow.customerId);
     // Kald emailMessage med nødvendigt data og template id
-    const emailMsg = emailMessage(customer.email, companyEmail, customer.first_name, templateMap[activeFlow.errorState][activeFlow.emailCount]);
-    
-  
+    const emailMsg = emailMessage(customer.email, companyEmail,
+        customer.first_name, templateMap[activeFlow.errorState][activeFlow.emailCount]);
+
+
     // send email
     sendGrid.send(emailMsg);
-   
-
   }
 }
-
-
 
 
