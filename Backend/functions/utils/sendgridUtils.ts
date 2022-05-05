@@ -29,9 +29,7 @@ export async function sendEmail(companyName:string,
   }
   sendGrid.setApiKey(process.env.SENDGRID_API_KEY);
   // connect to sendgrid and send email
-  const message = emailMessage(await emailTo, emailFrom, template);
-  console.log(message);
-  return [emailTo, message];
+  return emailTo;
 }
 // Verify input data slack
 // get customer data
@@ -74,6 +72,7 @@ export async function emailFlowLogic(companyName:string, companyEmail:string) {
     const customer: customer = await firestoreUtils.getCustomerFromFirestore(companyName, activeFlow.customerId);  
     // Kald emailMessage med nødvendigt data og template id
     const emailMsg = emailMessage(customer.email, companyEmail, customer.first_name, templateMap[activeFlow.errorState][activeFlow.emailCount]);
+    
   
     // send email
     sendGrid.send(emailMsg);
