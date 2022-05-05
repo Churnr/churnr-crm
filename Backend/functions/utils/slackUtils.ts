@@ -1,9 +1,9 @@
+/* eslint-disable no-useless-catch */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable max-len */
 /* eslint-disable require-jsdoc */
-import { Response } from "firebase-functions/v1";
 import fetch from "node-fetch";
 import * as customType from "../types/types";
 
@@ -11,36 +11,36 @@ import * as customType from "../types/types";
  * uses method variable, endpoit variable and param variable to
  * send request to slack
  * @param {string} method GET/POST
- * @param {string} endpoit Wuth api endpoint to use from slack
+ * @param {string} endpoint Wuth api endpoint to use from slack
  * @param {any} param request payload
  * @return {customType.options} options
  */
 export async function requestSlack(method:string, endpoint:string, param:any) {
   try {
-  const baseUrl = "https://slack.com/api/";
-  const headers = {
-    "Authorization": "Bearer " + process.env.SLACK_TOKEN,
-    "Content-type": "application/json",
-  };
-  const options = {
-    headers: headers,
-    method: method,
-    body: "",
-  };
+    const baseUrl = "https://slack.com/api/";
+    const headers = {
+      "Authorization": "Bearer " + process.env.SLACK_TOKEN,
+      "Content-type": "application/json",
+    };
+    const options = {
+      headers: headers,
+      method: method,
+      body: "",
+    };
 
-  let requestUrl;
-  if (method == "POST") {
-    requestUrl = baseUrl + endpoint;
-    options.body = JSON.stringify(param);
-  } else {
-    requestUrl = baseUrl + endpoint + param;
-  }
+    let requestUrl;
+    if (method == "POST") {
+      requestUrl = baseUrl + endpoint;
+      options.body = JSON.stringify(param);
+    } else {
+      requestUrl = baseUrl + endpoint + param;
+    }
 
-  const response = await fetch(requestUrl, options);
+    const response = await fetch(requestUrl, options);
 
-  return response;
+    return response;
   } catch (error) {
-    throw error
+    throw error;
   }
 }
 
@@ -49,7 +49,7 @@ export async function requestSlack(method:string, endpoint:string, param:any) {
  * uses regex to find the different variables in the string
  * and match them to the variable names in the company object.
  * returns the object
- * @param {any} param usually a string
+ * @param {any} payload usually a string
  * @return {customType.optcompany} object
  */
 export function retriveCompanyInfoFromSlackReq(payload:any) {
@@ -85,20 +85,20 @@ export function retriveCompanyInfoFromSlackReq(payload:any) {
  */
 export async function slackAcknowledgmentResponse(req:any, responseText:string) {
   try {
-  const responseUrl = req.body.response_url;
-  const headers = {
-    "Authorization": "Bearer " + process.env.SLACK_TOKEN,
-    "Content-type": "application/json",
-  };
-  const options = {
-    headers: headers,
-    method: "POST",
-    body: JSON.stringify({
-      text: responseText,
-    }),
-  };
-  const response = await fetch(responseUrl, options);
-  return response;
+    const responseUrl = req.body.response_url;
+    const headers = {
+      "Authorization": "Bearer " + process.env.SLACK_TOKEN,
+      "Content-type": "application/json",
+    };
+    const options = {
+      headers: headers,
+      method: "POST",
+      body: JSON.stringify({
+        text: responseText,
+      }),
+    };
+    const response = await fetch(responseUrl, options);
+    return response;
   } catch (error) {
     throw error;
   }

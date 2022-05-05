@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 import * as customType from "../types/types";
 import fetch from "node-fetch";
 import * as firestoreUtils from "../utils/firestoreUtils";
@@ -15,8 +16,8 @@ export async function retriveReepayList(url:string,
     nextPageToken="",
     returnArray=[]):Promise<any> {
   const response:any = await (await fetch(url+nextPageToken, options)).json();
-  if (response.status == 404){
-    throw new Error("retriveReepayList: status 404")
+  if (response.status == 404) {
+    throw new Error("retriveReepayList: status 404");
   }
   returnArray = returnArray.concat(response.content);
   if (response.next_page_token != undefined) {
@@ -73,25 +74,25 @@ export async function getReepayInvoiceEvents(options: customType.options, invoic
 export async function getCustomerInfoFromReepay(options: customType.options,
     customerId: string): Promise<customType.customer> {
   try {
-  const url = `https://api.reepay.com/v1/customer/${customerId}`;
-  const customerObject = await (await fetch(url, options)).json();
-  const customer: customType.customer = {
-    first_name: customerObject.first_name,
-    last_name: customerObject.last_name,
-    handle: customerObject.handle,
-    email: customerObject.email,
-    phone: customerObject.phone,
-    created: customerObject.created,
-    dunning_invoices: customerObject.dunning_invoices,
-    active_subscriptions: customerObject.active_subscriptions,
-    expired_subscriptions: customerObject.expired_subscriptions,
-    cancelled_invoices: customerObject.cancelled_invoices,
-    settled_invoices: customerObject.settled_invoices,
-    pending_invoices: customerObject.pending_invoices,
-    trial_active_subscriptions: customerObject.trial_active_subscriptions,
-    subscriptions: customerObject.subscriptions,
-  };
-  return customer;  
+    const url = `https://api.reepay.com/v1/customer/${customerId}`;
+    const customerObject = await (await fetch(url, options)).json();
+    const customer: customType.customer = {
+      first_name: customerObject.first_name,
+      last_name: customerObject.last_name,
+      handle: customerObject.handle,
+      email: customerObject.email,
+      phone: customerObject.phone,
+      created: customerObject.created,
+      dunning_invoices: customerObject.dunning_invoices,
+      active_subscriptions: customerObject.active_subscriptions,
+      expired_subscriptions: customerObject.expired_subscriptions,
+      cancelled_invoices: customerObject.cancelled_invoices,
+      settled_invoices: customerObject.settled_invoices,
+      pending_invoices: customerObject.pending_invoices,
+      trial_active_subscriptions: customerObject.trial_active_subscriptions,
+      subscriptions: customerObject.subscriptions,
+    };
+    return customer;
   } catch (error) {
     throw error;
   }
@@ -123,12 +124,10 @@ export async function reepayLogic(companyApikey: string, companyName:string) {
   for (const dunningInvoices of reepayInvoiceArray) {
     if (firebaseInvoiceIdArray.indexOf(dunningInvoices.handle) == -1) {
       if (firebaseCustomerIdArray.indexOf(dunningInvoices.customer) == -1) {
-
         const customer = await getCustomerInfoFromReepay(options, dunningInvoices.customer);
         await firestoreUtils.addDataToDocInCollectionUnderCompany("Customers",
             companyName, customer, customer.handle);
         await firestoreUtils.addInvoceToCustomer(companyName, customer.handle, dunningInvoices);
-
       } else {
         await firestoreUtils.addInvoceToCustomer(companyName, dunningInvoices.customer, dunningInvoices);
       }

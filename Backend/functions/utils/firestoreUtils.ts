@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 import * as admin from "firebase-admin";
 import * as types from "../types/types";
 
@@ -66,7 +67,7 @@ export async function addCompanyToFirestore(company:types.company,
  * Creats a doc in a collection under a companies doc
  * @param {string}collection collection name in firestore
  * @param {string}companyName companyName
- * @param {any} object 
+ * @param {any} object
  * @param {string} docId
  * @return {admin.firestore.WriteResult} firestore WriteResult
  */
@@ -74,11 +75,11 @@ export async function addDataToDocInCollectionUnderCompany(collection:string,
     companyName:string, object:any, docId:string): Promise<admin.firestore.WriteResult> {
   try {
     const newDoc = await admin.firestore()
-    .collection("Companys")
-    .doc(companyName)
-    .collection(collection)
-    .doc(docId).set(object);
-return newDoc;
+        .collection("Companys")
+        .doc(companyName)
+        .collection(collection)
+        .doc(docId).set(object);
+    return newDoc;
   } catch (error) {
     throw error;
   }
@@ -97,12 +98,12 @@ export async function addInvoceToCustomer(companyName:string,
     customerId:string, invoceObject:any): Promise<admin.firestore.WriteResult> {
   try {
     const newDoc = await admin.firestore()
-      .collection("Companys")
-      .doc(companyName)
-      .collection("Customers")
-      .doc(customerId)
-      .collection("Invoces")
-      .doc(invoceObject.handle).set(invoceObject);
+        .collection("Companys")
+        .doc(companyName)
+        .collection("Customers")
+        .doc(customerId)
+        .collection("Invoces")
+        .doc(invoceObject.handle).set(invoceObject);
     return newDoc;
   } catch (error) {
     throw error;
