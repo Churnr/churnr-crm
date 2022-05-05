@@ -42,7 +42,6 @@ export const fetchDunningInvoices =
          const companyName :string = company.companyName;
          const companyApykey :string = company.apiKey;
          const paymentGateway : string = company.paymentGateway;
-         // const url = getKeyByValue(urls, paymentGateway) as string;
 
          if (paymentGateway === "Reepay") {
            reepayUtils.reepayLogic(companyApykey, companyName);

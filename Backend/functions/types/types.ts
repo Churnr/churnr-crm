@@ -54,3 +54,12 @@ export type customer = {
     "trial_active_subscriptions": number,
     "subscriptions": number,
 }
+
+export type activeFlow = {
+    "invoiceId":string,
+    "customerId":string,
+    "flowStartDate":string,
+    "errorState":string,
+    "emailCount":number,
+    "emailAnswered":boolean,
+}

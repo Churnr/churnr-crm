@@ -18,6 +18,25 @@ export async function getDocIdsFromCompanyCollection(companyName:string, collect
   return docIdArray;
 }
 
+/**
+ * Gets doc ids from invoice collection from firestore
+ * and push it to array of strings - docIdArray
+ * @param {string}companyName collection name in firestore
+ * @param {string}collectionName
+ * @return {Promise<string[]>} Array of doc ids
+ */
+export async function getDocsFromCompanyCollection(companyName:string, collectionName:string): Promise<any> {
+  const docArray:Array<any> = [];
+  const sfRef = admin.firestore().collection("Companys").doc(companyName).collection(collectionName);
+  const docs = await sfRef.listDocuments();
+  for (const doc of docs) {
+    const QueryDocumentSnapshot = await doc.get();
+    const data: any = QueryDocumentSnapshot.data();
+    docArray.push(data);
+  }
+  return docArray;
+}
+
 // export async function getInvoiceIdsFromCompanyCollection(companyName:string) {
 //   const invoiceIdArray:Array<string> = [];
 //   const sfRef = admin.firestore().collection("Companys").doc(companyName).collection("ActiveDunning");
@@ -140,7 +159,7 @@ export async function deleteAndMoveDoc(companyName:string, collectionNameMoveFro
  * @param {string} customerId
  * @return {admin.firestore.WriteResult} newDoc
  */
-export async function getCustomerFromFirestore(companyName:string, customerId:string) {
+export async function getCustomerFromFirestore(companyName:string, customerId:string): Promise<any> {
   const dataFrom = await admin.firestore().collection("Companys").doc(companyName)
       .collection("Customers").doc(customerId).get();
   const docFrom = dataFrom.data();
@@ -157,6 +176,6 @@ export async function getCustomerFromFirestore(companyName:string, customerId:st
  * @return {admin.firestore.WriteResult} newDoc
  */
 export async function getFieldValueFromComapnyInFirestore(companyName:string, FieldName:string) {
-  const templateMap = await (await admin.firestore().collection("Companys").doc(companyName).get()).get(FieldName);
-  return templateMap;
+  const fieldValue = await (await admin.firestore().collection("Companys").doc(companyName).get()).get(FieldName);
+  return fieldValue;
 }
