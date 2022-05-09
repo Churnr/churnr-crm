@@ -181,8 +181,12 @@ const jsonSlackExample:object = {
  * Test endpoint
 */
 slackApp.get("/halloworld", async (req, res) => {
-  slackUtils.slackAcknowledgmentResponse(req, jsonSlackExample);
-  res.status(200).send("DER HUL IGENNEM!");
+  try {
+    slackUtils.slackAcknowledgmentResponse(req, jsonSlackExample);
+    res.status(200).send("DER HUL IGENNEM!");
+  } catch (error) {
+    functions.logger.error(error);
+  }
 });
 
 exports.app = functions.https.onRequest(app);
