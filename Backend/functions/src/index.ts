@@ -6,7 +6,7 @@ import * as reepayUtils from "../utils/reepayUtils";
 import * as sendgridUtils from "../utils/sendgridUtils";
 import {PubSub} from "@google-cloud/pubsub";
 // import * as cors from "cors";
-// import * as middleware from "../middleware/middleware";
+import * as middleware from "../middleware/middleware";
 import * as slackUtils from "../utils/slackUtils";
 import * as express from "express";
 admin.initializeApp();
@@ -18,7 +18,7 @@ const slackApp = express();
 // Enables middleware for slackApp endpoints
 app.use(express.json());
 // app.use(middleware.validateFirebaseIdToken);
-// slackApp.use(middleware.validateSlackSigningSecret);
+slackApp.use(middleware.validateSlackSigningSecret);
 
 
 /**
