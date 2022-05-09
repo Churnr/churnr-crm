@@ -21,14 +21,6 @@ app.use(express.json());
 // slackApp.use(middleware.validateSlackSigningSecret);
 
 
-// eslint-disable-next-line require-jsdoc
-// function getKeyByValue(object:any, value:string) {
-//   for (const [key, values] of Object.entries(object)) {
-//     if (key == value) {
-//       return values;
-//     }
-//   }
-// }
 /**
  * Fetches invoices in dunning state from paymentGateway
  * Reepay ready

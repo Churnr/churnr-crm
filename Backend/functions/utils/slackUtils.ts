@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
@@ -6,31 +7,51 @@
 import fetch from "node-fetch";
 import * as customType from "../types/types";
 
+/**
+ * uses method variable, endpoit variable and param variable to
+ * send request to slack
+ * @param {string} method GET/POST
+ * @param {string} endpoint Wuth api endpoint to use from slack
+ * @param {any} param request payload
+ * @return {customType.options} options
+ */
 export async function requestSlack(method:string, endpoint:string, param:any) {
-  const baseUrl = "https://slack.com/api/";
-  const headers = {
-    "Authorization": "Bearer " + process.env.SLACK_TOKEN,
-    "Content-type": "application/json",
-  };
-  const options = {
-    headers: headers,
-    method: method,
-    body: "",
-  };
+  try {
+    const baseUrl = "https://slack.com/api/";
+    const headers = {
+      "Authorization": "Bearer " + process.env.SLACK_TOKEN,
+      "Content-type": "application/json",
+    };
+    const options = {
+      headers: headers,
+      method: method,
+      body: "",
+    };
 
-  let requestUrl;
-  if (method == "POST") {
-    requestUrl = baseUrl + endpoint;
-    options.body = JSON.stringify(param);
-  } else {
-    requestUrl = baseUrl + endpoint + param;
+    let requestUrl;
+    if (method == "POST") {
+      requestUrl = baseUrl + endpoint;
+      options.body = JSON.stringify(param);
+    } else {
+      requestUrl = baseUrl + endpoint + param;
+    }
+
+    const response = await fetch(requestUrl, options);
+
+    return response;
+  } catch (error) {
+    throw error;
   }
-
-  const response = await fetch(requestUrl, options);
-
-  return response;
 }
 
+/**
+ * takes a payload, witch is usealy a string from slack request body.
+ * uses regex to find the different variables in the string
+ * and match them to the variable names in the company object.
+ * returns the object
+ * @param {any} payload usually a string
+ * @return {customType.optcompany} object
+ */
 export function retriveCompanyInfoFromSlackReq(payload:any) {
   try {
     const company: customType.company = {
@@ -56,6 +77,7 @@ export function retriveCompanyInfoFromSlackReq(payload:any) {
   }
 }
 
+
 export function retriveSendEmailInfoFromSlackReq(payload:any) {
   try {
     const emailRequest: customType.emailRequest = {
@@ -74,26 +96,45 @@ export function retriveSendEmailInfoFromSlackReq(payload:any) {
   }
 }
 
+/**
+ * Function will use the response_url from the slack request
+ * to send an acknowledgment to the slakc user
+ * @param {string} req Slack request
+ * @param {object} body text to send to the user
+ * @return {Response} Slack response
+ */
 export async function slackAcknowledgmentResponse(req:any, body:object) {
-  const responseUrl = req.body.response_url;
-  console.log(req.body);
-  const headers = {
-    "Authorization": "Bearer " + process.env.SLACK_TOKEN,
-    "Content-type": "application/json",
-  };
-  const options = {
-    headers: headers,
-    method: "POST",
-    body: JSON.stringify(body),
-  };
-  const response = await fetch(responseUrl, options);
-  return response;
+  try {
+    const responseUrl = req.body.response_url;
+    const headers = {
+      "Authorization": "Bearer " + process.env.SLACK_TOKEN,
+      "Content-type": "application/json",
+    };
+    const options = {
+      headers: headers,
+      method: "POST",
+      body: JSON.stringify(body),
+    };
+    const response = await fetch(responseUrl, options);
+    return response;
+  } catch (error) {
+    throw error;
+  }
 }
 
+/**
+ * Function will send a message to the given channel
+ * @param {string} message message to send to the channel
+ * @param {string} channelId witch channel to send the message to
+ */
 export async function sendMessageToChannel(message:string, channelId:string) {
-  const payload = {
-    text: message,
-    channel: channelId,
-  };
-  requestSlack("POST", "chat.postMessage", payload);
+  try {
+    const payload = {
+      text: message,
+      channel: channelId,
+    };
+    requestSlack("POST", "chat.postMessage", payload);
+  } catch (error) {
+    throw error;
+  }
 }
