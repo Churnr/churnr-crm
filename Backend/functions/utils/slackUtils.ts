@@ -74,8 +74,9 @@ export function retriveSendEmailInfoFromSlackReq(payload:any) {
   }
 }
 
-export async function slackAcknowledgmentResponse(req:any, responseText:string) {
+export async function slackAcknowledgmentResponse(req:any, body:object) {
   const responseUrl = req.body.response_url;
+  console.log(req.body);
   const headers = {
     "Authorization": "Bearer " + process.env.SLACK_TOKEN,
     "Content-type": "application/json",
@@ -83,9 +84,7 @@ export async function slackAcknowledgmentResponse(req:any, responseText:string) 
   const options = {
     headers: headers,
     method: "POST",
-    body: JSON.stringify({
-      text: responseText,
-    }),
+    body: JSON.stringify(body),
   };
   const response = await fetch(responseUrl, options);
   return response;

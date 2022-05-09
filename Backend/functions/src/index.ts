@@ -34,22 +34,22 @@ app.use(express.json());
  * Reepay ready
  */
 export const fetchDunningInvoices =
- functions.region("europe-west2").pubsub.schedule("0 23 * * *")
-     .timeZone("Europe/Copenhagen").onRun(async (context) => {
-       const companys:any = await firestoreUtils.getCompanys();
-       // const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
-       for (const company of companys) {
-         const companyName :string = company.companyName;
-         const companyApykey :string = company.apiKey;
-         const paymentGateway : string = company.paymentGateway;
+  functions.region("europe-west2").pubsub.schedule("0 23 * * *")
+      .timeZone("Europe/Copenhagen").onRun(async (context) => {
+        const companys: any = await firestoreUtils.getCompanys();
+        // const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
+        for (const company of companys) {
+          const companyName: string = company.companyName;
+          const companyApykey: string = company.apiKey;
+          const paymentGateway: string = company.paymentGateway;
 
-         if (paymentGateway === "Reepay") {
-           reepayUtils.reepayLogic(companyApykey, companyName);
-         }
-       }
-       return null;
-     }
-     );
+          if (paymentGateway === "Reepay") {
+            reepayUtils.reepayLogic(companyApykey, companyName);
+          }
+        }
+        return null;
+      }
+      );
 
 // Kig på publishmessage istedet for publish
 /** @deprecated */
@@ -97,19 +97,104 @@ exports.sendEmail = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_S
         functions.logger.error("pubsub topic(send-email): ", error);
       }
     });
+
+
+const jsonSlackExample:object = {
+  "blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "New request",
+        "emoji": true,
+      },
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "<https://example.com|View request>",
+      },
+    },
+    {
+      "type": "input",
+      "element": {
+        "type": "static_select",
+        "placeholder": {
+          "type": "plain_text",
+          "text": "Select an item",
+          "emoji": true,
+        },
+        "options": [
+          {
+            "text": {
+              "type": "plain_text",
+              "text": "*this is plain_text text*",
+              "emoji": true,
+            },
+            "value": "value-0",
+          },
+          {
+            "text": {
+              "type": "plain_text",
+              "text": "*this is plain_text text*",
+              "emoji": true,
+            },
+            "value": "value-1",
+          },
+          {
+            "text": {
+              "type": "plain_text",
+              "text": "*this is plain_text text*",
+              "emoji": true,
+            },
+            "value": "value-2",
+          },
+        ],
+        "action_id": "static_select-action",
+      },
+      "label": {
+        "type": "plain_text",
+        "text": "Label",
+        "emoji": true,
+      },
+    },
+    {
+      "type": "input",
+      "element": {
+        "type": "plain_text_input",
+        "action_id": "plain_text_input-action",
+      },
+      "label": {
+        "type": "plain_text",
+        "text": "Label",
+        "emoji": true,
+      },
+    },
+    {
+      "type": "input",
+      "element": {
+        "type": "plain_text_input",
+        "action_id": "plain_text_input-action",
+      },
+      "label": {
+        "type": "plain_text",
+        "text": "Label",
+        "emoji": true,
+      },
+    },
+  ],
+};
 /**
  * Test endpoint
 */
 slackApp.get("/halloworld", async (req, res) => {
-  // const template = firestoreUtils.getFieldValueFromComapnyInFirestore("LaLatoys", "templateMap");
-  const messageInfo = await sendgridUtils.sendEmail("LALA", "12", "t2");
-  console.log(messageInfo);
+  slackUtils.slackAcknowledgmentResponse(req, jsonSlackExample);
   res.status(200).send("DER HUL IGENNEM!");
-  // const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
 });
 
 exports.app = functions.https.onRequest(app);
 exports.slackApp = functions
-    // .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
+// .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
     .https.onRequest(slackApp);
 
