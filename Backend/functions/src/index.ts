@@ -180,7 +180,7 @@ const jsonSlackExample:object = {
 /**
  * Test endpoint
 */
-slackApp.get("/halloworld", async (req, res) => {
+slackApp.post("/halloworld", async (req, res) => {
   functions.logger.error("Started");
   try {
     const response = slackUtils.slackAcknowledgmentResponse(req, jsonSlackExample);
