@@ -5,16 +5,16 @@ import * as firestoreUtils from "../utils/firestoreUtils";
 import * as functions from "firebase-functions";
 /**
  * Keeps sending request aslong as respons contains next_page_token
- * @param {string} url Current year
+ * @param {string} url
  * @param {customType.options} options
  * @param {string} nextPageToken
  * @param {Promise<any>} returnArray
  * @return {Promise<any>} Array of url response.content
  */
-export async function retriveReepayList(url:string,
+export const retriveReepayList = async (url:string,
     options:customType.options,
     nextPageToken="",
-    returnArray=[]):Promise<any> {
+    returnArray=[]):Promise<any> => {
   const response:any = await (await fetch(url+nextPageToken, options)).json();
   if (response.status == 404) {
     throw new Error("retriveReepayList: status 404");
@@ -25,14 +25,14 @@ export async function retriveReepayList(url:string,
                                 response.next_page_token, returnArray);
   }
   return returnArray;
-}
+};
 
 /**
  * Creates HTTP options, with apikey, for reepay api requests
  * @param {string} apiKey
  * @return {customType.options} options
  */
-export function createHttpOptionsForReepay(apiKey:string) {
+export const createHttpOptionsForReepay = (apiKey:string) => {
   const headers: customType.headers = {
     "Content-Type": "application/json",
     "Authorization": `Basic ${apiKey}`,
@@ -45,7 +45,7 @@ export function createHttpOptionsForReepay(apiKey:string) {
   };
 
   return options;
-}
+};
 
 /**
  * Retrives an invoice event from reepay
@@ -53,7 +53,7 @@ export function createHttpOptionsForReepay(apiKey:string) {
  * @param {string} invoiceId
  * @return {Promise<object[]>} response
  */
-export async function getReepayInvoiceEvents(options: customType.options, invoiceId: string): Promise<any[]> {
+export const getReepayInvoiceEvents = async (options: customType.options, invoiceId: string): Promise<any[]> => {
   try {
     const url = `https://api.reepay.com/v1/event?invoice=${invoiceId}`;
     const response = await (await fetch(url, options)).json();
@@ -61,7 +61,7 @@ export async function getReepayInvoiceEvents(options: customType.options, invoic
   } catch (error) {
     throw error;
   }
-}
+};
 
 
 /**
@@ -71,8 +71,8 @@ export async function getReepayInvoiceEvents(options: customType.options, invoic
  * @param {string} customerId
  * @return {customType.customer} customer object
  */
-export async function getCustomerInfoFromReepay(options: customType.options,
-    customerId: string): Promise<customType.customer> {
+export const getCustomerInfoFromReepay = async (options: customType.options,
+    customerId: string): Promise<customType.customer> => {
   try {
     const url = `https://api.reepay.com/v1/customer/${customerId}`;
     const customerObject = await (await fetch(url, options)).json();
@@ -96,7 +96,7 @@ export async function getCustomerInfoFromReepay(options: customType.options,
   } catch (error) {
     throw error;
   }
-}
+};
 
 /**
  * Firstly the functions fetches the dunninglist of a given company.
@@ -112,18 +112,22 @@ export async function getCustomerInfoFromReepay(options: customType.options,
  * @param {string} companyName
  * @return {customType.options} options
  */
-export async function reepayLogic(companyApikey: string, companyName:string) {
+export const reepayLogic = async (companyApikey: string, companyName:string) => {
   const options = createHttpOptionsForReepay(companyApikey);
   const reepayInvoiceArray: Array<any> =
       await retriveReepayList("https://api.reepay.com/v1/list/invoice?size=100&state=dunning", options);
-  const firebaseInvoiceIdArray =
-      await firestoreUtils.getDocIdsFromCompanyCollection(companyName, "ActiveDunning");
-  const firebaseCustomerIdArray =
-      await firestoreUtils.getDocIdsFromCompanyCollection(companyName, "Customers");
+
+
+  const customerDocData =
+      await firestoreUtils.retriveCustomersDocDataFromCompany(companyName);
+  const customerIdArray = firestoreUtils.retriveDocIdsFromDocData(customerDocData);
+  const activeInvoiceDocData =
+      await firestoreUtils.retriveActiveInvoicesDocDataFromCompany(companyName);
+  const activeInvoiceIdArray = firestoreUtils.retriveDocIdsFromDocData(activeInvoiceDocData);
 
   for (const dunningInvoices of reepayInvoiceArray) {
-    if (firebaseInvoiceIdArray.indexOf(dunningInvoices.handle) == -1) {
-      if (firebaseCustomerIdArray.indexOf(dunningInvoices.customer) == -1) {
+    if (activeInvoiceIdArray.indexOf(dunningInvoices.handle) == -1) {
+      if (customerIdArray.indexOf(dunningInvoices.customer) == -1) {
         const customer = await getCustomerInfoFromReepay(options, dunningInvoices.customer);
         await firestoreUtils.addDataToDocInCollectionUnderCompany("Customers",
             companyName, customer, customer.handle);
@@ -140,21 +144,19 @@ export async function reepayLogic(companyApikey: string, companyName:string) {
     return a.handle;
   });
 
-  for (const fbDunningInvoices of firebaseInvoiceIdArray) {
-    console.log(fbDunningInvoices, "before if");
+  for (const fbDunningInvoices of activeInvoiceIdArray) {
     if (reepayInvoiceIdArray.indexOf(fbDunningInvoices) == -1) {
-      console.log(fbDunningInvoices, "after if");
       const eventsArray = await getReepayInvoiceEvents(options, fbDunningInvoices);
       if (eventsArray[0].event_type == "invoice_dunning_cancelled") {
         if (eventsArray[1].event_type == "invoice_settled") {
-          firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "Retained", fbDunningInvoices);
+          firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "Retained");
         } else if (eventsArray[1].event_type == "invoice_cancelled") {
-          firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "OnHold", fbDunningInvoices);
+          firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "OnHold");
         }
       } else if (eventsArray[0].event_type == "invoice_settled") {
-        firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "Retained", fbDunningInvoices);
+        firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "Retained");
       } else if (eventsArray[0].event_type == "invoice_cancelled") {
-        firestoreUtils.deleteAndMoveDoc(companyName, "ActiveDunning", "OnHold", fbDunningInvoices);
+        firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "OnHold");
       } else if (eventsArray[0].event_type == "invoice_failed" ||
       eventsArray[0].event_type == "invoice_refund" ||
       eventsArray[0].event_type == "invoice_reactivate" ||
@@ -164,6 +166,6 @@ export async function reepayLogic(companyApikey: string, companyName:string) {
       }
     }
   }
-}
+};
 
 

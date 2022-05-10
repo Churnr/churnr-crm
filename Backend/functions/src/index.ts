@@ -64,13 +64,10 @@ exports.createCompany = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNI
         functions.logger.error("pubsub topic(create-company): ", error);
       }
     });
-
 /**
  * Test endpoint
 */
 slackApp.get("/halloworld", async (req, res) => {
-  const data = Buffer.from(JSON.stringify(req.body));
-  await pubsubClient.topic("halloworld").publish(data);
   res.status(200).send("Handling process: Create Company");
   // const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
 });
