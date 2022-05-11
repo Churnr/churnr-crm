@@ -3,12 +3,16 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import * as reepayUtils from "../utils/reepayUtils";
-import * as sendgridUtils from "../utils/sendgridUtils";
+// import * as sendgridUtils from "../utils/sendgridUtils";
 import {PubSub} from "@google-cloud/pubsub";
 // import * as cors from "cors";
 import * as middleware from "../middleware/middleware";
 import * as slackUtils from "../utils/slackUtils";
 import * as express from "express";
+// import {SocketModeClient} from "@slack/socket-mode";
+// import {WebClient} from "@slack/web-api";
+import {App, ExpressReceiver} from "@slack/bolt";
+
 admin.initializeApp();
 
 const pubsubClient = new PubSub();
@@ -17,9 +21,36 @@ const slackApp = express();
 
 // Enables middleware for slackApp endpoints
 app.use(express.json());
-// app.use(middleware.validateFirebaseIdToken);
+app.use(middleware.validateFirebaseIdToken);
 slackApp.use(middleware.validateSlackSigningSecret);
 
+const signingSecret: string | (() => PromiseLike<string>) =
+ process.env.SLACK_SIGNING_SECRET as string | (() => PromiseLike<string>);
+const expressReceiver = new ExpressReceiver({
+  signingSecret: signingSecret,
+  endpoints: "/events",
+  processBeforeResponse: true,
+});
+const apps = new App({
+  receiver: expressReceiver,
+  token: process.env.SLACK_BOT_TOKEN,
+  processBeforeResponse: true,
+
+});
+
+console.log(apps.error);
+
+apps.command("/echo-from-firebase", async ({command, ack, say}) => {
+  // Acknowledge command request
+  await ack();
+
+  // Requires:
+  // Add chat:write scope + invite the bot user to the channel you run this command
+  // Add chat:write.public + run this command in a public channel
+  await say(`You said "${command.text}"`);
+});
+
+exports.slack = functions.https.onRequest(expressReceiver.app);
 
 /**
  * Fetches invoices in dunning state from paymentGateway
@@ -72,22 +103,25 @@ exports.createCompany = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNI
       }
     });
 
-
-exports.sendEmail = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
-    .pubsub.topic("send-email").onPublish(async (message) => {
+//  runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
+exports.sendEmail = functions.
+    pubsub.topic("send-email").onPublish(async (message) => {
       const data = JSON.parse(Buffer.from(message.data, "base64").toString("utf-8"));
+      // const {event} = message.json;
 
-      try {
-        const emailInfo = slackUtils.retriveSendEmailInfoFromSlackReq(data.text);
-        const messageInfo = await sendgridUtils.sendEmail(emailInfo.companyName,
-            emailInfo.customerId, emailInfo.templateId);
-        const emailTo = await messageInfo[0];
-        const message = await messageInfo[1];
-        slackUtils.sendMessageToChannel(`${emailTo} has been sent an email.
-        With this message ${message}`, "C03CJBT6AE5");
-      } catch (error) {
-        functions.logger.error("pubsub topic(send-email): ", error);
-      }
+
+      console.log(data);
+      // try {
+      //   const emailInfo = slackUtils.retriveSendEmailInfoFromSlackReq(data.text);
+      //   const messageInfo = await sendgridUtils.sendEmail(emailInfo.companyName,
+      //       emailInfo.customerId, emailInfo.templateId);
+      //   const emailTo = await messageInfo[0];
+      //   const message = await messageInfo[1];
+      //   slackUtils.sendMessageToChannel(`${emailTo} has been sent an email.
+      //   With this message ${message}`, "C03CJBT6AE5");
+      // } catch (error) {
+      //   functions.logger.error("pubsub topic(send-email): ", error);
+      // }
     });
 
 
@@ -181,14 +215,13 @@ const jsonSlackExample:object = {
  * Test endpoint
 */
 slackApp.post("/halloworld", async (req, res) => {
-  functions.logger.error("Started");
-  try {
-    const response = slackUtils.slackAcknowledgmentResponse(req, jsonSlackExample);
-    functions.logger.error(response);
-    res.status(200).send(response);
-  } catch (error) {
-    functions.logger.error(error);
-  }
+  // try {
+  //   const response = slackUtils.slackAcknowledgmentResponse(req, jsonSlackExample);
+  //   functions.logger.error(response);
+  //   res.status(200).send(response);
+  // } catch (error) {
+  //   functions.logger.error(error);
+  // }
 });
 slackApp.get("/halloworld1", async (req, res) => {
   res.status(200).send("DER HUL IGENNEM!");
