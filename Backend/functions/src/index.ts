@@ -68,8 +68,6 @@ exports.createCompany = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNI
  * Test endpoint
 */
 slackApp.get("/halloworld", async (req, res) => {
-  const apiKey = "cHJpdl9lNTljNWZjMmI5OTM1ZWY5MjQwZThmNDFjNTFkMzM3MQ==";
-  reepayUtils.reepayLogic(apiKey, "LALA");
   res.status(200).send("Handling process: Create Company");
   // const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
 });
