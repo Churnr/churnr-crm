@@ -5,7 +5,7 @@ import * as firestoreUtils from "../utils/firestoreUtils";
 import * as reepayUtils from "../utils/reepayUtils";
 import {PubSub} from "@google-cloud/pubsub";
 // import * as cors from "cors";
-import * as middleware from "../middleware/middleware";
+//import * as middleware from "../middleware/middleware";
 import * as slackUtils from "../utils/slackUtils";
 import * as express from "express";
 admin.initializeApp();
@@ -16,9 +16,9 @@ const slackApp = express();
 
 // Enables middleware for slackApp endpoints
 app.use(express.json());
-app.use(middleware.validateFirebaseIdToken);
+//app.use(middleware.validateFirebaseIdToken);
 // Enables middleware for slackApp endpoints
-slackApp.use(middleware.validateSlackSigningSecret);
+//slackApp.use(middleware.validateSlackSigningSecret);
 
 
 /**
@@ -68,6 +68,8 @@ exports.createCompany = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNI
  * Test endpoint
 */
 slackApp.get("/halloworld", async (req, res) => {
+  const apiKey = "cHJpdl9lNTljNWZjMmI5OTM1ZWY5MjQwZThmNDFjNTFkMzM3MQ==";
+  reepayUtils.reepayLogic(apiKey, "LALA");
   res.status(200).send("Handling process: Create Company");
   // const _url = "https://api.reepay.com/v1/list/invoice?size=100&state=dunning";
 });
@@ -76,4 +78,3 @@ exports.app = functions.https.onRequest(app);
 exports.slackApp = functions
     // .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
     .https.onRequest(slackApp);
-

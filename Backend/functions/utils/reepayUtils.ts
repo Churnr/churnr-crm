@@ -135,8 +135,8 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
       } else {
         await firestoreUtils.addInvoceToCustomer(companyName, dunningInvoices.customer, dunningInvoices);
       }
-      await firestoreUtils.addDataToDocInCollectionUnderCompany("ActiveDunning", companyName,
-          dunningInvoices, dunningInvoices.handle);
+      await firestoreUtils.addActiveInvoiceToCompany(companyName,
+          dunningInvoices);
     }
   }
 
@@ -145,24 +145,27 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
   });
 
   for (const fbDunningInvoices of activeInvoiceIdArray) {
+    console.log(fbDunningInvoices);
     if (reepayInvoiceIdArray.indexOf(fbDunningInvoices) == -1) {
       const eventsArray = await getReepayInvoiceEvents(options, fbDunningInvoices);
-      if (eventsArray[0].event_type == "invoice_dunning_cancelled") {
-        if (eventsArray[1].event_type == "invoice_settled") {
+      if (eventsArray.length != 0) {
+        if (eventsArray[0].event_type == "invoice_dunning_cancelled") {
+          if (eventsArray[1].event_type == "invoice_settled") {
+            firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "Retained");
+          } else if (eventsArray[1].event_type == "invoice_cancelled") {
+            firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "OnHold");
+          }
+        } else if (eventsArray[0].event_type == "invoice_settled") {
           firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "Retained");
-        } else if (eventsArray[1].event_type == "invoice_cancelled") {
+        } else if (eventsArray[0].event_type == "invoice_cancelled") {
           firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "OnHold");
+        } else if (eventsArray[0].event_type == "invoice_failed" ||
+        eventsArray[0].event_type == "invoice_refund" ||
+        eventsArray[0].event_type == "invoice_reactivate" ||
+        eventsArray[0].event_type == "invoice_credited" ||
+        eventsArray[0].event_type == "invoice_changed") {
+          functions.logger.error("EVENT_TYPE IS NOT SUPPORTED!!!", eventsArray[0].event_type);
         }
-      } else if (eventsArray[0].event_type == "invoice_settled") {
-        firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "Retained");
-      } else if (eventsArray[0].event_type == "invoice_cancelled") {
-        firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "OnHold");
-      } else if (eventsArray[0].event_type == "invoice_failed" ||
-      eventsArray[0].event_type == "invoice_refund" ||
-      eventsArray[0].event_type == "invoice_reactivate" ||
-      eventsArray[0].event_type == "invoice_credited" ||
-                eventsArray[0].event_type == "invoice_changed") {
-        functions.logger.error("EVENT_TYPE IS NOT SUPPORTED!!!", eventsArray[0].event_type);
       }
     }
   }
