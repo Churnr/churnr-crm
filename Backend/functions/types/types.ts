@@ -25,10 +25,17 @@ export type company = {
     "contactPerson": string,
     "flowEmails": number,
     "flowCalls": number,
+    "templates": Map<string, string>,
 }
 
 export type templates = {
     "templateIds": Map<string, string>
+}
+
+export type emailRequest = {
+    "companyName":string,
+    "customerId":string,
+    "templateId":string,
 }
 
 export type customer = {
@@ -46,4 +53,13 @@ export type customer = {
     "pending_invoices": number,
     "trial_active_subscriptions": number,
     "subscriptions": number,
+}
+
+export type activeFlow = {
+    "invoiceId":string,
+    "customerId":string,
+    "flowStartDate":string,
+    "errorState":string,
+    "emailCount":number,
+    "emailAnswered":boolean,
 }

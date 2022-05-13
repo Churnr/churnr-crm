@@ -64,6 +64,7 @@ export function retriveCompanyInfoFromSlackReq(payload:any) {
       contactPerson: payload.match(/(?<=contactPerson=").([^",]+)/g)[0],
       flowEmails: payload.match(/(?<=flowEmails=").([^",]+)/g)[0],
       flowCalls: payload.match(/(?<=flowCalls=").([^",]+)/g)[0],
+      templates: new Map(),
     };
     return company;
   } catch (error) {
@@ -76,14 +77,33 @@ export function retriveCompanyInfoFromSlackReq(payload:any) {
   }
 }
 
+
+export function retriveSendEmailInfoFromSlackReq(payload:any) {
+  try {
+    const emailRequest: customType.emailRequest = {
+      companyName: payload.match(/(?<=companyName=").([^",]+)/g)[0],
+      customerId: payload.mach(/(?<=customerId=").([^",]+)/g)[0],
+      templateId: payload.match(/(?<=templateId=").([^",]+)/g)[0],
+    };
+    return emailRequest;
+  } catch (error) {
+    const payload = {
+      text: "emailRequest Creation failed - null value found",
+      channel: "C03CJBT6AE5",
+    };
+    requestSlack("POST", "chat.postMessage", payload);
+    throw new Error("Value in emailRequest object, sent from slash command /sendemail, was null");
+  }
+}
+
 /**
  * Function will use the response_url from the slack request
  * to send an acknowledgment to the slakc user
  * @param {string} req Slack request
- * @param {string} responseText text to send to the user
+ * @param {object} body text to send to the user
  * @return {Response} Slack response
  */
-export async function slackAcknowledgmentResponse(req:any, responseText:string) {
+export async function slackAcknowledgmentResponse(req:any, body:object) {
   try {
     const responseUrl = req.body.response_url;
     const headers = {
@@ -93,9 +113,7 @@ export async function slackAcknowledgmentResponse(req:any, responseText:string) 
     const options = {
       headers: headers,
       method: "POST",
-      body: JSON.stringify({
-        text: responseText,
-      }),
+      body: JSON.stringify(body),
     };
     const response = await fetch(responseUrl, options);
     return response;
@@ -120,3 +138,4 @@ export async function sendMessageToChannel(message:string, channelId:string) {
     throw error;
   }
 }
+

@@ -19,6 +19,74 @@ const handleSubmit = async () => {
   const response = await ( await fetch('http://localhost:5001/churnr-system/us-central1/app/helloWorld2', {headers})).json();
   setRespone(response)
   console.log(respone)
+  /*
+  ActiveDunnig:
+  Kundeid
+  Navn
+  Email
+  Telefon nr
+  Dunning dato
+  Dunning årsag (error og error state)
+  Beløb
+  Ordren (texten i ordren)
+  Betalte invoices i alt
+  Antal emails sendt
+
+  Retained:
+  Kundeid
+  Navn
+  Email
+  Telefon nr
+  Dunning dato
+  Dunning årsag (error og error state)
+  Beløb
+  Ordren (texten i ordren)
+  Betalte invoices
+  Antal emails sendt
+  Dato på retained
+
+  Onhold:
+  Kundeid
+  Navn
+  Email
+  Telefon nr
+  Dunning dato
+  Dunning årsag (error og error state)
+  Beløb
+  Ordren (texten i ordren)
+  Betalte invoices
+  Antal emails sendt
+  Dato på onhold
+
+  Redunning:
+  Kundeid
+  Navn
+  Email
+  Telefon nr
+  Dunning dato
+  Dunning årsag (error og error state)
+  Beløb
+  Ordren (texten i ordren)
+  Betalte invoices
+  Antal emails sendt
+  Dato på onhold
+  Årsag på tidligere dunning
+
+
+  Dialog:
+  Kundeid
+  Navn
+  Email
+  Telefon nr
+  Dunning dato
+  Dunning årsag (error og error state)
+  Beløb
+  Ordren (texten i ordren)
+  Betalte invoices
+  Antal emails sendt
+  Evt kommentar felt
+
+  */
 }
 return (
 <div style={{minHeight: "100vh"}}>
