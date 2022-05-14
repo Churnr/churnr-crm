@@ -25,10 +25,8 @@ const slackApp = express();
 apps.use(express.json());
 apps.use(middleware.validateFirebaseIdToken);
 slackApp.use(middleware.validateSlackSigningSecret);
-const signingSecret: string | (() => PromiseLike<string>) =
- process.env.SLACK_SIGNING_SECRET as string | (() => PromiseLike<string>);
 const expressReceiver = new ExpressReceiver({
-  signingSecret: signingSecret,
+  signingSecret: process.env.SLACK_SIGNING_SECRET as string | (() => PromiseLike<string>),
   endpoints: "/events",
   processBeforeResponse: true,
 });
