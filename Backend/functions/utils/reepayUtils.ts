@@ -63,19 +63,48 @@ export const getReepayInvoiceEvents = async (options: customType.options, invoic
   }
 };
 
+/**
+ * Retrives a subscription object from reepay
+ * @param {customType.options} options
+ * @param {string} subId
+ * @return {Promise<object[]>} response
+ */
+export const getReepaySubscriptionObject = async (options: customType.options, subId: string): Promise<any[]> => {
+  try {
+    const url = `https://api.reepay.com/v1/subscription/${subId}`;
+    const response = await (await fetch(url, options)).json();
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Retrives a subscription object from reepay
+ * @param {customType.options} options
+ * @param {string} customerId
+ * @return {Promise<object[]>} response
+ */
+export const getReepayCustomerObject = async (options: customType.options, customerId: string): Promise<any[]> => {
+  try {
+    const url = `https://api.reepay.com/v1/customer/${customerId}`;
+    const response = await (await fetch(url, options)).json();
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
 
 /**
  * Retrives a customers information from reepay.
  * Creates a customer object from the given information
- * @param {customType.options} options
- * @param {string} customerId
+ * @param {any} customerObject
+ * @param {any} subscriptionObject
  * @return {customType.customer} customer object
  */
-export const getCustomerInfoFromReepay = async (options: customType.options,
-    customerId: string): Promise<customType.customer> => {
+export const createCustomCustomerObject = async (
+    customerObject: any, subscriptionObject:any): Promise<customType.customer> => {
   try {
-    const url = `https://api.reepay.com/v1/customer/${customerId}`;
-    const customerObject = await (await fetch(url, options)).json();
     const customer: customType.customer = {
       first_name: customerObject.first_name,
       last_name: customerObject.last_name,
@@ -91,12 +120,14 @@ export const getCustomerInfoFromReepay = async (options: customType.options,
       pending_invoices: customerObject.pending_invoices,
       trial_active_subscriptions: customerObject.trial_active_subscriptions,
       subscriptions: customerObject.subscriptions,
+      paymentLink: subscriptionObject.hosted_page_links.payment_info,
     };
     return customer;
   } catch (error) {
     throw error;
   }
 };
+
 
 /**
  * Firstly the functions fetches the dunninglist of a given company.
@@ -128,10 +159,12 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
   for (const dunningInvoices of reepayInvoiceArray) {
     if (activeInvoiceIdArray.indexOf(dunningInvoices.handle) == -1) {
       if (customerIdArray.indexOf(dunningInvoices.customer) == -1) {
-        const customer = await getCustomerInfoFromReepay(options, dunningInvoices.customer);
+        const customerObject = await getReepayCustomerObject(options, dunningInvoices.customer);
+        const subscriptionObject = await getReepaySubscriptionObject(options, dunningInvoices.subscription);
+        const customCustomerObject = await createCustomCustomerObject(customerObject, subscriptionObject);
         await firestoreUtils.addDataToDocInCollectionUnderCompany("Customers",
-            companyName, customer, customer.handle);
-        await firestoreUtils.addInvoceToCustomer(companyName, customer.handle, dunningInvoices);
+            companyName, customCustomerObject, customCustomerObject.handle);
+        await firestoreUtils.addInvoceToCustomer(companyName, customCustomerObject.handle, dunningInvoices);
       } else {
         await firestoreUtils.addInvoceToCustomer(companyName, dunningInvoices.customer, dunningInvoices);
       }

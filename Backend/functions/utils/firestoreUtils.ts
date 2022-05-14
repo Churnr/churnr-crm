@@ -170,7 +170,25 @@ export const deleteAndMoveDoc = async (companyName:string, collectionNameMoveFro
 // Refactor
 export const updateInvoiceStatusValue = async (companyName:string, docId:string, status:string) => {
   const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
-      .collection("Invoices").doc(docId).update({Status: status});
+      .collection("Invoices").doc(docId).update({status: status});
+  return firestoreData;
+};
+
+export const updateInvoiceEmailCountValue = async (companyName:string, docId:string, emailCount:number) => {
+  const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
+      .collection("Invoices").doc(docId).update({emailCount: emailCount});
+  return firestoreData;
+};
+
+export const updateInvoiceEmailLastSendValue = async (companyName:string, docId:string, date:Date) => {
+  const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
+      .collection("Invoices").doc(docId).update({emailLastSend: date});
+  return firestoreData;
+};
+
+export const updateInvoiceActiveFlowValue = async (companyName:string, docId:string, boolean:boolean) => {
+  const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
+      .collection("Invoices").doc(docId).update({activeFlow: boolean});
   return firestoreData;
 };
 
@@ -221,7 +239,7 @@ export const retriveCustomersDocDataFromCompany = async (companyName:string) => 
 export const addActiveInvoiceToCompany = async (companyName:string, object:any) => {
   const data = {
     invoice: object,
-    status: "Active",
+    status: "active",
   };
   try {
     const newDoc = await admin.firestore()
@@ -292,14 +310,18 @@ export async function getFieldValueFromComapnyInFirestore(companyName:string, Fi
  * @return {admin.firestore.WriteResult} newDoc
  */
 export const getCustomerObjectBasedOnEmailFromCompany = async (companyName:string, email:string): Promise<any> => {
-  const dataFrom = await admin.firestore()
-      .collection("Companys")
-      .doc(companyName)
-      .collection("Customers")
-      .where("email", "==", email).get();
+  try {
+    const dataFrom = await admin.firestore()
+        .collection("Companys")
+        .doc(companyName)
+        .collection("Customers")
+        .where("email", "==", email).get();
 
 
-  return dataFrom.docs[0].data();
+    return dataFrom.docs[0].data();
+  } catch (error) {
+    throw error;
+  }
 };
 
 
@@ -314,7 +336,7 @@ export const getInvoicesObjectBasedOnStatusFromCompany = async (companyName:stri
         .collection("Companys")
         .doc(companyName)
         .collection("Invoices")
-        .where("Status", "==", "Active").where("activeFlow", "==", true).get()).docs;
+        .where("status", "==", "active").where("activeFlow", "==", true).get()).docs;
     const activeInvoiceArray = [];
     for (const inv of activeInvoice) {
       activeInvoiceArray.push(inv.data());
@@ -342,11 +364,11 @@ export const updateActiveInvoiceWithActiveFlowVariables = async (companyName:str
         .collection("Companys")
         .doc(companyName)
         .collection("Invoices")
-        .where("status", "==", "Active").where("invoice.customer", "==", customerId).get()).docs[0].data();
+        .where("status", "==", "active").where("invoice.customer", "==", customerId).get()).docs[0].data();
     await admin.firestore().collection("Companys").doc(companyName)
         .collection("Invoices").doc(activeInvoice.invoice.handle).update({emailCount: 0,
           activeFlow: true, invoceError: invoiceError,
-          flowStartDate: today.getDate()+"-"+(today.getMonth()+1)+"-"+today.getFullYear()});
+          flowStartDate: today});
   } catch (error) {
     throw new Error(error + "updateActiveInvoiceWithActiveFlowVariables");
   }

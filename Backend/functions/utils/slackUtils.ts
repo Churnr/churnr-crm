@@ -166,12 +166,11 @@ export const slackAppFunctions = () => {
     const email = view["state"]["values"]["input_c"].dreamy_input.value as string;
     const category = view["state"]["values"]["input_a"].dreamy_input.value as string;
     const company = view["state"]["values"]["input_b"].dreamy_input.value as string;
-    if (email || company || category != undefined || "") {
+    try {
       const customerObject = await firestoreUtils.getCustomerObjectBasedOnEmailFromCompany(company, email);
       const customerId = customerObject.handle;
       await firestoreUtils.updateActiveInvoiceWithActiveFlowVariables(company, customerId, category);
       const user = body["user"]["id"];
-      // Message to send user
       const msg = `Customer flow activated with email: ${email} `;
       try {
         await client.chat.postMessage({
@@ -181,17 +180,12 @@ export const slackAppFunctions = () => {
       } catch (error) {
         logger.error(error);
       }
-    } else {
+    } catch (error) {
       const user = body["user"]["id"];
-      const msg = "Some of the variables were undefined";
-      try {
-        await client.chat.postMessage({
-          channel: user,
-          text: msg,
-        });
-      } catch (error) {
-        logger.error(error);
-      }
+      await client.chat.postMessage({
+        channel: user,
+        text: "An error occured, possibly email wasn't found in company or company dosen't exist.",
+      });
     }
   });
 

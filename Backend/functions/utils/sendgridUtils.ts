@@ -6,29 +6,14 @@ import {activeFlow, customer} from "../types/types";
 // Slash command ind param: companyName, customer.id, templateId;
 /**
  * Sending email to giving customer id
- * @param {string}companyName collection name in firestore
- * @param {string}customerId companyName
- * @param {string}templateId template id
+ * @param {any}emailMessage template id
  */
-export async function sendEmail(companyName:string,
-    customerId:string, templateId:string) {
-// get customerdata from database with customer id and company name
-  const customer = await firestoreUtils.getCustomerFromFirestore(companyName, customerId);
-  // const emailTos = customer.email;
-  // Get template ids from database
-  const emailFrom = await firestoreUtils.getFieldValueFromComapnyInFirestore(companyName, "emailGatewayUser");
-  const templateMap = await firestoreUtils.getFieldValueFromComapnyInFirestore(companyName, "templateMap");
-  const template = templateMap[templateId];
-  console.log(emailFrom, template, customer);
+export async function sendEmail(emailMessage:any) {
   if (process.env.SENDGRID_API_KEY === undefined) {
     throw new Error("Sendgrid api key not in enviroment");
   }
   sendGrid.setApiKey(process.env.SENDGRID_API_KEY);
-  const msg = emailMessage(customer.email, emailFrom, template, customer.first_name);
-  console.log(msg);
-  // sendGrid.send()
-  // connect to sendgrid and send email
-  return customer.first_name;
+  sendGrid.send(emailMessage);
 }
 // Verify input data slack
 // get customer data
@@ -37,7 +22,7 @@ export async function sendEmail(companyName:string,
 
 // Der skal katergori med, slack commanden, og der så 3 katergori med 7 emails der skal sendes
 // eslint-disable-next-line require-jsdoc
-function emailMessage(to:string, from:string, template:string, name:string) {
+export function emailMessage(to:string, from:string, template:string, name:string) {
   const msg = {
     to: to,
     from: from,

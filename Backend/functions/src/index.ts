@@ -1,14 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import * as firestoreUtils from "../utils/firestoreUtils";
+import {getInvoicesObjectBasedOnStatusFromCompany,
+  getFieldValueFromComapnyInFirestore,
+  getCustomerFromFirestore,
+  getCustomerObjectBasedOnEmailFromCompany,
+  updateActiveInvoiceWithActiveFlowVariables,
+  addCompanyToFirestore,
+  updateInvoiceEmailLastSendValue,
+  getCompanys,
+  updateInvoiceEmailCountValue,
+  updateInvoiceActiveFlowValue,
+} from "../utils/firestoreUtils";
 import * as reepayUtils from "../utils/reepayUtils";
 // import * as sendgridUtils from "../utils/sendgridUtils";
 import {PubSub} from "@google-cloud/pubsub";
 // import * as cors from "cors";
-import * as middleware from "../middleware/middleware";
+// import * as middleware from "../middleware/middleware";
 import * as slackUtils from "../utils/slackUtils";
+import {emailMessage} from "../utils/sendgridUtils";
 import * as express from "express";
+// import {send} from "@sendgrid/mail";
 // import {SocketModeClient} from "@slack/socket-mode";
 // import {WebClient} from "@slack/web-api";
 import "dotenv/config";
@@ -22,11 +34,11 @@ const slackApp = express();
 
 // Enables middleware for slackApp endpoints
 apps.use(express.json());
-apps.use(middleware.validateFirebaseIdToken);
-slackApp.use(middleware.validateSlackSigningSecret);
+// apps.use(middleware.validateFirebaseIdToken);
+// slackApp.use(middleware.validateSlackSigningSecret);
 
 // .runWith({secrets: ["SLACK_BOT_TOKEN", "SLACK_SIGNING_SECRET"]})
-export const slack = functions.runWith({secrets: ["SLACK_BOT_TOKEN", "SLACK_SIGNING_SECRET"]})
+export const slack = functions
     .region("europe-west3")
     .https.onRequest(slackUtils.slackAppFunctions().app);
 /**
@@ -36,7 +48,7 @@ export const slack = functions.runWith({secrets: ["SLACK_BOT_TOKEN", "SLACK_SIGN
 export const fetchDunningInvoices =
   functions.region("europe-west2").pubsub.schedule("0 23 * * *")
       .timeZone("Europe/Copenhagen").onRun(async (context) => {
-        const companys: any = await firestoreUtils.getCompanys();
+        const companys: any = await getCompanys();
         // const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
         for (const company of companys) {
           const companyName: string = company.companyName;
@@ -73,7 +85,7 @@ exports.createCompany = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNI
 
       try {
         const company = slackUtils.retriveCompanyInfoFromSlackReq(data.text);
-        firestoreUtils.addCompanyToFirestore(company, company.companyName);
+        addCompanyToFirestore(company, company.companyName);
         slackUtils.sendMessageToChannel(`${company.companyName} was added to the company database.`, "C03CJBT6AE5");
       } catch (error) {
         functions.logger.error("pubsub topic(create-company): ", error);
@@ -105,7 +117,7 @@ exports.sendEmail = functions.
 // Retrive all Active Invoices from firebase with activeflow == true - Done
 // For loop over Array of Active Invoices - Done
 // Get current date - Done
-// get emailcount and start date
+// get emailcount and start date - Done
 // Check if current date is 1 day from start date if email count == 0
 // If true send email
 // set lastEmailedSent to current date
@@ -117,13 +129,46 @@ exports.sendEmail = functions.
  * Test endpoint
 */
 slackApp.get("/halloworld", async (req, res) => {
-  const data = await firestoreUtils.getInvoicesObjectBasedOnStatusFromCompany("LALA");
+  const companyName = "LALA";
+  const data = await getInvoicesObjectBasedOnStatusFromCompany(companyName);
+  const templateMap = await getFieldValueFromComapnyInFirestore(companyName, "templateMap");
+  const companyEmail = await getFieldValueFromComapnyInFirestore(companyName, "emailGatewayUser");
   const today = new Date();
-  const date = today.getDate()+"-"+(today.getMonth()+1)+"-"+today.getFullYear();
-  console.log(today + "today" + date);
-
   for (const invoice of data) {
-    console.log(invoice);
+    const customer = await getCustomerFromFirestore("LALA", invoice.invoice.customer);
+    const emailCount:number = invoice.emailCount;
+    const emailMsg = emailMessage(customer.email, companyEmail,
+        customer.first_name, templateMap[invoice.invoceError][invoice.emailCount]);
+    if (emailCount == 0) {
+      const flowStartDate = (invoice.flowStartDate).toDate();
+      const DifferenceInTime = (today.getTime() - flowStartDate.getTime()) / (1000 * 3600 * 24);
+      if (DifferenceInTime >= 1) {
+        // send(emailMsg);
+        functions.logger.log("EmailCount 0: IT WORKS!!" + JSON.stringify(emailMsg));
+        updateInvoiceEmailCountValue(companyName, invoice.invoice.handle, emailCount+1);
+        updateInvoiceEmailLastSendValue(companyName, invoice.invoice.handle, today);
+      }
+    } else if (emailCount == 6) {
+      const lastEmailSendDate = (invoice.emailLastSend).toDate();
+      const DifferenceInTime = (today.getTime() - lastEmailSendDate.getTime()) / (1000 * 3600 * 24);
+      if (DifferenceInTime >= 6) {
+        // send(emailMsg);
+        functions.logger.log("EmailCount 6: IT WORKS!!: " + JSON.stringify(emailMsg));
+        updateInvoiceEmailCountValue(companyName, invoice.invoice.handle, emailCount+1);
+        updateInvoiceEmailLastSendValue(companyName, invoice.invoice.handle, today);
+        updateInvoiceActiveFlowValue(companyName, invoice.invoice.handle, false);
+      }
+    } else if (emailCount != 0 && emailCount != 6 && emailCount < 7) {
+      const lastEmailSendDate = (invoice.emailLastSend).toDate();
+      const DifferenceInTime = (today.getTime() - lastEmailSendDate.getTime()) / (1000 * 3600 * 24);
+      console.log(DifferenceInTime);
+      if (DifferenceInTime >= 3) {
+        // send(emailMsg);
+        functions.logger.log("EmailCount All others: IT WORKS!!" + JSON.stringify(emailMsg));
+        updateInvoiceEmailCountValue(companyName, invoice.invoice.handle, emailCount+1);
+        updateInvoiceEmailLastSendValue(companyName, invoice.invoice.handle, today);
+      }
+    }
   }
   // try {
   //   const response = slackUtils.slackAcknowledgmentResponse(req, jsonSlackExample);
@@ -135,12 +180,12 @@ slackApp.get("/halloworld", async (req, res) => {
   res.status(200).send("DER HUL IGENNEM!");
 });
 slackApp.get("/activeflow", async (req, res) => {
-  const email = "awdwad";
+  const email = "Nico@nico.com";
   const company = "LALA";
   const invoiceError = "YES";
-  const customerObject = await firestoreUtils.getCustomerObjectBasedOnEmailFromCompany(company, email);
+  const customerObject = await getCustomerObjectBasedOnEmailFromCompany(company, email);
   const customerId = customerObject.handle;
-  await firestoreUtils.updateActiveInvoiceWithActiveFlowVariables(company, customerId, invoiceError);
+  await updateActiveInvoiceWithActiveFlowVariables(company, customerId, invoiceError);
   res.status(200).send("Invoice Was Updated");
 });
 
