@@ -11,7 +11,6 @@ import * as slackUtils from "../utils/slackUtils";
 import * as express from "express";
 // import {SocketModeClient} from "@slack/socket-mode";
 // import {WebClient} from "@slack/web-api";
-import {App, ExpressReceiver} from "@slack/bolt";
 import "dotenv/config";
 // const config = functions.config();
 // const config = process.env;
@@ -25,137 +24,11 @@ const slackApp = express();
 apps.use(express.json());
 apps.use(middleware.validateFirebaseIdToken);
 slackApp.use(middleware.validateSlackSigningSecret);
-const expressReceiver = new ExpressReceiver({
-  signingSecret: process.env.SLACK_SIGNING_SECRET as string | (() => PromiseLike<string>),
-  endpoints: "/events",
-  processBeforeResponse: true,
-});
 
-const app = new App({
-  receiver: expressReceiver,
-  token: process.env.SLACK_BOT_TOKEN,
-  processBeforeResponse: true,
-});
-// Handle a view_submission request
-app.view("view_1", async ({ack, body, view, client, logger}) => {
-  // Acknowledge the view_submission request
-  await ack();
-
-  // Do whatever you want with the input data -
-
-  // Assume there's an input block with `block_1` as the block_id and `input_a`
-  const email = view["state"]["values"]["input_c"].dreamy_input.value as string;
-  const category = view["state"]["values"]["input_a"].dreamy_input.value as string;
-  const company = view["state"]["values"]["input_b"].dreamy_input.value as string;
-  if (email || company || category != undefined || "") {
-    const customerObject = await firestoreUtils.getCustomerObjectBasedOnEmailFromCompany(company, email);
-    const customerId = customerObject.handle;
-    await firestoreUtils.updateActiveInvoiceWithActiveFlowVariables(company, customerId, category);
-    const user = body["user"]["id"];
-    // Message to send user
-    const msg = `Customer flow activated with email: ${email} `;
-    try {
-      await client.chat.postMessage({
-        channel: user,
-        text: msg,
-      });
-    } catch (error) {
-      logger.error(error);
-    }
-  } else {
-    const user = body["user"]["id"];
-    const msg = "Some of the variables were undefined";
-    try {
-      await client.chat.postMessage({
-        channel: user,
-        text: msg,
-      });
-    } catch (error) {
-      logger.error(error);
-    }
-  }
-});
-
-
-app.command("/sendemail", async ({ack, body, client, logger}) => {
-  // Acknowledge the command request
-  await ack();
-
-  try {
-    // Call views.open with the built-in client
-    await client.views.open({
-      // Pass a valid trigger_id within 3 seconds of receiving it
-      trigger_id: body.trigger_id,
-      // View payload
-      view: {
-        type: "modal",
-        // View identifier
-        callback_id: "view_1",
-        title: {
-          type: "plain_text",
-          text: "Churnr Activate Flow",
-        },
-        blocks: [
-          {
-            type: "input",
-            block_id: "input_b",
-            label: {
-              type: "plain_text",
-              text: "Company Name",
-            },
-            element: {
-              type: "plain_text_input",
-              action_id: "dreamy_input",
-            },
-          },
-          {
-            type: "input",
-            block_id: "input_c",
-            label: {
-              type: "plain_text",
-              text: "Email",
-            },
-            element: {
-              type: "plain_text_input",
-              action_id: "dreamy_input",
-            },
-          }, {
-            type: "input",
-            block_id: "input_a",
-            label: {
-              type: "plain_text",
-              text: "Category",
-            },
-            element: {
-              type: "plain_text_input",
-              action_id: "dreamy_input",
-            },
-          },
-        ],
-        submit: {
-          type: "plain_text",
-          text: "Submit",
-        },
-      },
-    });
-  } catch (error) {
-    logger.error(error);
-  }
-});
-
-app.error(async (error) => {
-  functions.logger.log("err", error);
-});
-
-app.command("/simon-say-hello", async ({command, ack, say}) => {
-  await ack();
-
-  await say(`You said "${command.text}"`);
-});
-
+// .runWith({secrets: ["SLACK_BOT_TOKEN", "SLACK_SIGNING_SECRET"]})
 export const slack = functions.runWith({secrets: ["SLACK_BOT_TOKEN", "SLACK_SIGNING_SECRET"]})
     .region("europe-west3")
-    .https.onRequest(expressReceiver.app);
+    .https.onRequest(slackUtils.slackAppFunctions().app);
 /**
  * Fetches invoices in dunning state from paymentGateway
  * Reepay ready
