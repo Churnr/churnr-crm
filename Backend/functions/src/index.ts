@@ -155,7 +155,7 @@ app.command("/simon-say-hello", async ({command, ack, say}) => {
   await say(`You said "${command.text}"`);
 });
 
-export const slack = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
+export const slack = functions.runWith({secrets: ["SLACK_BOT_TOKEN ", "SLACK_SIGNING_SECRET"]})
     .region("europe-west3")
     .https.onRequest(expressReceiver.app);
 /**
