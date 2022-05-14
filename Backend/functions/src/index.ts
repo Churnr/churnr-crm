@@ -44,7 +44,6 @@ app.view("view_1", async ({ack, body, view, client, logger}) => {
   await ack();
 
   // Do whatever you want with the input data -
-  // here we're saving it to a DB then sending the user a verifcation of their submission
 
   // Assume there's an input block with `block_1` as the block_id and `input_a`
   const email = view["state"]["values"]["input_c"].dreamy_input.value as string;
@@ -96,24 +95,10 @@ app.command("/sendemail", async ({ack, body, client, logger}) => {
         callback_id: "view_1",
         title: {
           type: "plain_text",
-          text: "Modal title",
+          text: "Churnr Activate Flow",
         },
         blocks: [
           {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: "Welcome to a modal with _blocks_",
-            },
-            accessory: {
-              type: "button",
-              text: {
-                type: "plain_text",
-                text: "Click me!",
-              },
-              action_id: "button_abc",
-            },
-          }, {
             type: "input",
             block_id: "input_b",
             label: {
@@ -170,7 +155,7 @@ app.command("/simon-say-hello", async ({command, ack, say}) => {
   await say(`You said "${command.text}"`);
 });
 
-export const slack = functions
+export const slack = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
     .region("europe-west3")
     .https.onRequest(expressReceiver.app);
 /**
