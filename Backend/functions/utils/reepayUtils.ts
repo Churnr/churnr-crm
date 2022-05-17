@@ -135,6 +135,7 @@ export const checkErrorState = async (invoiceObject:any) => {
     const transaction = invoiceObject.transactions[-1];
     if (!transaction.mps_transaction) {
       console.log();
+      return "hej";
     }
   } else {
     return "soft_declined";
