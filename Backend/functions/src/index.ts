@@ -218,7 +218,7 @@ slackApp.get("/getData", async (req, res) => {
             activeFlow: invdata.activeFlow,
           };
           activeDunning.push(activedunning);
-        } else if (invdata.activeFlow === false && invdata.status === "active") {
+        } else if (!invdata.activeFlow && invdata.status === "active") {
           const dunning: Dunning = {
             first_name: cusData.first_name,
             last_name: cusData.last_name,

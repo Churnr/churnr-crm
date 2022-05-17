@@ -11,6 +11,7 @@ import * as functions from "firebase-functions";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import {company} from "../types/types";
 import "dotenv/config";
+const config = functions.config();
 /**
  * uses method variable, endpoit variable and param variable to
  * send request to slack
@@ -146,14 +147,14 @@ export async function sendMessageToChannel(message:string, channelId:string) {
 
 export const slackAppFunctions = () => {
   const expressReceiver = new ExpressReceiver({
-    signingSecret: process.env.SLACK_SIGNING_SECRET as string | (() => PromiseLike<string>),
+    signingSecret: config.env.slacksigning as string | (() => PromiseLike<string>),
     endpoints: "/events",
     processBeforeResponse: true,
   });
 
   const app = new App({
     receiver: expressReceiver,
-    token: process.env.SLACK_BOT_TOKEN,
+    token: config.env.slackbottoken,
     processBeforeResponse: true,
   });
   // Handle a view_submission request

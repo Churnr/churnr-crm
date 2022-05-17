@@ -172,10 +172,10 @@ export const updateInvoiceStatusValue = async (companyName:string, docId:string,
   return firestoreData;
 };
 
-export const updateDateOfRetained = async (companyName:string, docId:string) => {
+export const updateInvoiceEndDate = async (companyName:string, docId:string) => {
   const today = new Date();
   const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
-      .collection("Invoices").doc(docId).update({retainedDate: today});
+      .collection("Invoices").doc(docId).update({invoiceEndDate: today});
   return firestoreData;
 };
 
@@ -371,7 +371,7 @@ export const updateActiveInvoiceWithActiveFlowVariables = async (companyName:str
         .doc(companyName)
         .collection("Invoices")
         .where("status", "==", "active").where("invoice.customer", "==", customerId).get()).docs[0].data();
-    if (activeInvoice.invoice.transactions[0]?.error_state != "hard_declined") {
+    if (activeInvoice.invoice.transactions[-1]?.error_state != "hard_declined") {
       await admin.firestore().collection("Companys").doc(companyName)
           .collection("Invoices").doc(activeInvoice.invoice.handle).update({emailCount: 0,
             activeFlow: true, invoceError: invoiceError,

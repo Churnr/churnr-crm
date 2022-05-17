@@ -128,6 +128,19 @@ export const createCustomCustomerObject = async (
   }
 };
 
+// check if transaction has either mps_transaction or card
+
+export const checkErrorState = async (invoiceObject:any) => {
+  if (invoiceObject.transactions.length > 0) {
+    const transaction = invoiceObject.transactions[-1];
+    if (!transaction.mps_transaction) {
+      console.log();
+    }
+  } else {
+    return "soft_declined";
+  }
+};
+
 
 /**
  * Firstly the functions fetches the dunninglist of a given company.
@@ -183,14 +196,17 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
       if (eventsArray.length != 0) {
         if (eventsArray[0].event_type == "invoice_dunning_cancelled") {
           if (eventsArray[1].event_type == "invoice_settled") {
-            firestoreUtils.updateDateOfRetained(companyName, invoiceId);
+            firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
             firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
           } else if (eventsArray[1].event_type == "invoice_cancelled") {
+            firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
             firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
           }
         } else if (eventsArray[0].event_type == "invoice_settled") {
+          firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
           firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
         } else if (eventsArray[0].event_type == "invoice_cancelled") {
+          firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
           firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
         } else if (eventsArray[0].event_type == "invoice_failed" ||
         eventsArray[0].event_type == "invoice_refund" ||
