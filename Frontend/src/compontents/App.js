@@ -1,6 +1,5 @@
 import React from "react";
 
-import {Container} from 'react-bootstrap'
 import {AuthProvider} from '../contexts/AuthContext'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import Dashboard from './Dashboard'

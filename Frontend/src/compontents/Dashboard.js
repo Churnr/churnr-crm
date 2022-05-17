@@ -1,7 +1,6 @@
 import React , { useState} from 'react'
 import {auth} from '../firebase.js'
 import { Table, Tabs, Row, Tab, Col, Nav } from 'react-bootstrap'
-import { useAuth } from '../contexts/AuthContext'
 // import { useNavigate } from 'react-router-dom'
 import Navbar from './Navbar.js'
 
@@ -12,14 +11,13 @@ export default function Dashboard() {
 const [responeDunning, setResponeDunning] = useState([])
 const [responeActive, setResponeActive] = useState([])
 const [responeRetained, setResponeRetained] = useState([])
-const [key, setKey] = useState('home');
 const handleSubmit = async () => {
   const token = await auth.currentUser.getIdToken(true);
   console.log(token)
   const headers = {
       'Authorization': token
   }
-  const response = await ( await fetch('http://localhost:5001/churnr-system/us-central1/slackApp/getData', {headers})).json();
+  const response = await ( await fetch('https://us-central1-churnr-system-development.cloudfunctions.net/slackApp/getData', {headers})).json();
   setResponeDunning(response[0]);
   setResponeActive(response[1]);
   setResponeRetained(response[2]);

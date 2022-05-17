@@ -185,8 +185,8 @@ slackApp.get("/halloworld", async (req, res) => {
 
 
 slackApp.get("/getData", async (req, res) => {
-  const data = await retriveCustomersDocDataFromCompany("LALA");
-  const invoices = await retriveActiveInvoicesDocDataFromCompany("LALA");
+  const data = await retriveCustomersDocDataFromCompany("Lalatoys");
+  const invoices = await retriveActiveInvoicesDocDataFromCompany("Lalatoys");
   const invoiceData = await retriveDatasFromDocData(invoices);
   const customerdata = await retriveDatasFromDocData(data);
   console.log(customerdata, "Invoice data", invoiceData);
