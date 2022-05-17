@@ -8,13 +8,13 @@ import {activeFlow, customer} from "../types/types";
  * Sending email to giving customer id
  * @param {any}emailMessage template id
  */
-export async function sendEmail(emailMessage:any) {
-  if (process.env.SENDGRID_API_KEY === undefined) {
-    throw new Error("Sendgrid api key not in enviroment");
-  }
-  sendGrid.setApiKey(process.env.SENDGRID_API_KEY);
-  sendGrid.send(emailMessage);
-}
+// export async function sendEmail(emailMessage:any) {
+//   if (process.env.SENDGRID_API_KEY === undefined) {
+//     throw new Error("Sendgrid api key not in enviroment");
+//   }
+//   sendGrid.setApiKey(process.env.SENDGRID_API_KEY);
+//   sendGrid.send(emailMessage);
+// }
 // Verify input data slack
 // get customer data
 // Send request to Sendgrid
