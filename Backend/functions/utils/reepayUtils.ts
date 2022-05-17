@@ -130,17 +130,17 @@ export const createCustomCustomerObject = async (
 
 // check if transaction has either mps_transaction or card
 
-export const checkErrorState = async (invoiceObject:any) => {
-  if (invoiceObject.transactions.length > 0) {
-    const transaction = invoiceObject.transactions[-1];
-    if (!transaction.mps_transaction) {
-      console.log();
-      return "hej";
-    }
-  } else {
-    return "soft_declined";
-  }
-};
+// export const checkErrorState = async (invoiceObject:any) => {
+//   if (invoiceObject.transactions.length > 0) {
+//     const transaction = invoiceObject.transactions[-1];
+//     if (!transaction.mps_transaction) {
+//       console.log();
+//       return "hej";
+//     }
+//   } else {
+//     return "soft_declined";
+//   }
+// };
 
 
 /**
