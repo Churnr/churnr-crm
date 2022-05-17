@@ -15,7 +15,7 @@ const handleSubmit = async () => {
   const token = await auth.currentUser.getIdToken(true);
   console.log(token)
   const headers = {
-      'Authorization': token
+      'Authorization': `Bearer ${token}`
   }
   const response = await ( await fetch('https://us-central1-churnr-system-development.cloudfunctions.net/slackApp/getData', {headers})).json();
   setResponeDunning(response[0]);
