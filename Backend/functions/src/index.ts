@@ -265,7 +265,7 @@ slackApp.get("/getData", async (req, res) => {
 
 exports.app = functions.https.onRequest(apps);
 exports.slackApp = functions
-    .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
+    // .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
     .https.onRequest(slackApp);
 
 
