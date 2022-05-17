@@ -23,9 +23,6 @@ export type company = {
     emailGatewayUser: string,
     emailGatewayPassword: string,
     contactPerson: string,
-    flowEmails: number,
-    flowCalls: number,
-    templates: Map<string, string>,
 }
 
 export type templates = {
@@ -64,3 +61,34 @@ export type activeFlow = {
     emailCount:number,
     emailAnswered:boolean,
 }
+
+export type activeDunnig = {
+    first_name:string,
+    last_name:string,
+    handle:string,
+    flowStartDate:string,
+    errorState:string,
+    emailCount:number,
+    ordertext:string,
+    created:string
+    settled_invoices:number,
+    amount:number
+    phone:number,
+    email:string,
+    error:string,
+    acquirer_message:string,
+    activeFlow:boolean,
+}
+
+// ActiveDunnig:
+// Kundeid
+// Navn
+// Email
+// Telefon nr
+// Dunning dato
+// Dunning årsag (error og error state)
+// Beløb
+// Ordren (texten i ordren)
+// Betalte invoices i alt
+// Antal emails sendt
+

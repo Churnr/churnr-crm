@@ -27,6 +27,8 @@ export default function Login() {
 }
     return (
       <>
+      <div className="login-wrapper" style={{ height: "100vh", display: "flex"}}>
+          
       <div  className="w-100" style={{ maxWidth: "400px", margin: "auto"}}>
     <Card>
         <Card.Body>
@@ -51,6 +53,7 @@ export default function Login() {
         Need an account? Ask an Admin foo..
     </div>
     </div>
+      </div>
     </>
   )
 }

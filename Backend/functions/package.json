@@ -24,9 +24,10 @@
     "@slack/web-api": "^6.7.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
-    "firebase": "^9.6.10",
+    "firebase": "^9.8.1",
     "firebase-admin": "^10.0.2",
     "firebase-functions": "^3.21.0",
+    "firebase-tools": "^10.9.2",
     "node-fetch": "^2.6.7",
     "tsscmp": "^1.0.6"
   },

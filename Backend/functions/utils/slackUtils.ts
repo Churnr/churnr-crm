@@ -9,6 +9,7 @@ import * as customType from "../types/types";
 import {App, ExpressReceiver} from "@slack/bolt";
 import * as functions from "firebase-functions";
 import * as firestoreUtils from "../utils/firestoreUtils";
+import {company} from "../types/types";
 import "dotenv/config";
 /**
  * uses method variable, endpoit variable and param variable to
@@ -47,38 +48,38 @@ export async function requestSlack(method:string, endpoint:string, param:any) {
   }
 }
 
-/**
- * takes a payload, witch is usealy a string from slack request body.
- * uses regex to find the different variables in the string
- * and match them to the variable names in the company object.
- * returns the object
- * @param {any} payload usually a string
- * @return {customType.optcompany} object
- */
-export function retriveCompanyInfoFromSlackReq(payload:any) {
-  try {
-    const company: customType.company = {
-      companyName: payload.match(/(?<=companyName=").([^",]+)/g)[0],
-      paymentGateway: payload.match(/(?<=paymentGateway=").([^",]+)/g)[0],
-      apiKey: payload.match(/(?<=apiKey=").([^",]+)/g)[0],
-      emailGateway: payload.match(/(?<=emailGateway=").([^",]+)/g)[0],
-      emailGatewayUser: payload.match(/(?<=emailGatewayUser=").([^",]+)/g)[0],
-      emailGatewayPassword: payload.match(/(?<=emailGatewayPassword=").([^",]+)/g)[0],
-      contactPerson: payload.match(/(?<=contactPerson=").([^",]+)/g)[0],
-      flowEmails: payload.match(/(?<=flowEmails=").([^",]+)/g)[0],
-      flowCalls: payload.match(/(?<=flowCalls=").([^",]+)/g)[0],
-      templates: new Map(),
-    };
-    return company;
-  } catch (error) {
-    const payload = {
-      text: "Customer Creation failed - null value found",
-      channel: "C03CJBT6AE5",
-    };
-    requestSlack("POST", "chat.postMessage", payload);
-    throw new Error("Value in company object, sent from slash command /creatcompany, was null");
-  }
-}
+// /**
+//  * takes a payload, witch is usealy a string from slack request body.
+//  * uses regex to find the different variables in the string
+//  * and match them to the variable names in the company object.
+//  * returns the object
+//  * @param {any} payload usually a string
+//  * @return {customType.optcompany} object
+//  */
+// export function retriveCompanyInfoFromSlackReq(payload:any) {
+//   try {
+//     const company: customType.company = {
+//       companyName: payload.match(/(?<=companyName=").([^",]+)/g)[0],
+//       paymentGateway: payload.match(/(?<=paymentGateway=").([^",]+)/g)[0],
+//       apiKey: payload.match(/(?<=apiKey=").([^",]+)/g)[0],
+//       emailGateway: payload.match(/(?<=emailGateway=").([^",]+)/g)[0],
+//       emailGatewayUser: payload.match(/(?<=emailGatewayUser=").([^",]+)/g)[0],
+//       emailGatewayPassword: payload.match(/(?<=emailGatewayPassword=").([^",]+)/g)[0],
+//       contactPerson: payload.match(/(?<=contactPerson=").([^",]+)/g)[0],
+//       flowEmails: payload.match(/(?<=flowEmails=").([^",]+)/g)[0],
+//       flowCalls: payload.match(/(?<=flowCalls=").([^",]+)/g)[0],
+//       templates: new Map(),
+//     };
+//     return company;
+//   } catch (error) {
+//     const payload = {
+//       text: "Customer Creation failed - null value found",
+//       channel: "C03CJBT6AE5",
+//     };
+//     requestSlack("POST", "chat.postMessage", payload);
+//     throw new Error("Value in company object, sent from slash command /creatcompany, was null");
+//   }
+// }
 
 
 export function retriveSendEmailInfoFromSlackReq(payload:any) {
@@ -163,13 +164,28 @@ export const slackAppFunctions = () => {
     // Do whatever you want with the input data -
 
     // Assume there's an input block with `block_1` as the block_id and `input_a`
-    const email = view["state"]["values"]["input_c"].dreamy_input.value as string;
-    const category = view["state"]["values"]["input_a"].dreamy_input.value as string;
-    const company = view["state"]["values"]["input_b"].dreamy_input.value as string;
+    const company = view["state"]["values"]["static"]["static_select-action"]["selected_option"]!["text"].text as string;
+    const email = view["state"]["values"]["plain"]["plain_text"].value as string;
+    const category = view["state"]["values"]["radio"]["radio_buttons-action"].selected_option!.text.text as string;
     try {
+      let camelCategory: string;
+      switch (category) {
+        case "Insufficient funds":
+          camelCategory = "insufficientFunds";
+          break;
+        case "Card expired":
+          camelCategory = "cardExpired";
+          break;
+        case "Technical error":
+          camelCategory = "technicalError";
+          break;
+        default:
+          camelCategory = "None";
+          break;
+      }
       const customerObject = await firestoreUtils.getCustomerObjectBasedOnEmailFromCompany(company, email);
       const customerId = customerObject.handle;
-      await firestoreUtils.updateActiveInvoiceWithActiveFlowVariables(company, customerId, category);
+      await firestoreUtils.updateActiveInvoiceWithActiveFlowVariables(company, customerId, camelCategory);
       const user = body["user"]["id"];
       const msg = `Customer flow activated with email: ${email} `;
       try {
@@ -184,71 +200,134 @@ export const slackAppFunctions = () => {
       const user = body["user"]["id"];
       await client.chat.postMessage({
         channel: user,
-        text: "An error occured, possibly email wasn't found in company or company dosen't exist.",
+        text: `An error occured: ${error}`,
       });
     }
   });
 
 
-  app.command("/sendemail", async ({ack, body, client, logger}) => {
+  app.command("/activateflow", async ({ack, body, client, logger}) => {
   // Acknowledge the command request
     await ack();
 
     try {
     // Call views.open with the built-in client
       await client.views.open({
-      // Pass a valid trigger_id within 3 seconds of receiving it
+        // Pass a valid trigger_id within 3 seconds of receiving it
         trigger_id: body.trigger_id,
         // View payload
         view: {
           type: "modal",
-          // View identifier
           callback_id: "view_1",
           title: {
             type: "plain_text",
             text: "Churnr Activate Flow",
+            emoji: true,
+          },
+          submit: {
+            type: "plain_text",
+            text: "Submit",
+            emoji: true,
+          },
+          close: {
+            type: "plain_text",
+            text: "Cancel",
+            emoji: true,
           },
           blocks: [
             {
               type: "input",
-              block_id: "input_b",
+              block_id: "static",
+              element: {
+                type: "static_select",
+                placeholder: {
+                  type: "plain_text",
+                  text: "Select an item",
+                  emoji: true,
+                },
+                options: [
+                  {
+                    text: {
+                      type: "plain_text",
+                      text: "Lalatoys",
+                      emoji: true,
+                    },
+                    value: "value-0",
+                  },
+                  {
+                    text: {
+                      type: "plain_text",
+                      text: "Spiritium",
+                      emoji: true,
+                    },
+                    value: "value-1",
+                  },
+                ],
+                action_id: "static_select-action",
+              },
               label: {
                 type: "plain_text",
-                text: "Company Name",
-              },
-              element: {
-                type: "plain_text_input",
-                action_id: "dreamy_input",
+                text: "Company",
+                emoji: true,
               },
             },
             {
               type: "input",
-              block_id: "input_c",
+              block_id: "plain",
+              element: {
+                type: "plain_text_input",
+                action_id: "plain_text",
+                placeholder: {
+                  type: "plain_text",
+                  text: "Enter customer email",
+                },
+              },
               label: {
                 type: "plain_text",
                 text: "Email",
+                emoji: true,
               },
-              element: {
-                type: "plain_text_input",
-                action_id: "dreamy_input",
-              },
-            }, {
+            },
+            {
               type: "input",
-              block_id: "input_a",
+              block_id: "radio",
+              element: {
+                type: "radio_buttons",
+                options: [
+                  {
+                    text: {
+                      type: "plain_text",
+                      text: "Insufficient funds",
+                      emoji: true,
+                    },
+                    value: "value-0",
+                  },
+                  {
+                    text: {
+                      type: "plain_text",
+                      text: "Card expired",
+                      emoji: true,
+                    },
+                    value: "value-1",
+                  },
+                  {
+                    text: {
+                      type: "plain_text",
+                      text: "Technical error",
+                      emoji: true,
+                    },
+                    value: "value-2",
+                  },
+                ],
+                action_id: "radio_buttons-action",
+              },
               label: {
                 type: "plain_text",
                 text: "Category",
-              },
-              element: {
-                type: "plain_text_input",
-                action_id: "dreamy_input",
+                emoji: true,
               },
             },
           ],
-          submit: {
-            type: "plain_text",
-            text: "Submit",
-          },
         },
       });
     } catch (error) {
@@ -256,6 +335,169 @@ export const slackAppFunctions = () => {
     }
   });
 
+  app.view("view_2", async ({ack, body, view, client, logger}) => {
+    // Acknowledge the view_submission request
+    await ack();
+
+    // Do whatever you want with the input data - here we're saving it to a DB then sending the user a verifcation of their submission
+
+    // Assume there's an input block with `block_1` as the block_id and `input_a`
+    // const email = view['state']['values']['input_c'].dreamy_input.value;
+    // const category = view['state']['values']['input_a'].dreamy_input.value;
+    const user = body["user"]["id"];
+    const company: company = {
+      companyName: view["state"]["values"].Company_Name.plain_text.value as string,
+      paymentGateway: view["state"]["values"].Payment_gateway.plain_text.value as string,
+      apiKey: view["state"]["values"].Api_key.plain_text.value as string,
+      emailGateway: view["state"]["values"].Email_gateway.plain_text.value as string,
+      emailGatewayUser: view["state"]["values"].Email_gateway_user.plain_text.value as string,
+      emailGatewayPassword: view["state"]["values"].Email_gateway_password.plain_text.value as string,
+      contactPerson: view["state"]["values"].Contact_person.plain_text.value as string,
+    };
+
+    firestoreUtils.addCompanyToFirestore(company);
+    // Message to send user
+    const msg = "This might work??";
+    // Save to DB
+    // const results = await db.set(user.input, val);
+
+    // Message the user
+    try {
+      await client.chat.postMessage({
+        channel: user,
+        text: msg,
+      });
+    } catch (error) {
+      logger.error(error);
+    }
+  });
+  app.command("/createcompany", async ({ack, body, client, logger}) => {
+    // Acknowledge the command request
+    await ack();
+
+    try {
+      // Call views.open with the built-in client
+      await client.views.open({
+        // Pass a valid trigger_id within 3 seconds of receiving it
+        trigger_id: body.trigger_id,
+        // View payload
+        view: {
+          "type": "modal",
+          "callback_id": "view_2",
+          "title": {
+            type: "plain_text",
+            text: "Churnr Activate Flow",
+            emoji: true,
+          },
+          "submit": {
+            type: "plain_text",
+            text: "Submit",
+            emoji: true,
+          },
+          "close": {
+            type: "plain_text",
+            text: "Cancel",
+            emoji: true,
+          },
+          "blocks": [
+            {
+              "type": "input",
+              "block_id": "Company_Name",
+              "element": {
+                "type": "plain_text_input",
+                "action_id": "plain_text",
+              },
+              "label": {
+                "type": "plain_text",
+                "text": "Company Name",
+                "emoji": true,
+              },
+            },
+            {
+              "type": "input",
+              "block_id": "Payment_gateway",
+              "element": {
+                "type": "plain_text_input",
+                "action_id": "plain_text",
+              },
+              "label": {
+                "type": "plain_text",
+                "text": "Payment gateway",
+                "emoji": true,
+              },
+            },
+            {
+              "type": "input",
+              "block_id": "Api_key",
+              "element": {
+                "type": "plain_text_input",
+                "action_id": "plain_text",
+              },
+              "label": {
+                "type": "plain_text",
+                "text": "Api key",
+                "emoji": true,
+              },
+            },
+            {
+              "type": "input",
+              "block_id": "Email_gateway",
+              "element": {
+                "type": "plain_text_input",
+                "action_id": "plain_text",
+              },
+              "label": {
+                "type": "plain_text",
+                "text": "Email gateway",
+                "emoji": true,
+              },
+            },
+            {
+              "type": "input",
+              "block_id": "Email_gateway_user",
+              "element": {
+                "type": "plain_text_input",
+                "action_id": "plain_text",
+              },
+              "label": {
+                "type": "plain_text",
+                "text": "Email gateway user",
+                "emoji": true,
+              },
+            },
+            {
+              "type": "input",
+              "block_id": "Email_gateway_password",
+              "element": {
+                "type": "plain_text_input",
+                "action_id": "plain_text",
+              },
+              "label": {
+                "type": "plain_text",
+                "text": "Email gateway password",
+                "emoji": true,
+              },
+            },
+            {
+              "type": "input",
+              "block_id": "Contact_person",
+              "element": {
+                "type": "plain_text_input",
+                "action_id": "plain_text",
+              },
+              "label": {
+                "type": "plain_text",
+                "text": "Contact person",
+                "emoji": true,
+              },
+            },
+          ],
+        },
+      });
+    } catch (error) {
+      logger.error(error);
+    }
+  });
   app.error(async (error) => {
     functions.logger.log("err", error);
   });

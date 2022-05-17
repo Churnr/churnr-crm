@@ -177,21 +177,21 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
     return a.handle;
   });
 
-  for (const fbDunningInvoices of activeInvoiceIdArray) {
-    console.log(fbDunningInvoices);
-    if (reepayInvoiceIdArray.indexOf(fbDunningInvoices) == -1) {
-      const eventsArray = await getReepayInvoiceEvents(options, fbDunningInvoices);
+  for (const invoiceId of activeInvoiceIdArray) {
+    if (reepayInvoiceIdArray.indexOf(invoiceId) == -1) {
+      const eventsArray = await getReepayInvoiceEvents(options, invoiceId);
       if (eventsArray.length != 0) {
         if (eventsArray[0].event_type == "invoice_dunning_cancelled") {
           if (eventsArray[1].event_type == "invoice_settled") {
-            firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "Retained");
+            firestoreUtils.updateDateOfRetained(companyName, invoiceId);
+            firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
           } else if (eventsArray[1].event_type == "invoice_cancelled") {
-            firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "OnHold");
+            firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
           }
         } else if (eventsArray[0].event_type == "invoice_settled") {
-          firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "Retained");
+          firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
         } else if (eventsArray[0].event_type == "invoice_cancelled") {
-          firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "OnHold");
+          firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
         } else if (eventsArray[0].event_type == "invoice_failed" ||
         eventsArray[0].event_type == "invoice_refund" ||
         eventsArray[0].event_type == "invoice_reactivate" ||

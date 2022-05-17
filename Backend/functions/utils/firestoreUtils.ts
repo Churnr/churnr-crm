@@ -79,14 +79,12 @@ export const getCompanys = async (): Promise<string[]> => {
 /**
  * Creates a company doc with the given company object
  * @param {types.company}company company object
- * @param {string}companyName companyName
  * @return {admin.firestore.WriteResult} firestore WriteResult
  */
-export const addCompanyToFirestore = async (company:types.company,
-    companyName:string): Promise<admin.firestore.WriteResult> => {
+export const addCompanyToFirestore = async (company:types.company): Promise<admin.firestore.WriteResult> => {
   try {
     const newDoc = await
-    admin.firestore().collection("Companys").doc(companyName).set(company);
+    admin.firestore().collection("Companys").doc(company.companyName).set(company);
     return newDoc;
   } catch (error) {
     throw error;
@@ -173,6 +171,14 @@ export const updateInvoiceStatusValue = async (companyName:string, docId:string,
       .collection("Invoices").doc(docId).update({status: status});
   return firestoreData;
 };
+
+export const updateDateOfRetained = async (companyName:string, docId:string) => {
+  const today = new Date();
+  const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
+      .collection("Invoices").doc(docId).update({retainedDate: today});
+  return firestoreData;
+};
+
 
 export const updateInvoiceEmailCountValue = async (companyName:string, docId:string, emailCount:number) => {
   const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
@@ -365,10 +371,14 @@ export const updateActiveInvoiceWithActiveFlowVariables = async (companyName:str
         .doc(companyName)
         .collection("Invoices")
         .where("status", "==", "active").where("invoice.customer", "==", customerId).get()).docs[0].data();
-    await admin.firestore().collection("Companys").doc(companyName)
-        .collection("Invoices").doc(activeInvoice.invoice.handle).update({emailCount: 0,
-          activeFlow: true, invoceError: invoiceError,
-          flowStartDate: today});
+    if (activeInvoice.invoice.transactions[0]?.error_state != "hard_declined") {
+      await admin.firestore().collection("Companys").doc(companyName)
+          .collection("Invoices").doc(activeInvoice.invoice.handle).update({emailCount: 0,
+            activeFlow: true, invoceError: invoiceError,
+            flowStartDate: today});
+    } else {
+      throw new Error("It looks like you tried to start a flow on a hard declined invoice");
+    }
   } catch (error) {
     throw new Error(error + "updateActiveInvoiceWithActiveFlowVariables");
   }

@@ -43,6 +43,8 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.DEV_FIREBASE_TOKEN }}
           PROJECT_ID: churnr-system-development
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
               
   Build-And-Deploy-Frontend-Dev:
     name: Build and Deploy Frontend to Development if changes were made

@@ -4,43 +4,46 @@ import * as admin from "firebase-admin";
 import {getInvoicesObjectBasedOnStatusFromCompany,
   getFieldValueFromComapnyInFirestore,
   getCustomerFromFirestore,
-  getCustomerObjectBasedOnEmailFromCompany,
-  updateActiveInvoiceWithActiveFlowVariables,
-  addCompanyToFirestore,
   updateInvoiceEmailLastSendValue,
   getCompanys,
   updateInvoiceEmailCountValue,
   updateInvoiceActiveFlowValue,
+  retriveCustomersDocDataFromCompany,
+  retriveDatasFromDocData,
+  retriveActiveInvoicesDocDataFromCompany,
 } from "../utils/firestoreUtils";
 import * as reepayUtils from "../utils/reepayUtils";
 // import * as sendgridUtils from "../utils/sendgridUtils";
 import {PubSub} from "@google-cloud/pubsub";
-// import * as cors from "cors";
-// import * as middleware from "../middleware/middleware";
-import * as slackUtils from "../utils/slackUtils";
+import * as cors from "cors";
+import * as middleware from "../middleware/middleware";
+import {slackAppFunctions} from "../utils/slackUtils";
 import {emailMessage} from "../utils/sendgridUtils";
 import * as express from "express";
 // import {send} from "@sendgrid/mail";
 // import {SocketModeClient} from "@slack/socket-mode";
 // import {WebClient} from "@slack/web-api";
 import "dotenv/config";
+import {Dunning, ActiveDunning, Retained} from "../types/interface";
 // const config = functions.config();
 // const config = process.env;
 admin.initializeApp();
-
+const corsHandler = cors();
 const pubsubClient = new PubSub();
 const apps = express();
 const slackApp = express();
 
 // Enables middleware for slackApp endpoints
+apps.use(corsHandler);
 apps.use(express.json());
-// apps.use(middleware.validateFirebaseIdToken);
+apps.use(middleware.validateFirebaseIdToken);
+slackApp.use(corsHandler);
 // slackApp.use(middleware.validateSlackSigningSecret);
 
 // .runWith({secrets: ["SLACK_BOT_TOKEN", "SLACK_SIGNING_SECRET"]})
 export const slack = functions
     .region("europe-west3")
-    .https.onRequest(slackUtils.slackAppFunctions().app);
+    .https.onRequest(slackAppFunctions().app);
 /**
  * Fetches invoices in dunning state from paymentGateway
  * Reepay ready
@@ -79,18 +82,18 @@ slackApp.post("/sendEmail", async (req, res) => {
   res.status(200).send("Handling process: Create Company");
 });
 
-exports.createCompany = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
-    .pubsub.topic("create-company").onPublish(async (message) => {
-      const data = JSON.parse(Buffer.from(message.data, "base64").toString("utf-8"));
+// exports.createCompany = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
+//     .pubsub.topic("create-company").onPublish(async (message) => {
+//       const data = JSON.parse(Buffer.from(message.data, "base64").toString("utf-8"));
 
-      try {
-        const company = slackUtils.retriveCompanyInfoFromSlackReq(data.text);
-        addCompanyToFirestore(company, company.companyName);
-        slackUtils.sendMessageToChannel(`${company.companyName} was added to the company database.`, "C03CJBT6AE5");
-      } catch (error) {
-        functions.logger.error("pubsub topic(create-company): ", error);
-      }
-    });
+//       try {
+//         const company = retriveCompanyInfoFromSlackReq(data.text);
+//         addCompanyToFirestore(company, company.companyName);
+//         sendMessageToChannel(`${company.companyName} was added to the company database.`, "C03CJBT6AE5");
+//       } catch (error) {
+//         functions.logger.error("pubsub topic(create-company): ", error);
+//       }
+//     });
 
 //  runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
 exports.sendEmail = functions.
@@ -179,14 +182,84 @@ slackApp.get("/halloworld", async (req, res) => {
   // }
   res.status(200).send("DER HUL IGENNEM!");
 });
-slackApp.get("/activeflow", async (req, res) => {
-  const email = "Nico@nico.com";
-  const company = "LALA";
-  const invoiceError = "YES";
-  const customerObject = await getCustomerObjectBasedOnEmailFromCompany(company, email);
-  const customerId = customerObject.handle;
-  await updateActiveInvoiceWithActiveFlowVariables(company, customerId, invoiceError);
-  res.status(200).send("Invoice Was Updated");
+
+
+slackApp.get("/getData", async (req, res) => {
+  const data = await retriveCustomersDocDataFromCompany("LALA");
+  const invoices = await retriveActiveInvoicesDocDataFromCompany("LALA");
+  const invoiceData = await retriveDatasFromDocData(invoices);
+  const customerdata = await retriveDatasFromDocData(data);
+  console.log(customerdata, "Invoice data", invoiceData);
+  const list = [];
+  const dunningList = [];
+  const activeDunning = [];
+  const retainedList = [];
+  // const onHold = [];
+  // const reDunning = [];
+  for (const cusData of customerdata ) {
+    for (const invdata of invoiceData) {
+      if (cusData.handle == invdata.invoice.customer) {
+        if (invdata.activeFlow === true && invdata.status === "active") {
+          const activedunning: ActiveDunning = {
+            first_name: cusData.first_name,
+            last_name: cusData.last_name,
+            handle: cusData.handle,
+            flowStartDate: invdata.flowStartDate,
+            errorState: invdata.invoice.transactions[0]?.error_state,
+            emailCount: invdata.emailCount,
+            ordertext: invdata.invoice.order_lines[0].ordertext,
+            created: invdata.invoice.created,
+            settled_invoices: cusData.settled_invoices,
+            amount: invdata.invoice.order_lines[0].amount,
+            phone: cusData.phone,
+            email: cusData.email,
+            error: invdata.invoice.transactions[0]?.error,
+            acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
+            activeFlow: invdata.activeFlow,
+          };
+          activeDunning.push(activedunning);
+        } else if (invdata.activeFlow === false && invdata.status === "active") {
+          const dunning: Dunning = {
+            first_name: cusData.first_name,
+            last_name: cusData.last_name,
+            handle: cusData.handle,
+            errorState: invdata.invoice.transactions[0]?.error_state,
+            ordertext: invdata.invoice.order_lines[0].ordertext,
+            created: invdata.invoice.created,
+            settled_invoices: cusData.settled_invoices,
+            amount: invdata.invoice.order_lines[0].amount,
+            phone: cusData.phone,
+            email: cusData.email,
+            error: invdata.invoice.transactions[0]?.error,
+            acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
+          };
+          dunningList.push(dunning);
+        } else if (invdata.status === "retained") {
+          const retained: Retained = {
+            first_name: cusData.first_name,
+            last_name: cusData.last_name,
+            handle: cusData.handle,
+            flowStartDate: invdata.flowStartDate,
+            errorState: invdata.invoice.transactions[0]?.error_state,
+            emailCount: invdata.emailCount,
+            ordertext: invdata.invoice.order_lines[0].ordertext,
+            created: invdata.invoice.created,
+            settled_invoices: cusData.settled_invoices,
+            amount: invdata.invoice.order_lines[0].amount,
+            phone: cusData.phone,
+            email: cusData.email,
+            error: invdata.invoice.transactions[0]?.error,
+            acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
+            activeFlow: invdata.activeFlow,
+            retainedDate: invdata.retainedDate,
+          };
+          retainedList.push(retained);
+        }
+      }
+    }
+  }
+  list.push(dunningList, activeDunning, retainedList);
+  res.status(200).send(list);
 });
 
 
