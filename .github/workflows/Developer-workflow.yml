@@ -37,18 +37,14 @@ jobs:
         working-directory: ./Backend/functions
       - name: 'If Backend Changed: Deploy to Firebase'
         if: steps.changes.outputs.backend == 'true'
-        - name: set env configs
-        uses: w9jds/firebase-action@master
-        with:
-          args: functions:config:set env.slackbottoken="$(${{ secrets.SLACK_BOT_TOKEN }}) env.slacksigning="$(${{ secrets.SLACK_BOT_TOKEN }})"
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         uses: w9jds/firebase-action@master
         with:
           args: deploy --only functions
         env:
           FIREBASE_TOKEN: ${{ secrets.DEV_FIREBASE_TOKEN }}
           PROJECT_ID: churnr-system-development
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_SIGNING_SECRET: ${{ secrets.SLACK_SIGNING_SECRET }}
               
   Build-And-Deploy-Frontend-Dev:
     name: Build and Deploy Frontend to Development if changes were made
@@ -81,5 +77,3 @@ jobs:
           channelId: ${{ github.ref }}
           expires: 5d
           projectId: churnr-system-development
-
-
