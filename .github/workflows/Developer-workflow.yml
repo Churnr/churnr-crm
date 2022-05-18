@@ -42,7 +42,9 @@ jobs:
           args: functions:config:set env.slackbottoken="$(${{ secrets.SLACK_BOT_TOKEN }}) env.slacksigning="$(${{ secrets.SLACK_SIGNING_SECRET }})"
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          PROJECT_ID: churnr-system-development
       - name: Deploy functions
+        if: steps.changes.outputs.backend == 'true'
         uses: w9jds/firebase-action@master
         with:
           args: deploy --only functions
