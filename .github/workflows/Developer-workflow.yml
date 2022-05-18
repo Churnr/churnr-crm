@@ -37,12 +37,13 @@ jobs:
         working-directory: ./Backend/functions
       - name: 'If Backend Changed: Deploy to Firebase'
         if: steps.changes.outputs.backend == 'true'
-        - name: set env configs
+      - name: set env configs
         uses: w9jds/firebase-action@master
         with:
           args: functions:config:set env.slackbottoken="$(${{ secrets.SLACK_BOT_TOKEN }}) env.slacksigning="$(${{ secrets.SLACK_SIGNING_SECRET }})"
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      - name: Deploy functions
         uses: w9jds/firebase-action@master
         with:
           args: deploy --only functions
