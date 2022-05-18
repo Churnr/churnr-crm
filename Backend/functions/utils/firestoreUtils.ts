@@ -3,6 +3,7 @@ import * as admin from "firebase-admin";
 import * as types from "../types/types";
 import {logger} from "firebase-functions";
 import {customer} from "../types/types";
+import {checkTransactionVariable} from "./reepayUtils";
 
 
 /**
@@ -293,7 +294,7 @@ export async function getCustomerFromFirestore(companyName:string, customerId:st
       .collection("Customers").doc(customerId).get();
   const docFrom = dataFrom.data();
   if (docFrom === undefined) {
-    throw new Error("The doc you wanted to move was undefined");
+    throw new Error("The customer you tried to find, does not exist");
   }
   return docFrom;
 }
@@ -371,7 +372,7 @@ export const updateActiveInvoiceWithActiveFlowVariables = async (companyName:str
         .doc(companyName)
         .collection("Invoices")
         .where("status", "==", "active").where("invoice.customer", "==", customerId).get()).docs[0].data();
-    if (activeInvoice.invoice.transactions[-1]?.error_state != "hard_declined") {
+    if (checkTransactionVariable(activeInvoice.invoice, "error_state") != "hard_declined") {
       await admin.firestore().collection("Companys").doc(companyName)
           .collection("Invoices").doc(activeInvoice.invoice.handle).update({emailCount: 0,
             activeFlow: true, invoceError: invoiceError,

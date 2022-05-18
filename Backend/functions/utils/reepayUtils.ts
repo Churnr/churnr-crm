@@ -128,19 +128,51 @@ export const createCustomCustomerObject = async (
   }
 };
 
-// check if transaction has either mps_transaction or card
+// transaction object, find alle mulige keys, have fat i map der har transaction
 
-// export const checkErrorState = async (invoiceObject:any) => {
-//   if (invoiceObject.transactions.length > 0) {
-//     const transaction = invoiceObject.transactions[-1];
-//     if (!transaction.mps_transaction) {
-//       console.log();
-//       return "hej";
-//     }
-//   } else {
-//     return "soft_declined";
-//   }
-// };
+// check if transaction has either mps_transaction or card
+// code from outsourced person
+// don't kill me simon, pls. i was forced by Benjamin LØGNER
+export const checkTransactionVariable = (invoiceObject:any, state:string) => {
+  if (invoiceObject.transactions.length > 0) {
+    const transaction = invoiceObject.transactions[invoiceObject.transactions.length-1];
+    if (transaction?.card_transaction != undefined) {
+      return transaction.card_transaction[state];
+    } else if (transaction?.mpo_transaction != undefined) {
+      return transaction?.mpo_transaction[state];
+    } else if (transaction?.vipps_transaction != undefined) {
+      return transaction?.vipps_transaction[state];
+    } else if (transaction?.applepay_transaction != undefined) {
+      return transaction?.applepay_transaction[state];
+    } else if (transaction?.googlepay_transaction != undefined) {
+      return transaction?.googlepay_transaction[state];
+    } else if (transaction?.viabill_transaction != undefined) {
+      return transaction.viabill_transaction[state];
+    } else if (transaction?.resurs_transaction != undefined) {
+      return transaction.resurs_transaction[state];
+    } else if (transaction?.klarna_transaction != undefined) {
+      return transaction.klarna_transaction[state];
+    } else if (transaction?.swish_transaction != undefined) {
+      return transaction.swish_transaction[state];
+    } else if (transaction?.paypal_transaction != undefined) {
+      return transaction.paypal_transaction[state];
+    } else if (transaction?.pgw_transaction != undefined) {
+      return transaction.pgw_transaction[state];
+    } else if (transaction?.blik_transaction != undefined) {
+      return transaction.blik_transaction[state];
+    } else if (transaction?.ideal_transaction != undefined) {
+      return transaction.ideal_transaction[state];
+    } else if (transaction?.p24_transaction != undefined) {
+      return transaction.p24_transaction[state];
+    } else if (transaction?.mps_transaction != undefined) {
+      return transaction.mps_transaction[state];
+    } else {
+      return undefined;
+    }
+  } else {
+    return "soft_declined";
+  }
+};
 
 
 /**

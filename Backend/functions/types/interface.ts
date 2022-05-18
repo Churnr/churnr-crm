@@ -37,5 +37,5 @@ export interface Retained extends Dunning {
     flowStartDate: string,
     activeFlow: boolean,
     emailCount: number,
-    retainedDate: string,
+    invoiceEndDate: string,
   }

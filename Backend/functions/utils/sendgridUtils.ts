@@ -1,6 +1,10 @@
-import * as firestoreUtils from "../utils/firestoreUtils";
-import * as sendGrid from "@sendgrid/mail";
-import {activeFlow, customer} from "../types/types";
+import {getInvoicesObjectBasedOnStatusFromCompany,
+  getFieldValueFromComapnyInFirestore,
+  getCustomerFromFirestore,
+  updateInvoiceEmailCountValue,
+  updateInvoiceEmailLastSendValue,
+  updateInvoiceActiveFlowValue} from "../utils/firestoreUtils";
+import * as sendgrid from "@sendgrid/mail";
 // Pre. Add map to customer, containing templateIds
 
 // Slash command ind param: companyName, customer.id, templateId;
@@ -22,15 +26,16 @@ import {activeFlow, customer} from "../types/types";
 
 // Der skal katergori med, slack commanden, og der så 3 katergori med 7 emails der skal sendes
 // eslint-disable-next-line require-jsdoc
-export function emailMessage(to:string, from:string, template:string, name:string) {
+export function emailMessage(to:string, from:string, template:string, customerObject:any) {
   const msg = {
     to: to,
     from: from,
     templateId: template,
     dynamicTemplateData: {
-      subject: "Testing Templates",
-      name: name,
-      city: "Denver",
+      customer: {
+        first_name: customerObject.first_name,
+        payment_link: customerObject.paymentLink,
+      },
     },
   };
   return msg;
@@ -42,30 +47,51 @@ export function emailMessage(to:string, from:string, template:string, name:strin
 // ________________________________________
 
 // eslint-disable-next-line require-jsdoc
-export async function emailFlowLogic(companyName:string, companyEmail:string) {
-  // Hent template map
-  const templateMap = await firestoreUtils.getFieldValueFromComapnyInFirestore(companyName, "templateMap");
-  // Hent activeflows fra company (skal være et array)
-  const activeFlowsArray: Array<activeFlow> = await firestoreUtils.
-      getDocsFromCompanyCollection(companyName, "ActiveDunning");
-  // iterer over liste af activeflows objecter
-  for (const activeFlow of activeFlowsArray) {
-    // if email answerd = true - ryk ned til endedflows
-    if (activeFlow.emailAnswered === true) {
-      continue;
+export async function sendgridLogic(company:any) {
+  const data = await getInvoicesObjectBasedOnStatusFromCompany(company.companyName);
+  const templateMap = company.templateMap;
+  const companyEmail = company.email;
+  const today = new Date();
+  if (process.env.SENDGRID_API_KEY === undefined) {
+    throw new Error("Sendgrid api key not in enviroment");
+  }
+  sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
+  for (const invoice of data) {
+    const customer = await getCustomerFromFirestore(company.companyName, invoice.invoice.customer);
+    const emailCount:number = invoice.emailCount;
+    // const emailMsg = emailMessage(customer.email, companyEmail,
+    //     templateMap[invoice.invoiceError][invoice.emailCount], customer);
+    const emailMsg = emailMessage("system@churnr.dk", companyEmail,
+        templateMap[invoice.invoiceError][invoice.emailCount], customer);
+    if (emailCount == 0) {
+      const flowStartDate = (invoice.flowStartDate).toDate();
+      const DifferenceInTime = (today.getTime() - flowStartDate.getTime()) / (1000 * 3600 * 24);
+      if (DifferenceInTime >= 1) {
+        sendgrid.send(emailMsg);
+        updateInvoiceEmailCountValue(company.companyName, invoice.invoice.handle, emailCount+1);
+        updateInvoiceEmailLastSendValue(company.companyName, invoice.invoice.handle, today);
+      }
+    } else if (emailCount == 6) {
+      const lastEmailSendDate = (invoice.emailLastSend).toDate();
+      const DifferenceInTime = (today.getTime() - lastEmailSendDate.getTime()) / (1000 * 3600 * 24);
+      if (DifferenceInTime >= 6) {
+        sendgrid.send(emailMsg);
+        updateInvoiceEmailCountValue(company.companyName, invoice.invoice.handle, emailCount+1);
+        updateInvoiceEmailLastSendValue(company.companyName, invoice.invoice.handle, today);
+        updateInvoiceActiveFlowValue(company.companyName, invoice.invoice.handle, false);
+      }
+    } else if (emailCount != 0 && emailCount != 6 && emailCount < 7) {
+      const lastEmailSendDate = (invoice.emailLastSend).toDate();
+      const DifferenceInTime = (today.getTime() - lastEmailSendDate.getTime()) / (1000 * 3600 * 24);
+      console.log(DifferenceInTime);
+      if (DifferenceInTime >= 3) {
+        sendgrid.send(emailMsg);
+        updateInvoiceEmailCountValue(company.companyName, invoice.invoice.handle, emailCount+1);
+        updateInvoiceEmailLastSendValue(company.companyName, invoice.invoice.handle, today);
+      }
     }
-    // Hent kunde object
-    const customer: customer = await firestoreUtils.getCustomerFromFirestore(companyName, activeFlow.customerId);
-    // Kald emailMessage med nødvendigt data og template id
-    const emailMsg = emailMessage(customer.email, companyEmail,
-        customer.first_name, templateMap[activeFlow.errorState][activeFlow.emailCount]);
-
-
-    // send email
-    sendGrid.send(emailMsg);
   }
 }
-
 // slack Command send
 
 // ActivateFlow

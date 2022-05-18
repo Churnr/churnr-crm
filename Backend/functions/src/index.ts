@@ -18,9 +18,9 @@ import * as reepayUtils from "../utils/reepayUtils";
 import * as cors from "cors";
 import * as middleware from "../middleware/middleware";
 import {slackAppFunctions} from "../utils/slackUtils";
-import {emailMessage} from "../utils/sendgridUtils";
+import {sendgridLogic, emailMessage} from "../utils/sendgridUtils";
 import * as express from "express";
-// import {send} from "@sendgrid/mail";
+import * as sendgrid from "@sendgrid/mail";
 // import {SocketModeClient} from "@slack/socket-mode";
 // import {WebClient} from "@slack/web-api";
 import "dotenv/config";
@@ -65,6 +65,16 @@ export const fetchDunningInvoices =
         return null;
       }
       );
+
+export const sendEmails =
+functions.region("europe-west2").pubsub.schedule("0 17 * * *")
+    .timeZone("Europe/Copenhagen").onRun(async (context) => {
+      const companys: any = await getCompanys();
+      for (const company of companys) {
+        sendgridLogic(company);
+      }
+      return null;
+    });
 
 // // Kig på publishmessage istedet for publish
 // /** @deprecated */
@@ -132,47 +142,55 @@ export const fetchDunningInvoices =
  * Test endpoint
 */
 slackApp.get("/halloworld", async (req, res) => {
-  const companyName = "LALA";
-  const data = await getInvoicesObjectBasedOnStatusFromCompany(companyName);
-  const templateMap = await getFieldValueFromComapnyInFirestore(companyName, "templateMap");
-  const companyEmail = await getFieldValueFromComapnyInFirestore(companyName, "emailGatewayUser");
-  const today = new Date();
-  for (const invoice of data) {
-    const customer = await getCustomerFromFirestore("LALA", invoice.invoice.customer);
-    const emailCount:number = invoice.emailCount;
-    const emailMsg = emailMessage(customer.email, companyEmail,
-        customer.first_name, templateMap[invoice.invoceError][invoice.emailCount]);
-    if (emailCount == 0) {
-      const flowStartDate = (invoice.flowStartDate).toDate();
-      const DifferenceInTime = (today.getTime() - flowStartDate.getTime()) / (1000 * 3600 * 24);
-      if (DifferenceInTime >= 1) {
-        // send(emailMsg);
-        functions.logger.log("EmailCount 0: IT WORKS!!" + JSON.stringify(emailMsg));
-        updateInvoiceEmailCountValue(companyName, invoice.invoice.handle, emailCount+1);
-        updateInvoiceEmailLastSendValue(companyName, invoice.invoice.handle, today);
-      }
-    } else if (emailCount == 6) {
-      const lastEmailSendDate = (invoice.emailLastSend).toDate();
-      const DifferenceInTime = (today.getTime() - lastEmailSendDate.getTime()) / (1000 * 3600 * 24);
-      if (DifferenceInTime >= 6) {
-        // send(emailMsg);
-        functions.logger.log("EmailCount 6: IT WORKS!!: " + JSON.stringify(emailMsg));
-        updateInvoiceEmailCountValue(companyName, invoice.invoice.handle, emailCount+1);
-        updateInvoiceEmailLastSendValue(companyName, invoice.invoice.handle, today);
-        updateInvoiceActiveFlowValue(companyName, invoice.invoice.handle, false);
-      }
-    } else if (emailCount != 0 && emailCount != 6 && emailCount < 7) {
-      const lastEmailSendDate = (invoice.emailLastSend).toDate();
-      const DifferenceInTime = (today.getTime() - lastEmailSendDate.getTime()) / (1000 * 3600 * 24);
-      console.log(DifferenceInTime);
-      if (DifferenceInTime >= 3) {
-        // send(emailMsg);
-        functions.logger.log("EmailCount All others: IT WORKS!!" + JSON.stringify(emailMsg));
-        updateInvoiceEmailCountValue(companyName, invoice.invoice.handle, emailCount+1);
-        updateInvoiceEmailLastSendValue(companyName, invoice.invoice.handle, today);
-      }
-    }
+  const companies:any = await getCompanys();
+  for (const company of companies) {
+    console.log(company);
+    console.log(company.companyName);
   }
+  // const companyName = "LALA";
+  // const data = await getInvoicesObjectBasedOnStatusFromCompany(companyName);
+  // const templateMap = await getFieldValueFromComapnyInFirestore(companyName, "templateMap");
+  // const companyEmail = await getFieldValueFromComapnyInFirestore(companyName, "email");
+  // const today = new Date();
+  // if (process.env.SENDGRID_API_KEY === undefined) {
+  //   throw new Error("Sendgrid api key not in enviroment");
+  // }
+  // for (const invoice of data) {
+  //   const customer = await getCustomerFromFirestore("LALA", invoice.invoice.customer);
+  //   const emailCount:number = invoice.emailCount;
+  //   const emailMsg = emailMessage("benjamin@churnr.dk", companyEmail,
+  //       templateMap[invoice.invoiceError][invoice.emailCount], customer);
+  //   if (emailCount == 0) {
+  //     const flowStartDate = (invoice.flowStartDate).toDate();
+  //     const DifferenceInTime = (today.getTime() - flowStartDate.getTime()) / (1000 * 3600 * 24);
+  //     if (DifferenceInTime >= 1) {
+  //       sendgrid.send(emailMsg);
+  //       functions.logger.log("EmailCount 0: IT WORKS!!" + JSON.stringify(emailMsg));
+  //       updateInvoiceEmailCountValue(companyName, invoice.invoice.handle, emailCount+1);
+  //       updateInvoiceEmailLastSendValue(companyName, invoice.invoice.handle, today);
+  //     }
+  //   } else if (emailCount == 6) {
+  //     const lastEmailSendDate = (invoice.emailLastSend).toDate();
+  //     const DifferenceInTime = (today.getTime() - lastEmailSendDate.getTime()) / (1000 * 3600 * 24);
+  //     if (DifferenceInTime >= 6) {
+  //       sendgrid.send(emailMsg);
+  //       functions.logger.log("EmailCount 6: IT WORKS!!: " + JSON.stringify(emailMsg));
+  //       updateInvoiceEmailCountValue(companyName, invoice.invoice.handle, emailCount+1);
+  //       updateInvoiceEmailLastSendValue(companyName, invoice.invoice.handle, today);
+  //       updateInvoiceActiveFlowValue(companyName, invoice.invoice.handle, false);
+  //     }
+  //   } else if (emailCount != 0 && emailCount != 6 && emailCount < 7) {
+  //     const lastEmailSendDate = (invoice.emailLastSend).toDate();
+  //     const DifferenceInTime = (today.getTime() - lastEmailSendDate.getTime()) / (1000 * 3600 * 24);
+  //     console.log(DifferenceInTime);
+  //     if (DifferenceInTime >= 3) {
+  //       sendgrid.send(emailMsg);
+  //       functions.logger.log("EmailCount All others: IT WORKS!!" + JSON.stringify(emailMsg));
+  //       updateInvoiceEmailCountValue(companyName, invoice.invoice.handle, emailCount+1);
+  //       updateInvoiceEmailLastSendValue(companyName, invoice.invoice.handle, today);
+  //     }
+  //   }
+  // }
   // try {
   //   const response = slackUtils.slackAcknowledgmentResponse(req, jsonSlackExample);
   //   functions.logger.error(response);
@@ -185,81 +203,111 @@ slackApp.get("/halloworld", async (req, res) => {
 
 
 slackApp.get("/getData", async (req, res) => {
-  const data = await retriveCustomersDocDataFromCompany("Lalatoys");
-  const invoices = await retriveActiveInvoicesDocDataFromCompany("Lalatoys");
-  const invoiceData = await retriveDatasFromDocData(invoices);
-  const customerdata = await retriveDatasFromDocData(data);
-  console.log(customerdata, "Invoice data", invoiceData);
-  const list = [];
-  const dunningList = [];
-  const activeDunning = [];
-  const retainedList = [];
-  // const onHold = [];
-  // const reDunning = [];
-  for (const cusData of customerdata ) {
-    for (const invdata of invoiceData) {
-      if (cusData.handle == invdata.invoice.customer) {
-        if (invdata.activeFlow === true && invdata.status === "active") {
-          const activedunning: ActiveDunning = {
-            first_name: cusData.first_name,
-            last_name: cusData.last_name,
-            handle: cusData.handle,
-            flowStartDate: invdata.flowStartDate,
-            errorState: invdata.invoice.transactions[0]?.error_state,
-            emailCount: invdata.emailCount,
-            ordertext: invdata.invoice.order_lines[0].ordertext,
-            created: invdata.invoice.created,
-            settled_invoices: cusData.settled_invoices,
-            amount: invdata.invoice.order_lines[0].amount,
-            phone: cusData.phone,
-            email: cusData.email,
-            error: invdata.invoice.transactions[0]?.error,
-            acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
-            activeFlow: invdata.activeFlow,
-          };
-          activeDunning.push(activedunning);
-        } else if (!invdata.activeFlow && invdata.status === "active") {
-          const dunning: Dunning = {
-            first_name: cusData.first_name,
-            last_name: cusData.last_name,
-            handle: cusData.handle,
-            errorState: invdata.invoice.transactions[0]?.error_state,
-            ordertext: invdata.invoice.order_lines[0].ordertext,
-            created: invdata.invoice.created,
-            settled_invoices: cusData.settled_invoices,
-            amount: invdata.invoice.order_lines[0].amount,
-            phone: cusData.phone,
-            email: cusData.email,
-            error: invdata.invoice.transactions[0]?.error,
-            acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
-          };
-          dunningList.push(dunning);
-        } else if (invdata.status === "retained") {
-          const retained: Retained = {
-            first_name: cusData.first_name,
-            last_name: cusData.last_name,
-            handle: cusData.handle,
-            flowStartDate: invdata.flowStartDate,
-            errorState: invdata.invoice.transactions[0]?.error_state,
-            emailCount: invdata.emailCount,
-            ordertext: invdata.invoice.order_lines[0].ordertext,
-            created: invdata.invoice.created,
-            settled_invoices: cusData.settled_invoices,
-            amount: invdata.invoice.order_lines[0].amount,
-            phone: cusData.phone,
-            email: cusData.email,
-            error: invdata.invoice.transactions[0]?.error,
-            acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
-            activeFlow: invdata.activeFlow,
-            retainedDate: invdata.retainedDate,
-          };
-          retainedList.push(retained);
+  const mainList = new Map();
+  const companyList:any = await getCompanys();
+  for (const company of companyList) {
+    const data = await retriveCustomersDocDataFromCompany(company.companyName);
+    const invoices = await retriveActiveInvoicesDocDataFromCompany(company.companyName);
+    const invoiceData = await retriveDatasFromDocData(invoices);
+    const customerdata = await retriveDatasFromDocData(data);
+    console.log(customerdata, "Invoice data", invoiceData);
+    const companyMap = new Map();
+    const dunningList = [];
+    const activeDunning = [];
+    const retainedList = [];
+    const onHoldList = [];
+    // const reDunning = [];
+    for (const cusData of customerdata ) {
+      for (const invdata of invoiceData) {
+        if (cusData.handle == invdata.invoice.customer) {
+          if (invdata.activeFlow === true && invdata.status === "active") {
+            const activedunning: ActiveDunning = {
+              first_name: cusData.first_name,
+              last_name: cusData.last_name,
+              handle: cusData.handle,
+              flowStartDate: invdata.flowStartDate,
+              errorState: reepayUtils.checkTransactionVariable(invdata.invoice, "error_state"),
+              emailCount: invdata.emailCount,
+              ordertext: invdata.invoice.order_lines[0].ordertext,
+              created: invdata.invoice.created,
+              settled_invoices: cusData.settled_invoices,
+              amount: invdata.invoice.order_lines[0].amount,
+              phone: cusData.phone,
+              email: cusData.email,
+              error: reepayUtils.checkTransactionVariable(invdata.invoice, "error"),
+              acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
+              activeFlow: invdata.activeFlow,
+            };
+            activeDunning.push(activedunning);
+          } else if (!invdata.activeFlow && invdata.status === "active") {
+            const dunning: Dunning = {
+              first_name: cusData.first_name,
+              last_name: cusData.last_name,
+              handle: cusData.handle,
+              errorState: reepayUtils.checkTransactionVariable(invdata.invoice, "error_state"),
+              ordertext: invdata.invoice.order_lines[0].ordertext,
+              created: invdata.invoice.created,
+              settled_invoices: cusData.settled_invoices,
+              amount: invdata.invoice.order_lines[0].amount,
+              phone: cusData.phone,
+              email: cusData.email,
+              error: reepayUtils.checkTransactionVariable(invdata.invoice, "error"),
+              acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
+            };
+            dunningList.push(dunning);
+          } else if (invdata.status === "retained") {
+            console.log("reatiend", invdata.invoiceEndDate);
+            const retained: Retained = {
+              first_name: cusData.first_name,
+              last_name: cusData.last_name,
+              handle: cusData.handle,
+              flowStartDate: invdata.flowStartDate,
+              errorState: reepayUtils.checkTransactionVariable(invdata.invoice, "error_state"),
+              emailCount: invdata.emailCount,
+              ordertext: invdata.invoice.order_lines[0].ordertext,
+              created: invdata.invoice.created,
+              settled_invoices: cusData.settled_invoices,
+              amount: invdata.invoice.order_lines[0].amount,
+              phone: cusData.phone,
+              email: cusData.email,
+              error: reepayUtils.checkTransactionVariable(invdata.invoice, "error"),
+              acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
+              activeFlow: invdata.activeFlow,
+              invoiceEndDate: invdata?.invoiceEndDate,
+            };
+            retainedList.push(retained);
+          } else if (invdata.status === "onhold") {
+            const onhold: Retained = {
+              first_name: cusData.first_name,
+              last_name: cusData.last_name,
+              handle: cusData.handle,
+              flowStartDate: invdata.flowStartDate,
+              errorState: reepayUtils.checkTransactionVariable(invdata.invoice, "error_state"),
+              emailCount: invdata.emailCount,
+              ordertext: invdata.invoice.order_lines[0].ordertext,
+              created: invdata.invoice.created,
+              settled_invoices: cusData.settled_invoices,
+              amount: invdata.invoice.order_lines[0].amount,
+              phone: cusData.phone,
+              email: cusData.email,
+              error: reepayUtils.checkTransactionVariable(invdata.invoice, "error"),
+              acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
+              activeFlow: invdata.activeFlow,
+              invoiceEndDate: invdata?.invoiceEndDate,
+            };
+            onHoldList.push(onhold);
+          }
         }
       }
     }
+    companyMap["dunningList"] = dunningList;
+    companyMap["activeDunning"] = activeDunning;
+    companyMap["retainedList"] = retainedList;
+    companyMap["onHoldList"] = onHoldList;
+    mainList[company.companyName] = companyMap;
+    // list.push(dunningList, activeDunning, retainedList, onHoldList);
   }
-  list.push(dunningList, activeDunning, retainedList);
-  res.status(200).send(list);
+  res.status(200).send(mainList);
 });
 
 

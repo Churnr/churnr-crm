@@ -11,7 +11,8 @@ import * as functions from "firebase-functions";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import {company} from "../types/types";
 import "dotenv/config";
-const config = functions.config();
+// const config = functions.config();
+const config = process;
 /**
  * uses method variable, endpoit variable and param variable to
  * send request to slack
