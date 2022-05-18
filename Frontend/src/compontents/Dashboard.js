@@ -17,7 +17,7 @@ const handleSubmit = async () => {
   const headers = {
       'Authorization': `Bearer ${token}`
   }
-  const response = await ( await fetch('http://localhost:5001/churnr-system-development/us-central1/slackApp/getData', {headers})).json();
+  const response = await ( await fetch('https://us-central1-churnr-system-development.cloudfunctions.net/slackApp/getData', {headers})).json();
   setResponeDunning(response.LALA.dunningList);
   setResponeActive(response.LALA.activeDunning);
   setResponeRetained(response.LALA.retainedList);
