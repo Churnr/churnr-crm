@@ -1,13 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import {getInvoicesObjectBasedOnStatusFromCompany,
-  getFieldValueFromComapnyInFirestore,
-  getCustomerFromFirestore,
-  updateInvoiceEmailLastSendValue,
+import {
   getCompanys,
-  updateInvoiceEmailCountValue,
-  updateInvoiceActiveFlowValue,
   retriveCustomersDocDataFromCompany,
   retriveDatasFromDocData,
   retriveActiveInvoicesDocDataFromCompany,
@@ -20,9 +15,6 @@ import * as middleware from "../middleware/middleware";
 import {slackAppFunctions} from "../utils/slackUtils";
 import {sendgridLogic, emailMessage} from "../utils/sendgridUtils";
 import * as express from "express";
-import * as sendgrid from "@sendgrid/mail";
-// import {SocketModeClient} from "@slack/socket-mode";
-// import {WebClient} from "@slack/web-api";
 import "dotenv/config";
 import {Dunning, ActiveDunning, Retained} from "../types/interface";
 // const config = functions.config();
