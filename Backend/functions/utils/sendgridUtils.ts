@@ -1,5 +1,4 @@
 import {getInvoicesObjectBasedOnStatusFromCompany,
-  getFieldValueFromComapnyInFirestore,
   getCustomerFromFirestore,
   updateInvoiceEmailCountValue,
   updateInvoiceEmailLastSendValue,
