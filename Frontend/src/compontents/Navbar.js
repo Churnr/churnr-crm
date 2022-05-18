@@ -32,7 +32,7 @@ async function handleLogout() {
         </NavDropdown>
       </Nav>
     </Navbar.Collapse>
-    <p style={{color:"white"}}>{currentUser.email}</p>
+    <p style={{color:"white", lineHeight: "50px"}}>{currentUser.email}</p>
     <Button variant='light' size="sm" onClick={handleLogout}>Log Out{error}</Button>
   </Container>
 </Navbar>

@@ -30,6 +30,7 @@ apps.use(corsHandler);
 apps.use(express.json());
 apps.use(middleware.validateFirebaseIdToken);
 slackApp.use(corsHandler);
+slackApp.use(middleware.validateFirebaseIdToken);
 // slackApp.use(middleware.validateSlackSigningSecret);
 
 // .runWith({secrets: ["SLACK_BOT_TOKEN", "SLACK_SIGNING_SECRET"]})

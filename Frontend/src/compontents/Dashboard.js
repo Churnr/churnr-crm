@@ -17,11 +17,10 @@ const handleSubmit = async () => {
   const headers = {
       'Authorization': `Bearer ${token}`
   }
-  const response = await ( await fetch('https://us-central1-churnr-system-development.cloudfunctions.net/slackApp/getData', {headers})).json();
-  setResponeDunning(response[0]);
-  setResponeActive(response[1]);
-  setResponeRetained(response[2]);
-  console.log(responeDunning)
+  const response = await ( await fetch('http://localhost:5001/churnr-system-development/us-central1/slackApp/getData', {headers})).json();
+  setResponeDunning(response.LALA.dunningList);
+  setResponeActive(response.LALA.activeDunning);
+  setResponeRetained(response.LALA.retainedList);
 }
 return (    
   <>
@@ -173,7 +172,7 @@ return (
         <td key={"retained"+ new Date(row?.flowStartDate._seconds*1000).toDateString()}>{new Date(row?.flowStartDate._seconds*1000).toDateString()}</td>
         <td key={row?.activeFlow}>{ row?.activeFlow === true ? (<span class="activetrue">●</span>) : <span class="activefalse">●</span>
         }</td>
-        <td key={"retaineddate"+ new Date(row?.retainedDate._seconds*1000).toDateString()}>{new Date(row?.retainedDate._seconds*1000).toDateString()}</td>
+        <td key={"retaineddate"+ new Date(row?.invoiceEndDate._seconds*1000).toDateString()}>{new Date(row?.invoiceEndDate._seconds*1000).toDateString()}</td>
         </tr>
       )})}
       

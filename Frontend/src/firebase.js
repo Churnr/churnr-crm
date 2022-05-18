@@ -14,7 +14,7 @@ import { getAuth} from "firebase/auth";
 
 const firebaseConfig = {
 
-  apiKey: "AIzaSyDIu5UUR1E8Slx-Iwt6bwp9tjgLcwBdhU8",
+  apiKey: "AIzaSyCpfpkqeuBePbx7vyRgKZgxEOcfl52gk48",
 
   authDomain: process.env.REACT_APP_AUT_DOMAIN,
 
