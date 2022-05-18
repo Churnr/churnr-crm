@@ -13,7 +13,7 @@ import * as reepayUtils from "../utils/reepayUtils";
 import * as cors from "cors";
 import * as middleware from "../middleware/middleware";
 import {slackAppFunctions} from "../utils/slackUtils";
-import {sendgridLogic, emailMessage} from "../utils/sendgridUtils";
+import {sendgridLogic} from "../utils/sendgridUtils";
 import * as express from "express";
 import "dotenv/config";
 import {Dunning, ActiveDunning, Retained} from "../types/interface";
