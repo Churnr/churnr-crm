@@ -1,0 +1,136 @@
+[debug] [2022-05-18T14:04:22.379Z] ----------------------------------------------------------------------
+[debug] [2022-05-18T14:04:22.380Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Long Coding\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only functions
+[debug] [2022-05-18T14:04:22.381Z] CLI Version:   10.9.2
+[debug] [2022-05-18T14:04:22.381Z] Platform:      win32
+[debug] [2022-05-18T14:04:22.381Z] Node Version:  v16.14.0
+[debug] [2022-05-18T14:04:22.382Z] Time:          Wed May 18 2022 16:04:22 GMT+0200 (Central European Summer Time)
+[debug] [2022-05-18T14:04:22.382Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2022-05-18T14:04:22.437Z] Object ".functions" in "firebase.json" has unknown property: {"additionalProperty":"engines"}
+[debug] [2022-05-18T14:04:22.437Z] Field ".functions" in "firebase.json" is possibly invalid: should be array
+[debug] [2022-05-18T14:04:22.437Z] Field ".functions" in "firebase.json" is possibly invalid: should match some schema in anyOf
+[debug] [2022-05-18T14:04:22.441Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2022-05-18T14:04:22.441Z] > authorizing via signed-in user (nicolas2990@hotmail.com)
+[debug] [2022-05-18T14:04:22.441Z] [iam] checking project churnr-system-development for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2022-05-18T14:04:22.443Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/churnr-system-development:testIamPermissions [none]
+[debug] [2022-05-18T14:04:22.443Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/churnr-system-development:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2022-05-18T14:04:23.183Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/churnr-system-development:testIamPermissions 200
+[debug] [2022-05-18T14:04:23.184Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/churnr-system-development:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2022-05-18T14:04:23.184Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/churnr-system-development/serviceAccounts/churnr-system-development@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2022-05-18T14:04:23.185Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/churnr-system-development/serviceAccounts/churnr-system-development@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2022-05-18T14:04:23.888Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/churnr-system-development/serviceAccounts/churnr-system-development@appspot.gserviceaccount.com:testIamPermissions 200
+[debug] [2022-05-18T14:04:23.889Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/churnr-system-development/serviceAccounts/churnr-system-development@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[info] 
+[info] === Deploying to 'churnr-system-development'...
+[info] 
+[info] i  deploying functions 
+[info] Running command: npm --prefix "$RESOURCE_DIR" run lint
+[info] Running command: npm --prefix "$RESOURCE_DIR" run build
+[info] +  functions: Finished running predeploy script. 
+[debug] [2022-05-18T14:04:36.013Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/churnr-system-development [none]
+[debug] [2022-05-18T14:04:36.296Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/churnr-system-development 200
+[debug] [2022-05-18T14:04:36.296Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/churnr-system-development {"projectId":"churnr-system-development","projectNumber":"43878481553","displayName":"Churnr System Development","name":"projects/churnr-system-development","resources":{"hostingSite":"churnr-system-development","storageBucket":"churnr-system-development.appspot.com","locationId":"europe-west"},"state":"ACTIVE"}
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[debug] [2022-05-18T14:04:36.298Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/churnr-system-development/services/cloudfunctions.googleapis.com [none]
+[debug] [2022-05-18T14:04:36.299Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/churnr-system-development/services/runtimeconfig.googleapis.com [none]
+[debug] [2022-05-18T14:04:36.300Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/churnr-system-development/services/cloudbuild.googleapis.com [none]
+[debug] [2022-05-18T14:04:36.301Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/churnr-system-development/services/artifactregistry.googleapis.com [none]
+[debug] [2022-05-18T14:04:37.172Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/churnr-system-development/services/runtimeconfig.googleapis.com 200
+[debug] [2022-05-18T14:04:37.172Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/churnr-system-development/services/runtimeconfig.googleapis.com [omitted]
+[debug] [2022-05-18T14:04:37.175Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/churnr-system-development/services/cloudbuild.googleapis.com 200
+[debug] [2022-05-18T14:04:37.175Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/churnr-system-development/services/cloudbuild.googleapis.com [omitted]
+[info] +  functions: required API cloudbuild.googleapis.com is enabled 
+[debug] [2022-05-18T14:04:37.192Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/churnr-system-development/services/artifactregistry.googleapis.com 200
+[debug] [2022-05-18T14:04:37.192Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/churnr-system-development/services/artifactregistry.googleapis.com [omitted]
+[debug] [2022-05-18T14:04:37.214Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/churnr-system-development/services/cloudfunctions.googleapis.com 200
+[debug] [2022-05-18T14:04:37.215Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/churnr-system-development/services/cloudfunctions.googleapis.com [omitted]
+[info] +  functions: required API cloudfunctions.googleapis.com is enabled 
+[debug] [2022-05-18T14:04:37.215Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/churnr-system-development/adminSdkConfig [none]
+[debug] [2022-05-18T14:04:37.491Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/churnr-system-development/adminSdkConfig 200
+[debug] [2022-05-18T14:04:37.492Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/churnr-system-development/adminSdkConfig {"projectId":"churnr-system-development","storageBucket":"churnr-system-development.appspot.com","locationId":"europe-west"}
+[debug] [2022-05-18T14:04:37.492Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs [none]
+[debug] [2022-05-18T14:04:38.424Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs 200
+[debug] [2022-05-18T14:04:38.424Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs {"configs":[{"name":"projects/churnr-system-development/configs/env"},{"name":"projects/churnr-system-development/configs/someservice"}]}
+[debug] [2022-05-18T14:04:38.425Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/env/variables [none]
+[debug] [2022-05-18T14:04:38.426Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/someservice/variables [none]
+[debug] [2022-05-18T14:04:38.677Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/someservice/variables 200
+[debug] [2022-05-18T14:04:38.677Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/someservice/variables {"variables":[{"name":"projects/churnr-system-development/configs/someservice/variables/key","updateTime":"2022-05-17T14:26:37.572588388Z"},{"name":"projects/churnr-system-development/configs/someservice/variables/id","updateTime":"2022-05-17T14:26:38.112040244Z"}]}
+[debug] [2022-05-18T14:04:38.677Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/someservice/variables/key [none]
+[debug] [2022-05-18T14:04:38.679Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/someservice/variables/id [none]
+[debug] [2022-05-18T14:04:38.941Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/someservice/variables/key 200
+[debug] [2022-05-18T14:04:38.941Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/someservice/variables/key {"name":"projects/churnr-system-development/configs/someservice/variables/key","updateTime":"2022-05-17T14:26:37.572588388Z","text":"THE API KEY"}
+[debug] [2022-05-18T14:04:39.325Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/env/variables 200
+[debug] [2022-05-18T14:04:39.325Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/env/variables {"variables":[{"name":"projects/churnr-system-development/configs/env/variables/slacksigning","updateTime":"2022-05-17T14:42:26.319965180Z"},{"name":"projects/churnr-system-development/configs/env/variables/sengridapikey","updateTime":"2022-05-18T14:02:39.043657189Z"},{"name":"projects/churnr-system-development/configs/env/variables/slackbottoken","updateTime":"2022-05-17T14:42:25.291885746Z"}]}
+[debug] [2022-05-18T14:04:39.325Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/env/variables/slacksigning [none]
+[debug] [2022-05-18T14:04:39.326Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/env/variables/sengridapikey [none]
+[debug] [2022-05-18T14:04:39.327Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/env/variables/slackbottoken [none]
+[debug] [2022-05-18T14:04:39.466Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/someservice/variables/id 200
+[debug] [2022-05-18T14:04:39.466Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/someservice/variables/id {"name":"projects/churnr-system-development/configs/someservice/variables/id","updateTime":"2022-05-17T14:26:38.112040244Z","text":"THE CLIENT ID"}
+[debug] [2022-05-18T14:04:40.125Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/env/variables/slackbottoken 200
+[debug] [2022-05-18T14:04:40.125Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/env/variables/slackbottoken {"name":"projects/churnr-system-development/configs/env/variables/slackbottoken","updateTime":"2022-05-17T14:42:25.291885746Z","text":"xoxb-3407130650854-3470583050613-nMI1gSAXnodMmBK1eEtEFxFl"}
+[debug] [2022-05-18T14:04:40.201Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/env/variables/slacksigning 200
+[debug] [2022-05-18T14:04:40.202Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/env/variables/slacksigning {"name":"projects/churnr-system-development/configs/env/variables/slacksigning","updateTime":"2022-05-17T14:42:26.319965180Z","text":"8f8a2c4806ca7dd2f008dc501675b5a3"}
+[debug] [2022-05-18T14:04:40.428Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/env/variables/sengridapikey 200
+[debug] [2022-05-18T14:04:40.428Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/churnr-system-development/configs/env/variables/sengridapikey {"name":"projects/churnr-system-development/configs/env/variables/sengridapikey","updateTime":"2022-05-18T14:02:39.043657189Z","text":"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"}
+[info] i  functions: preparing codebase default for deployment 
+[debug] [2022-05-18T14:04:40.430Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[debug] [2022-05-18T14:04:43.874Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "lint": "eslint --ext .js,.ts .",
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --import=data --export-on-exit",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+    "test": "mocha --require ts-node/register test/reepayUtils.test.ts",
+    "kill": "lsof -t -i:5001 -i:5002 -i:8080 -i:9000 -i:9099 -i:9199 -i:9090 -i:8085 | xargs kill -9",
+    "kill2": "taskkill /f /im java.exe"
+  },
+  "engines": {
+    "node": "16"
+  },
+  "main": "lib/src/index.js",
+  "dependencies": {
+    "@google-cloud/pubsub": "^2.19.0",
+    "@sendgrid/mail": "^7.6.2",
+    "@slack/bolt": "^3.11.0",
+    "@slack/socket-mode": "^1.3.0",
+    "@slack/web-api": "^6.7.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "firebase": "^9.8.1",
+    "firebase-admin": "^10.0.2",
+    "firebase-functions": "^3.21.0",
+    "firebase-tools": "^10.9.2",
+    "node-fetch": "^2.6.7",
+    "tsscmp": "^1.0.6"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.1.0",
+    "@types/node-fetch": "^2.6.1",
+    "@typescript-eslint/eslint-plugin": "^5.12.0",
+    "@typescript-eslint/parser": "^5.12.0",
+    "chai": "^4.3.6",
+    "eslint": "^8.14.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-import": "^2.25.4",
+    "firebase-functions-test": "^0.3.3",
+    "mocha": "^9.2.2",
+    "nock": "^13.2.4",
+    "optionator": "^0.9.1",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.5.4"
+  },
+  "private": true
+}
+[debug] [2022-05-18T14:04:43.874Z] Building nodejs source
+[debug] [2022-05-18T14:04:43.876Z] Failed to validate key slackbottoken: Error: Key slackbottoken must start with an uppercase ASCII letter or underscore, and then consist of uppercase ASCII letters, digits, and underscores.
+[debug] [2022-05-18T14:04:43.876Z] Failed to validate key slacksigning: Error: Key slacksigning must start with an uppercase ASCII letter or underscore, and then consist of uppercase ASCII letters, digits, and underscores.
+[error] Error: Failed to load environment variables from .env.:
+[error] - Error Key slackbottoken must start with an uppercase ASCII letter or underscore, and then consist of uppercase ASCII letters, digits, and underscores.
+[error] - Error Key slacksigning must start with an uppercase ASCII letter or underscore, and then consist of uppercase ASCII letters, digits, and underscores.

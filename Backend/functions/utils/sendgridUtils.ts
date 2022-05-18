@@ -4,6 +4,8 @@ import {getInvoicesObjectBasedOnStatusFromCompany,
   updateInvoiceEmailLastSendValue,
   updateInvoiceActiveFlowValue} from "../utils/firestoreUtils";
 import * as sendgrid from "@sendgrid/mail";
+import * as functions from "firebase-functions";
+const config = functions.config();
 // Pre. Add map to customer, containing templateIds
 
 // Slash command ind param: companyName, customer.id, templateId;
@@ -51,10 +53,10 @@ export async function sendgridLogic(company:any) {
   const templateMap = company.templateMap;
   const companyEmail = company.email;
   const today = new Date();
-  if (process.env.SENDGRID_API_KEY === undefined) {
+  if (config.env.sengridapikey === undefined) {
     throw new Error("Sendgrid api key not in enviroment");
   }
-  sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
+  sendgrid.setApiKey(config.env.sengridapikey);
   for (const invoice of data) {
     if (invoice.status === "active") {
       const customer = await getCustomerFromFirestore(company.companyName, invoice.invoice.customer);
