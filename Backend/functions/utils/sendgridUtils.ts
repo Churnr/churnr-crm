@@ -56,37 +56,39 @@ export async function sendgridLogic(company:any) {
   }
   sendgrid.setApiKey(process.env.SENDGRID_API_KEY);
   for (const invoice of data) {
-    const customer = await getCustomerFromFirestore(company.companyName, invoice.invoice.customer);
-    const emailCount:number = invoice.emailCount;
-    // const emailMsg = emailMessage(customer.email, companyEmail,
-    //     templateMap[invoice.invoiceError][invoice.emailCount], customer);
-    const emailMsg = emailMessage("system@churnr.dk", companyEmail,
-        templateMap[invoice.invoiceError][invoice.emailCount], customer);
-    if (emailCount == 0) {
-      const flowStartDate = (invoice.flowStartDate).toDate();
-      const DifferenceInTime = (today.getTime() - flowStartDate.getTime()) / (1000 * 3600 * 24);
-      if (DifferenceInTime >= 1) {
-        sendgrid.send(emailMsg);
-        updateInvoiceEmailCountValue(company.companyName, invoice.invoice.handle, emailCount+1);
-        updateInvoiceEmailLastSendValue(company.companyName, invoice.invoice.handle, today);
-      }
-    } else if (emailCount == 6) {
-      const lastEmailSendDate = (invoice.emailLastSend).toDate();
-      const DifferenceInTime = (today.getTime() - lastEmailSendDate.getTime()) / (1000 * 3600 * 24);
-      if (DifferenceInTime >= 6) {
-        sendgrid.send(emailMsg);
-        updateInvoiceEmailCountValue(company.companyName, invoice.invoice.handle, emailCount+1);
-        updateInvoiceEmailLastSendValue(company.companyName, invoice.invoice.handle, today);
-        updateInvoiceActiveFlowValue(company.companyName, invoice.invoice.handle, false);
-      }
-    } else if (emailCount != 0 && emailCount != 6 && emailCount < 7) {
-      const lastEmailSendDate = (invoice.emailLastSend).toDate();
-      const DifferenceInTime = (today.getTime() - lastEmailSendDate.getTime()) / (1000 * 3600 * 24);
-      console.log(DifferenceInTime);
-      if (DifferenceInTime >= 3) {
-        sendgrid.send(emailMsg);
-        updateInvoiceEmailCountValue(company.companyName, invoice.invoice.handle, emailCount+1);
-        updateInvoiceEmailLastSendValue(company.companyName, invoice.invoice.handle, today);
+    if (invoice.status === "active") {
+      const customer = await getCustomerFromFirestore(company.companyName, invoice.invoice.customer);
+      const emailCount:number = invoice.emailCount;
+      // const emailMsg = emailMessage(customer.email, companyEmail,
+      //     templateMap[invoice.invoiceError][invoice.emailCount], customer);
+      const emailMsg = emailMessage("system@churnr.dk", companyEmail,
+          templateMap[invoice.invoiceError][invoice.emailCount], customer);
+      if (emailCount == 0) {
+        const flowStartDate = (invoice.flowStartDate).toDate();
+        const DifferenceInTime = (today.getTime() - flowStartDate.getTime()) / (1000 * 3600 * 24);
+        if (DifferenceInTime >= 1) {
+          sendgrid.send(emailMsg);
+          updateInvoiceEmailCountValue(company.companyName, invoice.invoice.handle, emailCount+1);
+          updateInvoiceEmailLastSendValue(company.companyName, invoice.invoice.handle, today);
+        }
+      } else if (emailCount == 6) {
+        const lastEmailSendDate = (invoice.emailLastSend).toDate();
+        const DifferenceInTime = (today.getTime() - lastEmailSendDate.getTime()) / (1000 * 3600 * 24);
+        if (DifferenceInTime >= 6) {
+          sendgrid.send(emailMsg);
+          updateInvoiceEmailCountValue(company.companyName, invoice.invoice.handle, emailCount+1);
+          updateInvoiceEmailLastSendValue(company.companyName, invoice.invoice.handle, today);
+          updateInvoiceActiveFlowValue(company.companyName, invoice.invoice.handle, false);
+        }
+      } else if (emailCount != 0 && emailCount != 6 && emailCount < 7) {
+        const lastEmailSendDate = (invoice.emailLastSend).toDate();
+        const DifferenceInTime = (today.getTime() - lastEmailSendDate.getTime()) / (1000 * 3600 * 24);
+        console.log(DifferenceInTime);
+        if (DifferenceInTime >= 3) {
+          sendgrid.send(emailMsg);
+          updateInvoiceEmailCountValue(company.companyName, invoice.invoice.handle, emailCount+1);
+          updateInvoiceEmailLastSendValue(company.companyName, invoice.invoice.handle, today);
+        }
       }
     }
   }
