@@ -63,19 +63,48 @@ export const getReepayInvoiceEvents = async (options: customType.options, invoic
   }
 };
 
+/**
+ * Retrives a subscription object from reepay
+ * @param {customType.options} options
+ * @param {string} subId
+ * @return {Promise<object[]>} response
+ */
+export const getReepaySubscriptionObject = async (options: customType.options, subId: string): Promise<any[]> => {
+  try {
+    const url = `https://api.reepay.com/v1/subscription/${subId}`;
+    const response = await (await fetch(url, options)).json();
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Retrives a subscription object from reepay
+ * @param {customType.options} options
+ * @param {string} customerId
+ * @return {Promise<object[]>} response
+ */
+export const getReepayCustomerObject = async (options: customType.options, customerId: string): Promise<any[]> => {
+  try {
+    const url = `https://api.reepay.com/v1/customer/${customerId}`;
+    const response = await (await fetch(url, options)).json();
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
 
 /**
  * Retrives a customers information from reepay.
  * Creates a customer object from the given information
- * @param {customType.options} options
- * @param {string} customerId
+ * @param {any} customerObject
+ * @param {any} subscriptionObject
  * @return {customType.customer} customer object
  */
-export const getCustomerInfoFromReepay = async (options: customType.options,
-    customerId: string): Promise<customType.customer> => {
+export const createCustomCustomerObject = async (
+    customerObject: any, subscriptionObject:any): Promise<customType.customer> => {
   try {
-    const url = `https://api.reepay.com/v1/customer/${customerId}`;
-    const customerObject = await (await fetch(url, options)).json();
     const customer: customType.customer = {
       first_name: customerObject.first_name,
       last_name: customerObject.last_name,
@@ -91,12 +120,60 @@ export const getCustomerInfoFromReepay = async (options: customType.options,
       pending_invoices: customerObject.pending_invoices,
       trial_active_subscriptions: customerObject.trial_active_subscriptions,
       subscriptions: customerObject.subscriptions,
+      paymentLink: subscriptionObject.hosted_page_links.payment_info,
     };
     return customer;
   } catch (error) {
     throw error;
   }
 };
+
+// transaction object, find alle mulige keys, have fat i map der har transaction
+
+// check if transaction has either mps_transaction or card
+// code from outsourced person
+// don't kill me simon, pls. i was forced by Benjamin LØGNER
+export const checkTransactionVariable = (invoiceObject:any, state:string) => {
+  if (invoiceObject.transactions.length > 0) {
+    const transaction = invoiceObject.transactions[invoiceObject.transactions.length-1];
+    if (transaction?.card_transaction != undefined) {
+      return transaction.card_transaction[state];
+    } else if (transaction?.mpo_transaction != undefined) {
+      return transaction?.mpo_transaction[state];
+    } else if (transaction?.vipps_transaction != undefined) {
+      return transaction?.vipps_transaction[state];
+    } else if (transaction?.applepay_transaction != undefined) {
+      return transaction?.applepay_transaction[state];
+    } else if (transaction?.googlepay_transaction != undefined) {
+      return transaction?.googlepay_transaction[state];
+    } else if (transaction?.viabill_transaction != undefined) {
+      return transaction.viabill_transaction[state];
+    } else if (transaction?.resurs_transaction != undefined) {
+      return transaction.resurs_transaction[state];
+    } else if (transaction?.klarna_transaction != undefined) {
+      return transaction.klarna_transaction[state];
+    } else if (transaction?.swish_transaction != undefined) {
+      return transaction.swish_transaction[state];
+    } else if (transaction?.paypal_transaction != undefined) {
+      return transaction.paypal_transaction[state];
+    } else if (transaction?.pgw_transaction != undefined) {
+      return transaction.pgw_transaction[state];
+    } else if (transaction?.blik_transaction != undefined) {
+      return transaction.blik_transaction[state];
+    } else if (transaction?.ideal_transaction != undefined) {
+      return transaction.ideal_transaction[state];
+    } else if (transaction?.p24_transaction != undefined) {
+      return transaction.p24_transaction[state];
+    } else if (transaction?.mps_transaction != undefined) {
+      return transaction.mps_transaction[state];
+    } else {
+      return undefined;
+    }
+  } else {
+    return "soft_declined";
+  }
+};
+
 
 /**
  * Firstly the functions fetches the dunninglist of a given company.
@@ -128,10 +205,12 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
   for (const dunningInvoices of reepayInvoiceArray) {
     if (activeInvoiceIdArray.indexOf(dunningInvoices.handle) == -1) {
       if (customerIdArray.indexOf(dunningInvoices.customer) == -1) {
-        const customer = await getCustomerInfoFromReepay(options, dunningInvoices.customer);
+        const customerObject = await getReepayCustomerObject(options, dunningInvoices.customer);
+        const subscriptionObject = await getReepaySubscriptionObject(options, dunningInvoices.subscription);
+        const customCustomerObject = await createCustomCustomerObject(customerObject, subscriptionObject);
         await firestoreUtils.addDataToDocInCollectionUnderCompany("Customers",
-            companyName, customer, customer.handle);
-        await firestoreUtils.addInvoceToCustomer(companyName, customer.handle, dunningInvoices);
+            companyName, customCustomerObject, customCustomerObject.handle);
+        await firestoreUtils.addInvoceToCustomer(companyName, customCustomerObject.handle, dunningInvoices);
       } else {
         await firestoreUtils.addInvoceToCustomer(companyName, dunningInvoices.customer, dunningInvoices);
       }
@@ -144,21 +223,24 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
     return a.handle;
   });
 
-  for (const fbDunningInvoices of activeInvoiceIdArray) {
-    console.log(fbDunningInvoices);
-    if (reepayInvoiceIdArray.indexOf(fbDunningInvoices) == -1) {
-      const eventsArray = await getReepayInvoiceEvents(options, fbDunningInvoices);
+  for (const invoiceId of activeInvoiceIdArray) {
+    if (reepayInvoiceIdArray.indexOf(invoiceId) == -1) {
+      const eventsArray = await getReepayInvoiceEvents(options, invoiceId);
       if (eventsArray.length != 0) {
         if (eventsArray[0].event_type == "invoice_dunning_cancelled") {
           if (eventsArray[1].event_type == "invoice_settled") {
-            firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "Retained");
+            firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
+            firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
           } else if (eventsArray[1].event_type == "invoice_cancelled") {
-            firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "OnHold");
+            firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
+            firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
           }
         } else if (eventsArray[0].event_type == "invoice_settled") {
-          firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "Retained");
+          firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
+          firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
         } else if (eventsArray[0].event_type == "invoice_cancelled") {
-          firestoreUtils.updateInvoiceStatusValue(companyName, fbDunningInvoices, "OnHold");
+          firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
+          firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
         } else if (eventsArray[0].event_type == "invoice_failed" ||
         eventsArray[0].event_type == "invoice_refund" ||
         eventsArray[0].event_type == "invoice_reactivate" ||

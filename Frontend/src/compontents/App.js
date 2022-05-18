@@ -1,17 +1,13 @@
 import React from "react";
 
-import {Container} from 'react-bootstrap'
 import {AuthProvider} from '../contexts/AuthContext'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
 import Dashboard from './Dashboard'
 import Login from './Login'
 import PrivateRoute from "./PrivateRoute";
 function App() {
-  return (
-  <Container 
-  className="d-flex align-items-center justify-content-center" 
-  style={{ minHeight: "100vh" }}>
-  <div className="w-100" style={{ minWidth: "100vw"}}>
+  return ( 
+  <div className="wrapper">
 <Router>
   <AuthProvider>
     <Routes>
@@ -21,7 +17,6 @@ function App() {
   </AuthProvider>
    </Router>
  </div>
-  </Container>
   )
 }
 
