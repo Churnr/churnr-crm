@@ -203,7 +203,6 @@ slackApp.get("/getData", async (req, res) => {
     const invoices = await retriveActiveInvoicesDocDataFromCompany(company.companyName);
     const invoiceData = await retriveDatasFromDocData(invoices);
     const customerdata = await retriveDatasFromDocData(data);
-    console.log(customerdata, "Invoice data", invoiceData);
     const companyMap = new Map();
     const dunningList = [];
     const activeDunning = [];
@@ -249,7 +248,6 @@ slackApp.get("/getData", async (req, res) => {
             };
             dunningList.push(dunning);
           } else if (invdata.status === "retained") {
-            console.log("reatiend", invdata.invoiceEndDate);
             const retained: Retained = {
               first_name: cusData.first_name,
               last_name: cusData.last_name,

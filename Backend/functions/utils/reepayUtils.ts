@@ -246,7 +246,7 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
         eventsArray[0].event_type == "invoice_reactivate" ||
         eventsArray[0].event_type == "invoice_credited" ||
         eventsArray[0].event_type == "invoice_changed") {
-          functions.logger.error("EVENT_TYPE IS NOT SUPPORTED!!!", eventsArray[0].event_type);
+          functions.logger.error("EVENT_TYPE IS NOT SUPPORTED!!!", eventsArray[0].event_type, invoiceId);
         }
       }
     }

@@ -48,3 +48,14 @@
     font-size: 2rem;
     color: red;
 }
+
+.guideText{
+    max-width: 70vw;
+    align-items: center;
+    padding: 3rem 10rem 1rem 28rem;
+}
+
+.imageGuide{
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
