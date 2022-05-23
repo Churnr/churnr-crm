@@ -375,7 +375,7 @@ export const updateActiveInvoiceWithActiveFlowVariables = async (companyName:str
     if (checkTransactionVariable(activeInvoice.invoice, "error_state") != "hard_declined") {
       await admin.firestore().collection("Companys").doc(companyName)
           .collection("Invoices").doc(activeInvoice.invoice.handle).update({emailCount: 0,
-            activeFlow: true, invoceError: invoiceError,
+            activeFlow: true, invoiceError: invoiceError,
             flowStartDate: today});
     } else {
       throw new Error("It looks like you tried to start a flow on a hard declined invoice");

@@ -10,16 +10,17 @@ export default function Login() {
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate();
-
     async function handleSubmit(e) {
     e.preventDefault()
 
     try {
         setError('')
         setLoading(true)
+        console.log("WHAT");
         await login(emailRef.current.value, passwordRef.current.value)
         navigate('/', { replace: true })
-    }catch {
+    }catch (error) {
+        console.log(error);
         setError("Yo, failed to sign in, homie")
     }
     setLoading(false)

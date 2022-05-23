@@ -203,7 +203,6 @@ slackApp.get("/getData", async (req, res) => {
     const invoices = await retriveActiveInvoicesDocDataFromCompany(company.companyName);
     const invoiceData = await retriveDatasFromDocData(invoices);
     const customerdata = await retriveDatasFromDocData(data);
-    console.log(customerdata, "Invoice data", invoiceData);
     const companyMap = new Map();
     const dunningList = [];
     const activeDunning = [];
@@ -228,7 +227,7 @@ slackApp.get("/getData", async (req, res) => {
               phone: cusData.phone,
               email: cusData.email,
               error: reepayUtils.checkTransactionVariable(invdata.invoice, "error"),
-              acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
+              acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message"),
               activeFlow: invdata.activeFlow,
             };
             activeDunning.push(activedunning);
@@ -245,11 +244,10 @@ slackApp.get("/getData", async (req, res) => {
               phone: cusData.phone,
               email: cusData.email,
               error: reepayUtils.checkTransactionVariable(invdata.invoice, "error"),
-              acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
+              acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message"),
             };
             dunningList.push(dunning);
           } else if (invdata.status === "retained") {
-            console.log("reatiend", invdata.invoiceEndDate);
             const retained: Retained = {
               first_name: cusData.first_name,
               last_name: cusData.last_name,
@@ -264,7 +262,7 @@ slackApp.get("/getData", async (req, res) => {
               phone: cusData.phone,
               email: cusData.email,
               error: reepayUtils.checkTransactionVariable(invdata.invoice, "error"),
-              acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
+              acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message"),
               activeFlow: invdata.activeFlow,
               invoiceEndDate: invdata?.invoiceEndDate,
             };
@@ -284,7 +282,7 @@ slackApp.get("/getData", async (req, res) => {
               phone: cusData.phone,
               email: cusData.email,
               error: reepayUtils.checkTransactionVariable(invdata.invoice, "error"),
-              acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
+              acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message"),
               activeFlow: invdata.activeFlow,
               invoiceEndDate: invdata?.invoiceEndDate,
             };

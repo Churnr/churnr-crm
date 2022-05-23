@@ -1,4 +1,4 @@
-import React , { useState} from 'react'
+import React , { useState, useEffect} from 'react'
 import {auth} from '../firebase.js'
 import { Table, Tabs, Row, Tab, Col, Nav } from 'react-bootstrap'
 // import { useNavigate } from 'react-router-dom'
@@ -7,28 +7,37 @@ import Navbar from './Navbar.js'
 
 
 export default function Dashboard() {
-
 const [responeDunning, setResponeDunning] = useState([])
 const [responeActive, setResponeActive] = useState([])
 const [responeRetained, setResponeRetained] = useState([])
+const [responeOnhold, setResponeOnhold] = useState([])
+const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    handleSubmit();
+    }, []);
+
 const handleSubmit = async () => {
+  setLoading(true);
   const token = await auth.currentUser.getIdToken(true);
   console.log(token)
   const headers = {
       'Authorization': `Bearer ${token}`
   }
-  const response = await ( await fetch('http://localhost:5001/churnr-system-development/us-central1/slackApp/getData', {headers})).json();
-  setResponeDunning(response.LALA.dunningList);
-  setResponeActive(response.LALA.activeDunning);
-  setResponeRetained(response.LALA.retainedList);
+  const response = await ( await fetch('https://us-central1-churnr-system-development.cloudfunctions.net/slackApp/getData', {headers})).json();
+  setResponeDunning(response.Lalatoys.dunningList);
+  setResponeActive(response.Lalatoys.activeDunning);
+  setResponeRetained(response.Lalatoys.retainedList);
+  setResponeOnhold(response.Lalatoys.onHoldList);
+  setLoading(false);
 }
 return (    
   <>
-<button onClick={handleSubmit}>click me</button>
+{/* <button onClick={handleSubmit}>click me</button> */}
   
 <div style={{minHeight: "100vh"}}>
-
 <Navbar/>
+{loading ? (<p>Loading...</p>) : (
+
           
 <Tab.Container id="left-tabs-example" defaultActiveKey="first">
   <Row className="wrapper-row" bsPrefix>
@@ -63,19 +72,19 @@ return (
     </tr>
   </thead>
   <tbody>
-    {responeDunning.map(row => {
+    {responeDunning.map((row, index) => {
         return (
-        <tr>
-        <td key={row?.first_name}>{row?.first_name}</td>
-        <td key={row?.last_name}>{row?.last_name}</td>
-        <td key={row?.email}>{row?.email}</td>
-        <td key={row?.phone}>{row?.phone}</td>        
-        <td key={row?.handle}>{row?.handle}</td>      
-        <td key={row?.errorState}>{row?.errorState}</td>
-        <td key={row?.error}>{row?.error}</td>
-        <td key={row?.ordertext}>{row?.ordertext +" " + row?.amount+ "kr"}</td>
-        <td key={new Date(row?.created).toDateString()}>{new Date(row?.created).toDateString()}</td>
-        <td key={row?.settled_invoices}>{row?.settled_invoices}</td>
+        <tr key={"dunning"+ index + row?.last_name}>
+        <td >{row?.first_name}</td>
+        <td >{row?.last_name}</td>
+        <td >{row?.email}</td>
+        <td >{row?.phone}</td>        
+        <td >{row?.handle}</td>      
+        <td >{row?.errorState}</td>
+        <td >{row?.error}</td>
+        <td >{row?.ordertext +" " + row?.amount+ "kr"}</td>
+        <td >{new Date(row?.created).toDateString()}</td>
+        <td >{row?.settled_invoices}</td>
         </tr>
       )})}
       
@@ -104,24 +113,24 @@ return (
     </tr>
   </thead>
   <tbody>
-    {responeActive.map(row => {
+    {responeActive.map((row, index) => {
         return (
-        <tr>
-        <td key={row?.first_name}>{row?.first_name}</td>
-        <td key={row?.last_name}>{row?.last_name}</td>
-        <td key={row?.email}>{row.email}</td>
-        <td key={row?.phone}>{row?.phone}</td>        
-        <td key={row?.handle}>{row?.handle}</td>      
-        <td key={row?.errorState}>{row?.errorState}</td>
-        <td key={row?.error}>{row?.error}</td>
-        <td key={row?.acquirer_message}>{row?.acquirer_message}</td>
-        <td key={row?.ordertext}>{row?.ordertext}</td>
-        <td key={row?.amount}>{row?.amount}</td>
-        <td key={new Date(row?.created).toDateString()}>{new Date(row?.created).toDateString()}</td>
-        <td key={row?.settled_invoices}>{row?.settled_invoices}</td>     
-        <td key={row?.emailCount}>{row?.emailCount}</td>
-        <td key={"active"+ new Date(row?.flowStartDate._seconds*1000).toDateString()}>{new Date(row?.flowStartDate._seconds*1000).toDateString()}</td>
-        <td key={row?.activeFlow}>{ row?.activeFlow === true ? (<span class="activetrue">●</span>) : <span class="activefalse">●</span>
+        <tr key={"active" + index + row?.first_name}>
+        <td >{row?.first_name}</td>
+        <td >{row?.last_name}</td>
+        <td >{row.email}</td>
+        <td >{row?.phone}</td>        
+        <td >{row?.handle}</td>      
+        <td >{row?.errorState}</td>
+        <td >{row?.error}</td>
+        <td >{row?.acquirer_message}</td>
+        <td >{row?.ordertext}</td>
+        <td >{row?.amount}</td>
+        <td >{new Date(row?.created).toDateString()}</td>
+        <td >{row?.settled_invoices}</td>     
+        <td >{row?.emailCount}</td>
+        <td >{row?.flowStartDate !== undefined ? (new Date(row?.flowStartDate._seconds*1000).toDateString()) : <span>No date</span>}</td>
+        <td >{ row?.activeFlow === true ? (<span class="activetrue">●</span>) : <span class="activefalse">●</span>
         }</td>
         </tr>
       )})}
@@ -153,26 +162,26 @@ return (
     </tr>
   </thead>
   <tbody>
-    {responeRetained.map(row => {
+    {responeRetained.map((row, index) => {
         return (
-        <tr>
-        <td key={row?.first_name}>{row?.first_name}</td>
-        <td key={row?.last_name}>{row?.last_name}</td>
-        <td key={row?.email}>{row.email}</td>
-        <td key={row?.phone}>{row?.phone}</td>        
-        <td key={row?.handle}>{row?.handle}</td>      
-        <td key={row?.errorState}>{row?.errorState}</td>
-        <td key={row?.error}>{row?.error}</td>
-        <td key={row?.acquirer_message}>{row?.acquirer_message}</td>
-        <td key={row?.ordertext}>{row?.ordertext}</td>
-        <td key={row?.amount}>{row?.amount}</td>
-        <td key={new Date(row?.created).toDateString()}>{new Date(row?.created).toDateString()}</td>
-        <td key={row?.settled_invoices}>{row?.settled_invoices}</td>     
-        <td key={row?.emailCount}>{row?.emailCount}</td>
-        <td key={"retained"+ new Date(row?.flowStartDate._seconds*1000).toDateString()}>{new Date(row?.flowStartDate._seconds*1000).toDateString()}</td>
-        <td key={row?.activeFlow}>{ row?.activeFlow === true ? (<span class="activetrue">●</span>) : <span class="activefalse">●</span>
+        <tr key={"retained" + index + row?.first_name}>
+        <td >{row?.first_name}</td>
+        <td >{row?.last_name}</td>
+        <td >{row.email}</td>
+        <td >{row?.phone}</td>        
+        <td >{row?.handle}</td>      
+        <td >{row?.errorState}</td>
+        <td >{row?.error}</td>
+        <td >{row?.acquirer_message}</td>
+        <td >{row?.ordertext}</td>
+        <td >{row?.amount}</td>
+        <td >{new Date(row?.created).toDateString()}</td>
+        <td >{row?.settled_invoices}</td>     
+        <td >{row?.emailCount}</td>
+        <td >{row?.flowStartDate !== undefined ? (new Date(row?.flowStartDate._seconds*1000).toDateString()) : <span>No date</span>}</td>
+        <td >{ row?.activeFlow === true ? (<span class="activetrue">●</span>) : <span class="activefalse">●</span>
         }</td>
-        <td key={"retaineddate"+ new Date(row?.invoiceEndDate._seconds*1000).toDateString()}>{new Date(row?.invoiceEndDate._seconds*1000).toDateString()}</td>
+        <td key={"retaineddate" + index}>{new Date(row?.invoiceEndDate._seconds*1000).toDateString()}</td>
         </tr>
       )})}
       
@@ -181,26 +190,49 @@ return (
   </Tab>
   <Tab eventKey="onhold" title="Onhold">
     <Table striped bordered hover variant="dark">
-  <thead>
+    <thead>
     <tr>
       <th>First Name</th>
       <th>Last Name</th>
-      <th>Username</th>
-      <th>Email template</th>
+      <th>Email</th>
+      <th>Phone</th>      
+      <th>Customer id</th>
+      <th>Error state</th>
+      <th>Error</th>
+      <th>Acquirer message</th>
+      <th>Order text</th>
+      <th>Order amount</th>
+      <th>Dunning created</th>
+      <th>Invoice settled</th>      
+      <th>Email Count</th>      
+      <th>Flow Start Date</th>
+      <th>Flow Status</th>
+      <th>Onhold Date</th>
     </tr>
   </thead>
   <tbody>
-    {/* {respone.map(row? => {
+    {responeOnhold.map((row, index) => {
         return (
-        <tr>
-        <td key={row?.FirstName}>{row?.FirstName}</td>
-        <td key={row?.LastName}>{row?.LastName}</td>
-        <td key={row?.UserName}>{row?.UserName}</td>
-        <td>
-            <button >Send email</button>
-          </td>
+        <tr key={"retained" + index + row?.first_name}>
+        <td >{row?.first_name}</td>
+        <td >{row?.last_name}</td>
+        <td >{row.email}</td>
+        <td >{row?.phone}</td>        
+        <td >{row?.handle}</td>      
+        <td >{row?.errorState}</td>
+        <td >{row?.error}</td>
+        <td >{row?.acquirer_message}</td>
+        <td >{row?.ordertext}</td>
+        <td >{row?.amount}</td>
+        <td >{new Date(row?.created).toDateString()}</td>
+        <td >{row?.settled_invoices}</td>     
+        <td >{row?.emailCount}</td>
+        <td >{row?.flowStartDate !== undefined ? (new Date(row?.flowStartDate._seconds*1000).toDateString()) : <span>No date</span>}</td>
+        <td >{ row?.activeFlow === true ? (<span class="activetrue">●</span>) : <span class="activefalse">●</span>
+        }</td>
+        <td key={"retaineddate" + index}>{new Date(row?.invoiceEndDate._seconds*1000).toDateString()}</td>
         </tr>
-      )})} */}
+      )})}
       
   </tbody>
 </Table>
@@ -398,6 +430,7 @@ return (
   </Row>
 </Tab.Container>
 
+)}
 </div>
     </>
   )
