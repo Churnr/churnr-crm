@@ -227,7 +227,7 @@ slackApp.get("/getData", async (req, res) => {
               phone: cusData.phone,
               email: cusData.email,
               error: reepayUtils.checkTransactionVariable(invdata.invoice, "error"),
-              acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
+              acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message"),
               activeFlow: invdata.activeFlow,
             };
             activeDunning.push(activedunning);
@@ -244,7 +244,7 @@ slackApp.get("/getData", async (req, res) => {
               phone: cusData.phone,
               email: cusData.email,
               error: reepayUtils.checkTransactionVariable(invdata.invoice, "error"),
-              acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
+              acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message"),
             };
             dunningList.push(dunning);
           } else if (invdata.status === "retained") {
@@ -262,7 +262,7 @@ slackApp.get("/getData", async (req, res) => {
               phone: cusData.phone,
               email: cusData.email,
               error: reepayUtils.checkTransactionVariable(invdata.invoice, "error"),
-              acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
+              acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message"),
               activeFlow: invdata.activeFlow,
               invoiceEndDate: invdata?.invoiceEndDate,
             };
@@ -282,7 +282,7 @@ slackApp.get("/getData", async (req, res) => {
               phone: cusData.phone,
               email: cusData.email,
               error: reepayUtils.checkTransactionVariable(invdata.invoice, "error"),
-              acquirer_message: invdata.invoice.transactions[0]?.acquirer_message,
+              acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message"),
               activeFlow: invdata.activeFlow,
               invoiceEndDate: invdata?.invoiceEndDate,
             };
