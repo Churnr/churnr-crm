@@ -3,6 +3,7 @@ import * as customType from "../types/types";
 import fetch from "node-fetch";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import * as functions from "firebase-functions";
+import {dailyUpdate} from "../types/types";
 /**
  * Keeps sending request aslong as respons contains next_page_token
  * @param {string} url
@@ -189,7 +190,10 @@ export const checkTransactionVariable = (invoiceObject:any, state:string) => {
  * @param {string} companyName
  * @return {customType.options} options
  */
-export const reepayLogic = async (companyApikey: string, companyName:string) => {
+export const reepayLogic = async (companyApikey: string, companyName:string):Promise<dailyUpdate> => {
+  const updatelogic = {retianed: 0,
+    onhold: 0,
+    newDunning: 0};
   const options = createHttpOptionsForReepay(companyApikey);
   const reepayInvoiceArray: Array<any> =
       await retriveReepayList("https://api.reepay.com/v1/list/invoice?size=100&state=dunning", options);
@@ -204,6 +208,7 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
 
   for (const dunningInvoices of reepayInvoiceArray) {
     if (activeInvoiceIdArray.indexOf(dunningInvoices.handle) == -1) {
+      updatelogic.newDunning = updatelogic.newDunning+1;
       if (customerIdArray.indexOf(dunningInvoices.customer) == -1) {
         const customerObject = await getReepayCustomerObject(options, dunningInvoices.customer);
         const subscriptionObject = await getReepaySubscriptionObject(options, dunningInvoices.subscription);
@@ -231,16 +236,20 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
           if (eventsArray[1].event_type == "invoice_settled") {
             firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
             firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
+            updatelogic.retianed = updatelogic.retianed+1;
           } else if (eventsArray[1].event_type == "invoice_cancelled") {
             firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
             firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
+            updatelogic.newDunning = updatelogic.onhold+1;
           }
         } else if (eventsArray[0].event_type == "invoice_settled") {
           firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
           firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
+          updatelogic.retianed = updatelogic.retianed+1;
         } else if (eventsArray[0].event_type == "invoice_cancelled") {
           firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
           firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
+          updatelogic.newDunning = updatelogic.onhold+1;
         } else if (eventsArray[0].event_type == "invoice_failed" ||
         eventsArray[0].event_type == "invoice_refund" ||
         eventsArray[0].event_type == "invoice_reactivate" ||
@@ -251,6 +260,7 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
       }
     }
   }
+  return updatelogic;
 };
 
 

@@ -12,7 +12,7 @@ import * as reepayUtils from "../utils/reepayUtils";
 // import {PubSub} from "@google-cloud/pubsub";
 import * as cors from "cors";
 import * as middleware from "../middleware/middleware";
-import {slackAppFunctions} from "../utils/slackUtils";
+import {slackAppFunctions, publishMessage, dailyUpdateForSlack} from "../utils/slackUtils";
 import {sendgridLogic} from "../utils/sendgridUtils";
 import * as express from "express";
 import "dotenv/config";
@@ -50,9 +50,11 @@ export const fetchDunningInvoices =
           const companyName: string = company.companyName;
           const companyApykey: string = company.apiKey;
           const paymentGateway: string = company.paymentGateway;
-
           if (paymentGateway === "Reepay") {
-            reepayUtils.reepayLogic(companyApykey, companyName);
+            const updateLogic = await reepayUtils.reepayLogic(companyApykey, companyName);
+
+            const message = dailyUpdateForSlack(updateLogic);
+            publishMessage("C02U1337UPJ", message);
           }
         }
         return null;

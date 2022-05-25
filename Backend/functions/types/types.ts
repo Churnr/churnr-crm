@@ -79,7 +79,11 @@ export type activeDunnig = {
     acquirer_message:string,
     activeFlow:boolean,
 }
-
+export type dailyUpdate = {
+    retianed: number,
+    onhold: number,
+    newDunning: number
+}
 // ActiveDunnig:
 // Kundeid
 // Navn

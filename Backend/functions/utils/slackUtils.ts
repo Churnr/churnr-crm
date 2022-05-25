@@ -6,10 +6,10 @@
 /* eslint-disable require-jsdoc */
 import fetch from "node-fetch";
 import * as customType from "../types/types";
-import {App, ExpressReceiver} from "@slack/bolt";
+import {App, Block, ExpressReceiver, KnownBlock} from "@slack/bolt";
 import * as functions from "firebase-functions";
 import * as firestoreUtils from "../utils/firestoreUtils";
-import {company} from "../types/types";
+import {company, dailyUpdate} from "../types/types";
 import "dotenv/config";
 const config = functions.config();
 const slackbottoken = config.env.slackbottoken;
@@ -52,39 +52,6 @@ export async function requestSlack(method:string, endpoint:string, param:any) {
     throw error;
   }
 }
-
-// /**
-//  * takes a payload, witch is usealy a string from slack request body.
-//  * uses regex to find the different variables in the string
-//  * and match them to the variable names in the company object.
-//  * returns the object
-//  * @param {any} payload usually a string
-//  * @return {customType.optcompany} object
-//  */
-// export function retriveCompanyInfoFromSlackReq(payload:any) {
-//   try {
-//     const company: customType.company = {
-//       companyName: payload.match(/(?<=companyName=").([^",]+)/g)[0],
-//       paymentGateway: payload.match(/(?<=paymentGateway=").([^",]+)/g)[0],
-//       apiKey: payload.match(/(?<=apiKey=").([^",]+)/g)[0],
-//       emailGateway: payload.match(/(?<=emailGateway=").([^",]+)/g)[0],
-//       emailGatewayUser: payload.match(/(?<=emailGatewayUser=").([^",]+)/g)[0],
-//       emailGatewayPassword: payload.match(/(?<=emailGatewayPassword=").([^",]+)/g)[0],
-//       contactPerson: payload.match(/(?<=contactPerson=").([^",]+)/g)[0],
-//       flowEmails: payload.match(/(?<=flowEmails=").([^",]+)/g)[0],
-//       flowCalls: payload.match(/(?<=flowCalls=").([^",]+)/g)[0],
-//       templates: new Map(),
-//     };
-//     return company;
-//   } catch (error) {
-//     const payload = {
-//       text: "Customer Creation failed - null value found",
-//       channel: "C03CJBT6AE5",
-//     };
-//     requestSlack("POST", "chat.postMessage", payload);
-//     throw new Error("Value in company object, sent from slash command /creatcompany, was null");
-//   }
-// }
 
 
 export function retriveSendEmailInfoFromSlackReq(payload:any) {
@@ -147,20 +114,82 @@ export async function sendMessageToChannel(message:string, channelId:string) {
     throw error;
   }
 }
+const expressReceiver = new ExpressReceiver({
+  signingSecret: signingSecret,
+  endpoints: "/events",
+  processBeforeResponse: true,
+});
 
+const app = new App({
+  receiver: expressReceiver,
+  token: slackbottoken,
+  processBeforeResponse: true,
+});
+
+export const publishMessage = async (id:string, text:(Block | KnownBlock)[] | undefined) => {
+  try {
+    // Call the chat.postMessage method using the built-in WebClient
+    const result = await app.client.chat.postMessage({
+      // The token you used to initialize your app
+      token: slackbottoken,
+      channel: id,
+      blocks: text,
+      // You could also use a blocks[] array to send richer content
+    });
+
+    // Print result, which includes information about the message (like TS)
+    console.log(result);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const dailyUpdateForSlack = (object:dailyUpdate) => {
+  const message = [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "New daily Updates",
+        "emoji": true,
+      },
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "plain_text",
+        "text": `There's ${object.newDunning} new in Dunning.`,
+        "emoji": true,
+      },
+    },
+    {
+      "type": "divider",
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "plain_text",
+        "text": `There's ${object.retianed} new in Retianed.`,
+        "emoji": true,
+      },
+    },
+    {
+      "type": "divider",
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "plain_text",
+        "text": `There's ${object.onhold} new in On Hold.`,
+        "emoji": true,
+      },
+    },
+  ];
+
+  return message;
+};
 
 export const slackAppFunctions = () => {
-  const expressReceiver = new ExpressReceiver({
-    signingSecret: signingSecret,
-    endpoints: "/events",
-    processBeforeResponse: true,
-  });
-
-  const app = new App({
-    receiver: expressReceiver,
-    token: slackbottoken,
-    processBeforeResponse: true,
-  });
   // Handle a view_submission request
   app.view("view_1", async ({ack, body, view, client, logger}) => {
   // Acknowledge the view_submission request
