@@ -208,6 +208,7 @@ slackApp.get("/getData", async (req, res) => {
     const activeDunning = [];
     const retainedList = [];
     const onHoldList = [];
+    const updatedDunning: Array<Dunning> = [];
     // const reDunning = [];
     for (const cusData of customerdata ) {
       for (const invdata of invoiceData) {
@@ -291,7 +292,13 @@ slackApp.get("/getData", async (req, res) => {
         }
       }
     }
-    companyMap["dunningList"] = dunningList;
+    for (const dunning of dunningList) {
+      const email = dunning.email as string;
+      if (activeDunning.some((item) => item.email !== email)) {
+        updatedDunning.push(dunning);
+      }
+    }
+    companyMap["dunningList"] = updatedDunning;
     companyMap["activeDunning"] = activeDunning;
     companyMap["retainedList"] = retainedList;
     companyMap["onHoldList"] = onHoldList;
