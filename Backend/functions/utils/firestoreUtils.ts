@@ -386,3 +386,91 @@ export const updateActiveInvoiceWithActiveFlowVariables = async (companyName:str
 };
 
 
+/**
+ * Moves and deletes doc from given collection and moves to given collection
+ * @param {string} companyName
+ * @param {string} customerId
+ * @param {string} invoiceError
+ * @return {admin.firestore.WriteResult} newDoc
+ */
+export const updateFlowErrorOnInvoice = async (companyName:string,
+    customerId:string, invoiceError:string) => {
+  try {
+    const activeInvoice = (await admin.firestore()
+        .collection("Companys")
+        .doc(companyName)
+        .collection("Invoices")
+        .where("status", "==", "active").where("invoice.customer", "==", customerId).get()).docs[0].data();
+    if (activeInvoice.activeFlow != undefined) {
+      await admin.firestore().collection("Companys").doc(companyName)
+          .collection("Invoices").doc(activeInvoice.invoice.handle).update({invoiceError: invoiceError});
+    } else {
+      throw new Error("It looks like you tried to update an error on a flow that has not been activatet yet");
+    }
+  } catch (error) {
+    throw new Error(error + "updateFlowErrorOnInvoice");
+  }
+};
+
+
+/**
+ * Moves and deletes doc from given collection and moves to given collection
+ * @param {string} companyName
+ * @param {string} customerId
+ * @param {string} invoiceError
+ * @return {admin.firestore.WriteResult} newDoc
+ */
+export const stopEmailFlowOnInvoice = async (companyName:string,
+    customerId:string) => {
+  try {
+    const activeInvoice = (await admin.firestore()
+        .collection("Companys")
+        .doc(companyName)
+        .collection("Invoices")
+        .where("status", "==", "active").where("invoice.customer", "==", customerId).get()).docs[0].data();
+    if (activeInvoice.activeFlow === undefined) {
+      throw new Error("The flow you tried to stop, has never been started");
+    }
+    if (activeInvoice.activeFlow === true) {
+      await admin.firestore().collection("Companys").doc(companyName)
+          .collection("Invoices").doc(activeInvoice.invoice.handle).update({activeFlow: false});
+    } else {
+      throw new Error("It looks like you tried to stop a flow that was already stopped");
+    }
+  } catch (error) {
+    throw new Error(error + "updateFlowErrorOnInvoice");
+  }
+};
+
+
+/**
+ * Moves and deletes doc from given collection and moves to given collection
+ * @param {string} companyName
+ * @param {string} customerId
+ * @param {string} invoiceError
+ * @return {admin.firestore.WriteResult} newDoc
+ */
+export const reactivateEmailFlowOnInvoice = async (companyName:string,
+    customerId:string) => {
+  try {
+    const activeInvoice = (await admin.firestore()
+        .collection("Companys")
+        .doc(companyName)
+        .collection("Invoices")
+        .where("status", "==", "active").where("invoice.customer", "==", customerId).get()).docs[0].data();
+    if (activeInvoice.activeFlow === undefined) {
+      throw new Error("The flow you tried to reactivate, has never been started");
+    }
+    if (activeInvoice.emailCount === 7) {
+      throw new Error("The flow you tried to reactivate, has send 7 emails total and will not be reactivatet");
+    }
+    if (activeInvoice.activeFlow === false) {
+      await admin.firestore().collection("Companys").doc(companyName)
+          .collection("Invoices").doc(activeInvoice.invoice.handle).update({activeFlow: false});
+    } else {
+      throw new Error("It looks like you tried to reactivate a flow that is already active");
+    }
+  } catch (error) {
+    throw new Error(error + "updateFlowErrorOnInvoice");
+  }
+};
