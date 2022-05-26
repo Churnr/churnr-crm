@@ -42,7 +42,7 @@ export const slack = functions
  * Reepay ready
  */
 export const fetchDunningInvoices =
-  functions.region("europe-west2").pubsub.schedule("0 23 * * *")
+  functions.region("europe-west2").pubsub.schedule("0 6 * * *")
       .timeZone("Europe/Copenhagen").onRun(async (context) => {
         const companys: any = await getCompanys();
         // const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();

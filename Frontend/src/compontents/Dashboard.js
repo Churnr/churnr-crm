@@ -54,7 +54,7 @@ return (
     <Col className="right-pane" bsPrefix>
       <Tab.Content>
         <Tab.Pane eventKey="first">
-        <Tabs defaultActiveKey="profile" id="uncontrolled-tab-example" className="mb-3">
+        <Tabs defaultActiveKey="dunnings" id="uncontrolled-tab-example" className="mb-3">
         <Tab eventKey="dunnings" title="Dunning">
   <Table striped bordered hover variant="dark">
   <thead>
