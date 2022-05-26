@@ -889,7 +889,7 @@ export const slackAppFunctions = () => {
         // View payload
         view: {
           type: "modal",
-          callback_id: "view_3",
+          callback_id: "view_5",
           title: {
             type: "plain_text",
             text: "Churnr Reactivate Flow",
