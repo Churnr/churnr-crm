@@ -1,7 +1,8 @@
 {
   "projects": {
     "default": "churnr-system-development",
-    "prod": "churnr-system"
+    "prod": "churnr-system",
+    "dev": "churnr-system-development"
   },
   "targets": {}
 }

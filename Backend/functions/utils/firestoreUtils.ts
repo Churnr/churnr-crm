@@ -237,6 +237,45 @@ export const retriveCustomersDocDataFromCompany = async (companyName:string) => 
     throw error;
   }
 };
+
+export const retriveDataFromFirestoreToDisplayOnDasboard = async (companyName:string) => {
+  try {
+    const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
+        .collection("Data").doc("Dashboard").get();
+    const docFrom = firestoreData.data();
+    return docFrom;
+  } catch (error) {
+    logger.error("retriveDataFromFirestoreToDisplayOnDasboard: " + error);
+    throw error;
+  }
+};
+
+/**
+ * Creats an Invoice doc in the Invoices Collection under a company
+ * @param {string}companyName companyName
+ * @param {any} object
+ * @return {admin.firestore.WriteResult} firestore WriteResult
+ */
+export const addDashboardDataToCompany = async (companyName:string, object:any) => {
+  const data = {
+    dunningList: object.dunningList,
+    activeDunning: object.activeDunning,
+    retainedList: object.retainedList,
+    onHoldList: object.onHoldList,
+  };
+  try {
+    const newDoc = await admin.firestore()
+        .collection("Companys")
+        .doc(companyName)
+        .collection("Data")
+        .doc("Dashboard").set(data);
+    return newDoc;
+  } catch (error) {
+    logger.error("addDashboardDataToCompany: " + error);
+    throw error;
+  }
+};
+
 /**
  * Creats an Invoice doc in the Invoices Collection under a company
  * @param {string}companyName companyName

@@ -23,7 +23,7 @@ const handleSubmit = async () => {
   const headers = {
       'Authorization': `Bearer ${token}`
   }
-  const response = await ( await fetch('https://us-central1-churnr-system-development.cloudfunctions.net/slackApp/getData', {headers})).json();
+  const response = await ( await fetch('https://europe-west2-churnr-system-development.cloudfunctions.net/slackApp/getData', {headers})).json();
   setResponeDunning(response.Lalatoys.dunningList);
   setResponeActive(response.Lalatoys.activeDunning);
   setResponeRetained(response.Lalatoys.retainedList);
