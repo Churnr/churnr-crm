@@ -62,6 +62,13 @@ export const fetchDunningInvoices =
         return null;
       }
       );
+
+/**
+ * Function made because of slow load time for dashboard,
+ * therefor this function makes the logic and the put the end result to firestore.
+ * This way we get data to analyse on and the possibilty to show data on frontend with
+ * slackApp/getData function
+ */
 export const getDataForDashboard =
  functions.region("europe-west2").pubsub.schedule("30 6 * * *")
      .timeZone("Europe/Copenhagen").onRun(async (context) => {
