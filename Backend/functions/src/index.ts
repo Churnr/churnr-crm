@@ -327,7 +327,9 @@ slackApp.get("/halloworld", async (req, res) => {
   res.status(200).send("DER HUL IGENNEM!");
 });
 
-
+/**
+ * Function is made so its possible to get data with the right format to show on dashboard
+ */
 slackApp.get("/getData", async (req, res) => {
   const companyList:any = await getCompanys();
   const mainList = new Map();
