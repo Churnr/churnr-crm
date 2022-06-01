@@ -5,7 +5,7 @@ import {
   getCompanys,
   retriveCustomersDocDataFromCompany,
   retriveDatasFromDocData,
-  retriveActiveInvoicesDocDataFromCompany,
+  retriveInvoicesDocDataFromCompany,
   addDashboardDataToCompany,
   retriveDataFromFirestoreToDisplayOnDasboard,
 } from "../utils/firestoreUtils";
@@ -76,7 +76,7 @@ export const getDataForDashboard =
        const companyList:any = await getCompanys();
        for (const company of companyList) {
          const data = await retriveCustomersDocDataFromCompany(company.companyName);
-         const invoices = await retriveActiveInvoicesDocDataFromCompany(company.companyName);
+         const invoices = await retriveInvoicesDocDataFromCompany(company.companyName);
          const invoiceData = await retriveDatasFromDocData(invoices);
          const customerdata = await retriveDatasFromDocData(data);
          const companyMap = new Map();

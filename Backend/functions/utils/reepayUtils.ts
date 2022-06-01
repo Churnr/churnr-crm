@@ -236,19 +236,23 @@ export const reepayLogic = async (companyApikey: string, companyName:string):Pro
           if (eventsArray[1].event_type == "invoice_settled") {
             firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
             firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
+            functions.logger.log("1 retained: " + invoiceId);
             updatelogic.retianed = updatelogic.retianed+1;
           } else if (eventsArray[1].event_type == "invoice_cancelled") {
             firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
             firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
+            functions.logger.log("1 onhold: " + invoiceId);
             updatelogic.newDunning = updatelogic.onhold+1;
           }
         } else if (eventsArray[0].event_type == "invoice_settled") {
           firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
           firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
+          functions.logger.log("2 retained: " + invoiceId);
           updatelogic.retianed = updatelogic.retianed+1;
         } else if (eventsArray[0].event_type == "invoice_cancelled") {
           firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
           firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
+          functions.logger.log("2 onhold: " + invoiceId);
           updatelogic.newDunning = updatelogic.onhold+1;
         } else if (eventsArray[0].event_type == "invoice_failed" ||
         eventsArray[0].event_type == "invoice_refund" ||

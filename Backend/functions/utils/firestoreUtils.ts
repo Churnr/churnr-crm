@@ -208,8 +208,17 @@ export const retriveDatasFromDocData = async (firestoreData:any) => {
   }
   return dataArray;
 };
+// export const retriveDocIdsFromDocData = (docData:admin.firestore
+//   .DocumentReference<admin.firestore.DocumentData>[]) => {
+//   const docIdArray:Array<string> = [];
+//   docData.forEach((collection) => {
+//     docIdArray.push(collection.id);
+//   });
+//   return docIdArray;
+// };
 export const retriveDocIdsFromDocData = (docData:admin.firestore
-  .DocumentReference<admin.firestore.DocumentData>[]) => {
+  .DocumentReference<admin.firestore.DocumentData>[]|
+  admin.firestore.QueryDocumentSnapshot<admin.firestore.DocumentData>[]) => {
   const docIdArray:Array<string> = [];
   docData.forEach((collection) => {
     docIdArray.push(collection.id);
@@ -219,10 +228,20 @@ export const retriveDocIdsFromDocData = (docData:admin.firestore
 export const retriveActiveInvoicesDocDataFromCompany = async (companyName:string) => {
   try {
     const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
+        .collection("Invoices").where("status", "==", "active").get();
+    return firestoreData.docs;
+  } catch (error) {
+    logger.error("retriveActiveInvoicesFromCompany: " + error);
+    throw error;
+  }
+};
+export const retriveInvoicesDocDataFromCompany = async (companyName:string) => {
+  try {
+    const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
         .collection("Invoices").listDocuments();
     return firestoreData;
   } catch (error) {
-    logger.error("retriveActiveInvoicesFromCompany: " + error);
+    logger.error("retriveInvoicesFromCompany: " + error);
     throw error;
   }
 };
