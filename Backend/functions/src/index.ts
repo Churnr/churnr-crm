@@ -5,9 +5,9 @@ import {
   getCompanys,
   retriveCustomersDocDataFromCompany,
   retriveDatasFromDocData,
-  retriveInvoicesDocDataFromCompany,
   addDashboardDataToCompany,
   retriveDataFromFirestoreToDisplayOnDasboard,
+  retriveInvoicesDocDataFromCompany,
 } from "../utils/firestoreUtils";
 import * as reepayUtils from "../utils/reepayUtils";
 // import * as sendgridUtils from "../utils/sendgridUtils";
@@ -78,17 +78,18 @@ export const getDataForDashboard =
          const data = await retriveCustomersDocDataFromCompany(company.companyName);
          const invoices = await retriveInvoicesDocDataFromCompany(company.companyName);
          const invoiceData = await retriveDatasFromDocData(invoices);
+         functions.logger.log(invoiceData);
          const customerdata = await retriveDatasFromDocData(data);
          const companyMap = new Map();
          const dunningList = [];
          const activeDunning = [];
          const retainedList = [];
          const onHoldList = [];
-         const updatedDunning: Array<Dunning> = [];
          // const reDunning = [];
          for (const cusData of customerdata ) {
            for (const invdata of invoiceData) {
              if (cusData.handle == invdata.invoice.customer) {
+               functions.logger.log("first if", invdata);
                if (invdata.activeFlow === true && invdata.status === "active") {
                  const activedunning: ActiveDunning = {
                    first_name: cusData.first_name,
@@ -127,6 +128,7 @@ export const getDataForDashboard =
                    acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message")?
                    reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message") : false,
                  };
+                 functions.logger.log("dunning", dunning);
                  dunningList.push(dunning);
                } else if (invdata.status === "retained") {
                  const retained: Retained = {
@@ -176,16 +178,11 @@ export const getDataForDashboard =
              }
            }
          }
-         for (const dunning of dunningList) {
-           const email = dunning.email as string;
-           if (activeDunning.some((item) => item.email !== email)) {
-             updatedDunning.push(dunning);
-           }
-         }
-         companyMap["dunningList"] = updatedDunning;
+         companyMap["dunningList"] = dunningList;
          companyMap["activeDunning"] = activeDunning;
          companyMap["retainedList"] = retainedList;
          companyMap["onHoldList"] = onHoldList;
+         functions.logger.log(companyMap);
          addDashboardDataToCompany(company.companyName, companyMap);
        }
      }
