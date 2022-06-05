@@ -1,8 +1,15 @@
 import React , { useState, useEffect} from 'react'
 import {auth} from '../firebase.js'
 import { Table, Tabs, Row, Tab, Col, Nav } from 'react-bootstrap'
+import { MonthPicker } from "@mui/x-date-pickers/MonthPicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import Container from '@mui/material/Container';
+import { differenceInDays } from 'date-fns'
+import NewDataFromDateInterval from './DateInterval.tsx';
 // import { useNavigate } from 'react-router-dom'
 import Navbar from './Navbar.js'
+import { async } from '@firebase/util';
 
 
 
@@ -11,34 +18,67 @@ const [responeDunning, setResponeDunning] = useState([])
 const [responeActive, setResponeActive] = useState([])
 const [responeRetained, setResponeRetained] = useState([])
 const [responeOnhold, setResponeOnhold] = useState([])
+const [response, setResponse] = useState([])
 const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    handleSubmit();
-    }, []);
+const [date, setDate] = useState(new Date());
+const minDate = new Date("2020-01-01T00:00:00.000");
+const maxDate = new Date("2034-01-01T00:00:00.000");
+  useEffect(async () => {
+    if (response.Lalatoys) {
+      dateFilter();
+    } else {
+      getData();
+    }
+    }, [date]);
 
-const handleSubmit = async () => {
+const dateFilter = () => {
+  const newDunningList = NewDataFromDateInterval(response.Lalatoys.dunningList, date);
+  const newDctiveDunning = NewDataFromDateInterval(response.Lalatoys.activeDunning, date);
+  const newRetainedList = NewDataFromDateInterval(response.Lalatoys.retainedList, date);
+  const newOnHoldList = NewDataFromDateInterval(response.Lalatoys.onHoldList, date);
+ 
+  setResponeDunning(newDunningList)
+  setResponeActive(newDctiveDunning);
+  setResponeRetained(newRetainedList);
+  setResponeOnhold(newOnHoldList);
+
+}
+const getData = async () => {
   setLoading(true);
   const token = await auth.currentUser.getIdToken(true);
   console.log(token)
   const headers = {
       'Authorization': `Bearer ${token}`
   }
-  const response = await ( await fetch('https://europe-west2-churnr-system-development.cloudfunctions.net/slackApp/getData', {headers})).json();
-  setResponeDunning(response.Lalatoys.dunningList);
-  setResponeActive(response.Lalatoys.activeDunning);
-  setResponeRetained(response.Lalatoys.retainedList);
-  setResponeOnhold(response.Lalatoys.onHoldList);
+  const data = await ( await fetch('https://europe-west2-churnr-system-development.cloudfunctions.net/slackApp/getData', {headers})).json();
+  setResponse(data);
+  const newDunningList = NewDataFromDateInterval(response.Lalatoys.dunningList, date);
+  const newDctiveDunning = NewDataFromDateInterval(response.Lalatoys.activeDunning, date);
+  const newRetainedList = NewDataFromDateInterval(response.Lalatoys.retainedList, date);
+  const newOnHoldList = NewDataFromDateInterval(response.Lalatoys.onHoldList, date);
+ 
+  setResponeDunning(newDunningList)
+  setResponeActive(newDctiveDunning);
+  setResponeRetained(newRetainedList);
+  setResponeOnhold(newOnHoldList);
   setLoading(false);
 }
 return (    
   <>
-{/* <button onClick={handleSubmit}>click me</button> */}
+
   
 <div style={{minHeight: "100vh"}}>
 <Navbar/>
+<Container maxWidth="xs">
+<LocalizationProvider dateAdapter={AdapterDateFns}>
+<MonthPicker date={date}
+            minDate={minDate}
+            maxDate={maxDate}
+            onChange={(newDate) => setDate(newDate)} sx={{flexWrap: 'nowrap', justifyContent: 'space-around'}}/>
+              </LocalizationProvider> 
+  </Container>
 {loading ? (<p>Loading...</p>) : (
-
-          
+<Container sx={{marginLeft: "0", width: "100vw"}}>
 <Tab.Container id="left-tabs-example" defaultActiveKey="first">
   <Row className="wrapper-row" bsPrefix>
     <Col className="left-pane" bsPrefix> 
@@ -56,7 +96,7 @@ return (
         <Tab.Pane eventKey="first">
         <Tabs defaultActiveKey="dunnings" id="uncontrolled-tab-example" className="mb-3">
         <Tab eventKey="dunnings" title="Dunning">
-  <Table striped bordered hover variant="dark">
+  <Table striped bordered hover variant="dark" >
   <thead>
     <tr>
       <th>First Name</th>
@@ -82,7 +122,7 @@ return (
         <td >{row?.handle}</td>      
         <td >{row?.errorState}</td>
         <td >{row?.error}</td>
-        <td >{row?.ordertext +" " + row?.amount+ "kr"}</td>
+        <td >{row?.ordertext +" " + Number(row?.amount)/100 + "kr"}</td>
         <td >{new Date(row?.created).toDateString()}</td>
         <td >{row?.settled_invoices}</td>
         </tr>
@@ -125,12 +165,12 @@ return (
         <td >{row?.error}</td>
         <td >{row?.acquirer_message}</td>
         <td >{row?.ordertext}</td>
-        <td >{row?.amount}</td>
+        <td >{Number(row?.amount)/100 +"kr"}</td>
         <td >{new Date(row?.created).toDateString()}</td>
         <td >{row?.settled_invoices}</td>     
         <td >{row?.emailCount}</td>
-        <td >{row?.flowStartDate !== undefined ? (new Date(row?.flowStartDate._seconds*1000).toDateString()) : <span>No date</span>}</td>
-        <td >{ row?.activeFlow === true ? (<span class="activetrue">●</span>) : <span class="activefalse">●</span>
+        <td >{row?.flowStartDate ? (new Date(row?.flowStartDate._seconds*1000).toDateString()) : <span>No date</span>}</td>
+        <td >{ row?.activeFlow === true ? "Started" : "Endend"
         }</td>
         </tr>
       )})}
@@ -172,14 +212,14 @@ return (
         <td >{row?.handle}</td>      
         <td >{row?.errorState}</td>
         <td >{row?.error}</td>
-        <td >{row?.acquirer_message}</td>
+        <td >{row?.acquirer_message ? row?.acquirer_message : "No message"}</td>
         <td >{row?.ordertext}</td>
-        <td >{row?.amount}</td>
+        <td >{Number(row?.amount)/100 +"kr"}</td>
         <td >{new Date(row?.created).toDateString()}</td>
         <td >{row?.settled_invoices}</td>     
-        <td >{row?.emailCount}</td>
-        <td >{row?.flowStartDate !== undefined ? (new Date(row?.flowStartDate._seconds*1000).toDateString()) : <span>No date</span>}</td>
-        <td >{ row?.activeFlow === true ? (<span class="activetrue">●</span>) : <span class="activefalse">●</span>
+        <td >{row?.emailCount ? row?.emailCount : "No count"}</td>
+        <td >{row?.flowStartDate ? (new Date(row?.flowStartDate._seconds*1000).toDateString()) : <span>No date</span>}</td>
+        <td >{ row?.activeFlow ? "Started" : "Endend"
         }</td>
         <td key={"retaineddate" + index}>{new Date(row?.invoiceEndDate._seconds*1000).toDateString()}</td>
         </tr>
@@ -213,7 +253,7 @@ return (
   <tbody>
     {responeOnhold.map((row, index) => {
         return (
-        <tr key={"retained" + index + row?.first_name}>
+        <tr key={"onHold" + index + row?.first_name}>
         <td >{row?.first_name}</td>
         <td >{row?.last_name}</td>
         <td >{row.email}</td>
@@ -221,16 +261,16 @@ return (
         <td >{row?.handle}</td>      
         <td >{row?.errorState}</td>
         <td >{row?.error}</td>
-        <td >{row?.acquirer_message}</td>
+        <td >{row?.acquirer_message  ? row?.acquirer_message : "No message"}</td>
         <td >{row?.ordertext}</td>
-        <td >{row?.amount}</td>
+        <td >{Number(row?.amount)/100 +"kr"}</td>
         <td >{new Date(row?.created).toDateString()}</td>
         <td >{row?.settled_invoices}</td>     
-        <td >{row?.emailCount}</td>
-        <td >{row?.flowStartDate !== undefined ? (new Date(row?.flowStartDate._seconds*1000).toDateString()) : <span>No date</span>}</td>
-        <td >{ row?.activeFlow === true ? (<span class="activetrue">●</span>) : <span class="activefalse">●</span>
+        <td >{row?.emailCount  ? row?.emailCount : "No count"}</td>
+        <td >{row?.flowStartDate  ? (new Date(row?.flowStartDate._seconds*1000).toDateString()) : <span>No date</span>}</td>
+        <td >{ row?.activeFlow ? "Started" : "Endend"
         }</td>
-        <td key={"retaineddate" + index}>{new Date(row?.invoiceEndDate._seconds*1000).toDateString()}</td>
+        <td key={"ondholdDate" + index}>{new Date(row?.invoiceEndDate._seconds*1000).toDateString()}</td>
         </tr>
       )})}
       
@@ -429,7 +469,7 @@ return (
     </Col>
   </Row>
 </Tab.Container>
-
+</Container>
 )}
 </div>
     </>
