@@ -24,11 +24,11 @@ const [date, setDate] = useState(new Date());
 const minDate = new Date("2020-01-01T00:00:00.000");
 const maxDate = new Date("2034-01-01T00:00:00.000");
   useEffect(async () => {
-    if (response.Lalatoys) {
-      dateFilter();
-    } else {
+    // if (response.Lalatoys) {
+    //   dateFilter();
+    // } else {
       getData();
-    }
+    // }
     }, [date]);
 
 const dateFilter = () => {
