@@ -19,6 +19,7 @@ import {sendgridLogic} from "../utils/sendgridUtils";
 import * as express from "express";
 import "dotenv/config";
 import {Dunning, ActiveDunning, Retained} from "../types/interface";
+import {reepayGetTotalGrossIncome} from "../utils/reepayUtils";
 // const config = functions.config();
 // const config = process.env;
 admin.initializeApp();
@@ -199,130 +200,63 @@ functions.region("europe-west2").pubsub.schedule("0 17 * * *")
       return null;
     });
 
-// // Kig på publishmessage istedet for publish
-// /** @deprecated */
-// slackApp.post("/createcompany", async (req, res) => {
-//   const data = Buffer.from(JSON.stringify(req.body));
-//   await pubsubClient.topic("create-company").publish(data);
-//   res.status(200).send("Handling process: Create Company");
-// });
 
-// // Kig på publishmessage istedet for publish
-// /** @deprecated */
-// slackApp.post("/sendEmail", async (req, res) => {
-//   const data = Buffer.from(JSON.stringify(req.body));
-//   await pubsubClient.topic("send-email").publish(data);
-//   res.status(200).send("Handling process: Create Company");
-// });
-
-// exports.createCompany = functions.runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
-//     .pubsub.topic("create-company").onPublish(async (message) => {
-//       const data = JSON.parse(Buffer.from(message.data, "base64").toString("utf-8"));
-
-//       try {
-//         const company = retriveCompanyInfoFromSlackReq(data.text);
-//         addCompanyToFirestore(company, company.companyName);
-//         sendMessageToChannel(`${company.companyName} was added to the company database.`, "C03CJBT6AE5");
-//       } catch (error) {
-//         functions.logger.error("pubsub topic(create-company): ", error);
-//       }
-//     });
-
-//  runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
-// exports.sendEmail = functions.
-//     pubsub.topic("send-email").onPublish(async (message) => {
-//       const data = JSON.parse(Buffer.from(message.data, "base64").toString("utf-8"));
-//       // const {event} = message.json;
-
-
-//       console.log(data);
-// try {
-//   const emailInfo = slackUtils.retriveSendEmailInfoFromSlackReq(data.text);
-//   const messageInfo = await sendgridUtils.sendEmail(emailInfo.companyName,
-//       emailInfo.customerId, emailInfo.templateId);
-//   const emailTo = await messageInfo[0];
-//   const message = await messageInfo[1];
-//   slackUtils.sendMessageToChannel(`${emailTo} has been sent an email.
-//   With this message ${message}`, "C03CJBT6AE5");
-// } catch (error) {
-//   functions.logger.error("pubsub topic(send-email): ", error);
-// }
-// });
-
-// SendEmail Schedular pubsub
-// Retrive all Active Invoices from firebase with activeflow == true - Done
-// For loop over Array of Active Invoices - Done
-// Get current date - Done
-// get emailcount and start date - Done
-// Check if current date is 1 day from start date if email count == 0
-// If true send email
-// set lastEmailedSent to current date
-// Check if current date is 3 days from last email sent and email count != 7
-// If true send email
-// set last email sent to current date
-// Else set flow status to False
 /**
- * Test endpoint
+ * Månedsrapport
+Løbe tid 03/xx - 03/xx
+Dunning kunder i alt
+kunder fastholdt
+kunder on hold
+endnu ikke fastholdt.
+Brutto Fastholdelse
 */
-slackApp.get("/halloworld", async (req, res) => {
-  const companies:any = await getCompanys();
-  for (const company of companies) {
-    console.log(company);
-    console.log(company.companyName);
-  }
-  // const companyName = "LALA";
-  // const data = await getInvoicesObjectBasedOnStatusFromCompany(companyName);
-  // const templateMap = await getFieldValueFromComapnyInFirestore(companyName, "templateMap");
-  // const companyEmail = await getFieldValueFromComapnyInFirestore(companyName, "email");
-  // const today = new Date();
-  // if (process.env.SENDGRID_API_KEY === undefined) {
-  //   throw new Error("Sendgrid api key not in enviroment");
-  // }
-  // for (const invoice of data) {
-  //   const customer = await getCustomerFromFirestore("LALA", invoice.invoice.customer);
-  //   const emailCount:number = invoice.emailCount;
-  //   const emailMsg = emailMessage("benjamin@churnr.dk", companyEmail,
-  //       templateMap[invoice.invoiceError][invoice.emailCount], customer);
-  //   if (emailCount == 0) {
-  //     const flowStartDate = (invoice.flowStartDate).toDate();
-  //     const DifferenceInTime = (today.getTime() - flowStartDate.getTime()) / (1000 * 3600 * 24);
-  //     if (DifferenceInTime >= 1) {
-  //       sendgrid.send(emailMsg);
-  //       functions.logger.log("EmailCount 0: IT WORKS!!" + JSON.stringify(emailMsg));
-  //       updateInvoiceEmailCountValue(companyName, invoice.invoice.handle, emailCount+1);
-  //       updateInvoiceEmailLastSendValue(companyName, invoice.invoice.handle, today);
-  //     }
-  //   } else if (emailCount == 6) {
-  //     const lastEmailSendDate = (invoice.emailLastSend).toDate();
-  //     const DifferenceInTime = (today.getTime() - lastEmailSendDate.getTime()) / (1000 * 3600 * 24);
-  //     if (DifferenceInTime >= 6) {
-  //       sendgrid.send(emailMsg);
-  //       functions.logger.log("EmailCount 6: IT WORKS!!: " + JSON.stringify(emailMsg));
-  //       updateInvoiceEmailCountValue(companyName, invoice.invoice.handle, emailCount+1);
-  //       updateInvoiceEmailLastSendValue(companyName, invoice.invoice.handle, today);
-  //       updateInvoiceActiveFlowValue(companyName, invoice.invoice.handle, false);
-  //     }
-  //   } else if (emailCount != 0 && emailCount != 6 && emailCount < 7) {
-  //     const lastEmailSendDate = (invoice.emailLastSend).toDate();
-  //     const DifferenceInTime = (today.getTime() - lastEmailSendDate.getTime()) / (1000 * 3600 * 24);
-  //     console.log(DifferenceInTime);
-  //     if (DifferenceInTime >= 3) {
-  //       sendgrid.send(emailMsg);
-  //       functions.logger.log("EmailCount All others: IT WORKS!!" + JSON.stringify(emailMsg));
-  //       updateInvoiceEmailCountValue(companyName, invoice.invoice.handle, emailCount+1);
-  //       updateInvoiceEmailLastSendValue(companyName, invoice.invoice.handle, today);
-  //     }
-  //   }
-  // }
-  // try {
-  //   const response = slackUtils.slackAcknowledgmentResponse(req, jsonSlackExample);
-  //   functions.logger.error(response);
-  //   res.status(200).send(response);
-  // } catch (error) {
-  //   functions.logger.error(error);
-  // }
-  res.status(200).send("DER HUL IGENNEM!");
+import * as firestoreUtils from "../utils/firestoreUtils";
+apps.get("/halloworld", async (req, res) => {
+  const companyName = "LALA";
+  const invoiceArray = (await firestoreUtils.retriveInvoicesForMonthlyReportDocDataFromCompany(companyName, 2))
+      .map((test) => test.data());
+  const activeInvoiceArray = (await firestoreUtils.retriveActiveInvoicesDocDataFromCompany(companyName))
+      .map((doc) => doc.data());
+  const reportMap = {};
+  // total dunning kunder. læg invoiceArray og activeInvoiceArray sammen.
+  reportMap["totalDunning"] = invoiceArray.length + activeInvoiceArray.length;
+  // Kunder fastholdt. Tag fat i alle kunder der er retained
+  reportMap["totalRetained"] = invoiceArray.filter((invoice) => invoice.status === "retained").length;
+  // On hold tag fat i kunder der er onhold
+  reportMap["totalOnHold"] = invoiceArray.filter((invoice) => invoice.status === "onhold").length;
+  // længden af activeInvoiceArray
+  reportMap["totalNotRetained"] = activeInvoiceArray.length;
+  // total gross income for all retained invoices
+  reportMap["totalGrossIncome"] = reepayGetTotalGrossIncome(
+      invoiceArray.filter((invoice) => invoice.status === "retained"));
+  console.log(invoiceArray);
+  res.status(200).send("DER HUL IGENNEM!"+JSON.stringify(reportMap));
 });
+
+export const creatMonthlyReport =
+  functions.region("europe-west2").pubsub.schedule("59 22 3 * *")
+      .timeZone("Europe/Copenhagen").onRun(async (context) => {
+        const companyName = "LALA";
+        const invoiceArray = (await firestoreUtils.retriveInvoicesForMonthlyReportDocDataFromCompany(companyName, 2))
+            .map((test) => test.data());
+        const activeInvoiceArray = (await firestoreUtils.retriveActiveInvoicesDocDataFromCompany(companyName))
+            .map((doc) => doc.data());
+        const reportMap = {};
+        // total dunning kunder. læg invoiceArray og activeInvoiceArray sammen.
+        reportMap["totalDunning"] = invoiceArray.length + activeInvoiceArray.length;
+        // Kunder fastholdt. Tag fat i alle kunder der er retained
+        reportMap["totalRetained"] = invoiceArray.filter((invoice) => invoice.status === "retained").length;
+        // On hold tag fat i kunder der er onhold
+        reportMap["totalOnHold"] = invoiceArray.filter((invoice) => invoice.status === "onhold").length;
+        // længden af activeInvoiceArray
+        reportMap["totalNotRetained"] = activeInvoiceArray.length;
+        // total gross income for all retained invoices
+        reportMap["totalGrossIncome"] = reepayGetTotalGrossIncome(
+            invoiceArray.filter((invoice) => invoice.status === "retained"));
+        console.log(invoiceArray);
+        return null;
+      }
+      );
 
 /**
  * Function is made so its possible to get data with the right format to show on dashboard
@@ -338,7 +272,7 @@ slackApp.get("/getData", async (req, res) => {
 });
 
 
-exports.app = functions.https.onRequest(apps);
+exports.app = functions.region("europe-west2").https.onRequest(apps);
 exports.slackApp = functions.region("europe-west2")
     // .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
     .https.onRequest(slackApp);

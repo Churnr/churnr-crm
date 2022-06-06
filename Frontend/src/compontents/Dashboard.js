@@ -5,11 +5,9 @@ import { MonthPicker } from "@mui/x-date-pickers/MonthPicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import Container from '@mui/material/Container';
-import { differenceInDays } from 'date-fns'
 import NewDataFromDateInterval from './DateInterval.tsx';
 // import { useNavigate } from 'react-router-dom'
 import Navbar from './Navbar.js'
-import { async } from '@firebase/util';
 
 
 
@@ -23,12 +21,8 @@ const [loading, setLoading] = useState(true);
 const [date, setDate] = useState(new Date());
 const minDate = new Date("2020-01-01T00:00:00.000");
 const maxDate = new Date("2034-01-01T00:00:00.000");
-  useEffect(async () => {
-    if (response.Lalatoys) {
-      dateFilter();
-    } else {
+  useEffect( () => {
       getData();
-    }
     }, [date]);
 
 const dateFilter = () => {

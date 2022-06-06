@@ -27,6 +27,16 @@ export const retriveReepayList = async (url:string,
   }
   return returnArray;
 };
+/**
+ * Takes in an array of reepay invoces, and findes the total gross income from all invoices
+ * @param {Array<any>} invoiceArray
+ * @return {number} total gross income
+ */
+export const reepayGetTotalGrossIncome = (invoiceArray:Array<any>) => {
+  let totalGrossIncome = 0;
+  invoiceArray.map((invoice) => totalGrossIncome += invoice.invoice.amount);
+  return totalGrossIncome;
+};
 
 /**
  * Creates HTTP options, with apikey, for reepay api requests

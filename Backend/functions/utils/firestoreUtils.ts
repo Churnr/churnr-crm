@@ -4,7 +4,7 @@ import * as types from "../types/types";
 import {logger} from "firebase-functions";
 import {customer} from "../types/types";
 import {checkTransactionVariable} from "./reepayUtils";
-
+import {extraDaysFunction} from "./dateUtils";
 
 /**
  * Gets doc ids from a collection under a company from firestore
@@ -229,6 +229,25 @@ export const retriveActiveInvoicesDocDataFromCompany = async (companyName:string
   try {
     const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
         .collection("Invoices").where("status", "==", "active").get();
+    return firestoreData.docs;
+  } catch (error) {
+    logger.error("retriveActiveInvoicesFromCompany: " + error);
+    throw error;
+  }
+};
+export const retriveInvoicesForMonthlyReportDocDataFromCompany = async (companyName:string, days: number) => {
+  const today = new Date(); // den 4 i måned
+  const [stDate, enDate] = extraDaysFunction(today, days, days);
+  const startdate = stDate;
+  const endDate = enDate;
+  const startDate = admin.firestore.Timestamp.fromDate(startdate);
+  const expirationDate = admin.firestore.Timestamp.fromDate(endDate);
+  console.log(startDate, expirationDate);
+  try {
+    const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
+        .collection("Invoices")
+        .where("invoiceEndDate", ">=", endDate)
+        .where("invoiceEndDate", "<", startdate).get();
     return firestoreData.docs;
   } catch (error) {
     logger.error("retriveActiveInvoicesFromCompany: " + error);
