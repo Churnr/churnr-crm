@@ -26,14 +26,14 @@ admin.initializeApp();
 const corsHandler = cors();
 // const pubsubClient = new PubSub();
 const apps = express();
-const slackApp = express();
+const dataApi = express();
 
 // Enables middleware for slackApp endpoints
 apps.use(corsHandler);
 apps.use(express.json());
 apps.use(middleware.validateFirebaseIdToken);
-slackApp.use(corsHandler);
-slackApp.use(middleware.validateFirebaseIdToken);
+dataApi.use(corsHandler);
+dataApi.use(middleware.validateFirebaseIdToken);
 // slackApp.use(middleware.validateSlackSigningSecret);
 
 // .runWith({secrets: ["SLACK_BOT_TOKEN", "SLACK_SIGNING_SECRET"]})
@@ -45,7 +45,8 @@ export const slack = functions
  * Reepay ready
  */
 export const fetchDunningInvoices =
-  functions.region("europe-west2").pubsub.schedule("0 6 * * *")
+  functions
+      .region("europe-west2").pubsub.schedule("0 6 * * *")
       .timeZone("Europe/Copenhagen").onRun(async (context) => {
         const companys: any = await getCompanys();
         // const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
@@ -261,7 +262,7 @@ export const creatMonthlyReport =
 /**
  * Function is made so its possible to get data with the right format to show on dashboard
  */
-slackApp.get("/getData", async (req, res) => {
+dataApi.get("/getData", async (req, res) => {
   const companyList:any = await getCompanys();
   const mainList = new Map();
   for (const company of companyList) {
@@ -272,9 +273,10 @@ slackApp.get("/getData", async (req, res) => {
 });
 
 
-exports.app = functions.region("europe-west2").https.onRequest(apps);
-exports.slackApp = functions.region("europe-west2")
+exports.app = functions
+    .region("europe-west2").https.onRequest(apps);
+exports.dataApi = functions.region("europe-west2")
     // .runWith({secrets: ["SLACK_TOKEN", "SLACK_SIGNING_SECRET"]})
-    .https.onRequest(slackApp);
+    .https.onRequest(dataApi);
 
 
