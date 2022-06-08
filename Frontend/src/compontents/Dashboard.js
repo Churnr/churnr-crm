@@ -24,7 +24,6 @@ export default function Dashboard() {
   const maxDate = new Date("2034-01-01T00:00:00.000");
   useEffect(() => {
     if (isData === false) {
-      console.log("what");
       getData();
     }else {
       dateFilter();
@@ -46,7 +45,6 @@ export default function Dashboard() {
   const getData = async () => {
     setLoading(true);
     const token = await auth.currentUser.getIdToken(true);
-    console.log(token)
     const headers = {
       'Authorization': `Bearer ${token}`
     }
