@@ -856,7 +856,7 @@ export const slackAppFunctions = () => {
     try {
       const customerObject = await firestoreUtils.getCustomerObjectBasedOnEmailFromCompany(company, email);
       const customerId = customerObject.handle;
-      await firestoreUtils.reactivateEmailFlowOnInvoice(company, customerId);
+      await firestoreUtils.reactivateFlowOnInvoice(company, customerId);
       const user = body["user"]["id"];
       const msg = `Email flow on ${email} has been reactivated`;
       try {

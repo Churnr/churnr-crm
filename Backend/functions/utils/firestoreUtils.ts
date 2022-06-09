@@ -181,9 +181,9 @@ export const updateInvoiceEndDate = async (companyName:string, docId:string) => 
 };
 
 
-export const updateInvoiceEmailCountValue = async (companyName:string, docId:string, emailCount:number) => {
+export const updateInvoiceFlowCountValue = async (companyName:string, docId:string, flowCount:number) => {
   const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
-      .collection("Invoices").doc(docId).update({emailCount: emailCount});
+      .collection("Invoices").doc(docId).update({flowCount: flowCount});
   return firestoreData;
 };
 
@@ -451,7 +451,7 @@ export const updateActiveInvoiceWithActiveFlowVariables = async (companyName:str
         .where("status", "==", "active").where("invoice.customer", "==", customerId).get()).docs[0].data();
     if (checkTransactionVariable(activeInvoice.invoice, "error_state") != "hard_declined") {
       await admin.firestore().collection("Companys").doc(companyName)
-          .collection("Invoices").doc(activeInvoice.invoice.handle).update({emailCount: 0,
+          .collection("Invoices").doc(activeInvoice.invoice.handle).update({flowCount: 0,
             activeFlow: true, invoiceError: invoiceError,
             flowStartDate: today});
     } else {
@@ -527,7 +527,7 @@ export const stopEmailFlowOnInvoice = async (companyName:string,
  * @param {string} invoiceError
  * @return {admin.firestore.WriteResult} newDoc
  */
-export const reactivateEmailFlowOnInvoice = async (companyName:string,
+export const reactivateFlowOnInvoice = async (companyName:string,
     customerId:string) => {
   try {
     const activeInvoice = (await admin.firestore()
@@ -538,7 +538,7 @@ export const reactivateEmailFlowOnInvoice = async (companyName:string,
     if (activeInvoice.activeFlow === undefined) {
       throw new Error("The flow you tried to reactivate, has never been started");
     }
-    if (activeInvoice.emailCount === 7) {
+    if (activeInvoice.flowCount === 7) {
       throw new Error("The flow you tried to reactivate, has send 7 emails total and will not be reactivatet");
     }
     if (activeInvoice.activeFlow === false) {
