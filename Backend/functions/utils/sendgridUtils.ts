@@ -121,8 +121,6 @@ export function emailMessage(to:string, from:string, template:string, customerOb
  * Evt skal der ændres navn på den variabel den laver i databasen, da vi ikke længere kun arbejder med emails.
  * -
  * Evt. ændre navn fra sendGridLogic til flowLogic??
- * -
- * Jeg har ikke implementeret alle tredjeparts koden. som sendgrid.send() pt skriver den kun console.logs ud
  */
 // eslint-disable-next-line require-jsdoc
 export async function sendgridLogic(company:any) {
@@ -148,14 +146,12 @@ export async function sendgridLogic(company:any) {
                 templateMap[invoice.invoiceError][invoice.flowCount], customer);
             sendgrid.send(emailMsg);
             updateInvoiceFlowCountValue(company.companyName, invoice.invoice.handle, invoice.flowCount+1);
-            console.log("flowCount: " + invoice.flowCount);
-            console.log("email Send");
           } else if (flowRules[invoice.flowCount].type == "phonecall") {
+            // Missing phonecall implementation
             updateInvoiceFlowCountValue(company.companyName, invoice.invoice.handle, invoice.flowCount+1);
-            console.log("Message send to slack");
           } else if (flowRules[invoice.flowCount].type == "sms") {
+            // Missing sms implementation
             updateInvoiceFlowCountValue(company.companyName, invoice.invoice.handle, invoice.flowCount+1);
-            console.log("Sending sms");
           }
         }
       }
