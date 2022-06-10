@@ -1,10 +1,12 @@
 import {getInvoicesObjectBasedOnStatusFromCompany,
   getCustomerFromFirestore,
   updateInvoiceFlowCountValue,
-  updateInvoiceActiveFlowValue} from "../utils/firestoreUtils";
-import * as sendgrid from "@sendgrid/mail";
-import * as functions from "firebase-functions";
-const config = functions.config();
+  updateInvoiceActiveFlowValue,
+  updateInvoiceFlowEndValue} from "../utils/firestoreUtils";
+import {differenceInDays} from "date-fns";
+// // import * as sendgrid from "@sendgrid/mail";
+// import * as functions from "firebase-functions";
+// const config = functions.config();
 // Pre. Add map to customer, containing templateIds
 
 // Slash command ind param: companyName, customer.id, templateId;
@@ -129,22 +131,26 @@ export async function sendgridLogic(company:any) {
   const companyEmail = company.email;
   const flowRules = company.flowRules;
   const today = new Date();
-  if (config.env.sengridapikey === undefined) {
-    throw new Error("Sendgrid api key not in enviroment");
-  }
-  sendgrid.setApiKey(config.env.sengridapikey);
+  console.log(invoiceArray);
+  // if (config.env.sengridapikey === undefined) {
+  //   throw new Error("Sendgrid api key not in enviroment");
+  // }
+  // sendgrid.setApiKey(config.env.sengridapikey);
   for (const invoice of invoiceArray) {
     if (invoice.status == "active") {
       if (flowRules.length > invoice.flowCount) {
-        const DifferenceInTime = (today.getTime() - invoice.flowStartDate.getTime()) / (1000 * 3600 * 24);
+        console.log("hejsa", new Date(invoice.flowStartDate.toDate()));
 
-        if (DifferenceInTime >= flowRules[invoice.flowCount].time) {
+        const DifferenceInTime = differenceInDays(today, new Date(invoice.flowStartDate.toDate()));
+        console.log("hejsa", DifferenceInTime);
+        if (DifferenceInTime == flowRules[invoice.flowCount].time) {
           const customer = await getCustomerFromFirestore(company.companyName, invoice.invoice.customer);
-
           if (flowRules[invoice.flowCount].type == "email") {
+            console.log(templateMap, invoice.invoiceError, invoice.flowCount);
             const emailMsg = emailMessage("system@churnr.dk", companyEmail,
                 templateMap[invoice.invoiceError][invoice.flowCount], customer);
-            sendgrid.send(emailMsg);
+            console.log(emailMsg);
+            // sendgrid.send(emailMsg);
             updateInvoiceFlowCountValue(company.companyName, invoice.invoice.handle, invoice.flowCount+1);
           } else if (flowRules[invoice.flowCount].type == "phonecall") {
             // Missing phonecall implementation
@@ -159,6 +165,7 @@ export async function sendgridLogic(company:any) {
         // this block will deactivate the flow if the invoice flowCounter
         // is bigger or as big as the flowRules array length
         updateInvoiceActiveFlowValue(company.companyName, invoice.invoice.handle, false);
+        updateInvoiceFlowEndValue(company.companyName, invoice.invoice.handle, today);
         console.log("flow deactivatet");
       }
     }

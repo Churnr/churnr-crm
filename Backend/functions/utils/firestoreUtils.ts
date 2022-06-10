@@ -187,9 +187,9 @@ export const updateInvoiceFlowCountValue = async (companyName:string, docId:stri
   return firestoreData;
 };
 
-export const updateInvoiceEmailLastSendValue = async (companyName:string, docId:string, date:Date) => {
+export const updateInvoiceFlowEndValue = async (companyName:string, docId:string, date:Date) => {
   const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
-      .collection("Invoices").doc(docId).update({emailLastSend: date});
+      .collection("Invoices").doc(docId).update({flowEnd: date});
   return firestoreData;
 };
 
