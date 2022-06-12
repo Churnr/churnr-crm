@@ -183,6 +183,40 @@ const sectionFromArray = async (object:any, companyName:string, message:string) 
   }
   return tmpList;
 };
+
+export const updatesForNewUpdateInInvoices = async (object:any, companyName:string) => {
+  const dunning = await sectionFromArray(object.phonecall, companyName, " arrived in dunning");
+  const retained = await sectionFromArray(object.sms, companyName, " arrived in retained");
+  const onhold = await sectionFromArray(object.endedflows, companyName, " arrived in onhold");
+  const header = {
+    "type": "header",
+    "text": {
+      "type": "plain_text",
+      "text": `New Daily Updates From Flow For ${companyName}`,
+      "emoji": true,
+    },
+  };
+  const messages = [];
+  messages.push(header);
+  for ( const msg of dunning ) {
+    if (msg) {
+      messages.push(msg);
+    }
+  }
+  for (const msg of retained) {
+    if (msg) {
+      messages.push(msg);
+    }
+  }
+  for (const msg of onhold) {
+    if (msg) {
+      messages.push(msg);
+    }
+  }
+
+  return messages;
+};
+
 export const updatesForPhoneSmsAndEndedFlows = async (object:any, companyName:string) => {
   const phonecall = await sectionFromArray(object.phonecall, companyName, " needs a phonecall");
   const sms = await sectionFromArray(object.sms, companyName, " needs a sms");

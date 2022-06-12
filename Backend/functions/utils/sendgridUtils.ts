@@ -142,7 +142,7 @@ export async function sendgridLogic(company:any) {
   if (sengridapikey === undefined) {
     throw new Error("Sendgrid api key not in enviroment");
   }
-  // sendgrid.setApiKey(sengridapikey);
+  sendgrid.setApiKey(sengridapikey);
   for (const invoice of invoiceArray) {
     if (invoice.status == "active") {
       if (flowRules.length > invoice.flowCount) {

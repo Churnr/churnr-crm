@@ -30,12 +30,12 @@ export interface Dunning {
 export interface ActiveDunning extends Dunning {
     flowStartDate: string,
     activeFlow: boolean,
-    emailCount: number,
+    flowCount: number,
   }
 
 export interface Retained extends Dunning {
     flowStartDate: string,
     activeFlow: boolean,
-    emailCount: number,
+    flowCount: number,
     invoiceEndDate: string,
   }

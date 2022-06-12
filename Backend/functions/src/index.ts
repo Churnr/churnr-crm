@@ -10,15 +10,18 @@ import {
   retriveInvoicesDocDataFromCompany,
 } from "../utils/firestoreUtils";
 import * as reepayUtils from "../utils/reepayUtils";
+import * as firestoreUtils from "../utils/firestoreUtils";
 // import * as sendgridUtils from "../utils/sendgridUtils";
 // import {PubSub} from "@google-cloud/pubsub";
 import * as cors from "cors";
 import * as middleware from "../middleware/middleware";
 import {slackAppFunctions,
   publishMessage,
-  dailyUpdateForSlack,
+  // dailyUpdateForSlack,
   updatesForPhoneSmsAndEndedFlows,
   noUpdatesToday,
+  updatesForNewUpdateInInvoices,
+  // updatesForNewUpdateInInvoices,
 } from "../utils/slackUtils";
 import {sendgridLogic} from "../utils/sendgridUtils";
 import * as express from "express";
@@ -35,8 +38,8 @@ const dataApi = express();
 
 // Enables middleware for slackApp endpoints
 apps.use(corsHandler);
-// apps.use(express.json());
-// apps.use(middleware.validateFirebaseIdToken);
+apps.use(express.json());
+apps.use(middleware.validateFirebaseIdToken);
 dataApi.use(corsHandler);
 dataApi.use(middleware.validateFirebaseIdToken);
 // slackApp.use(middleware.validateSlackSigningSecret);
@@ -54,15 +57,13 @@ export const fetchDunningInvoices =
       .region("europe-west2").pubsub.schedule("0 6 * * *")
       .timeZone("Europe/Copenhagen").onRun(async (context) => {
         const companys: any = await getCompanys();
-        // const urls: any = await firestoreUtils.getDunningUrlsFromFirestore();
         for (const company of companys) {
           const companyName: string = company.companyName;
           const companyApykey: string = company.apiKey;
           const paymentGateway: string = company.paymentGateway;
           if (paymentGateway === "Reepay") {
             const updateLogic = await reepayUtils.reepayLogic(companyApykey, companyName);
-
-            const message = dailyUpdateForSlack(updateLogic);
+            const message = await updatesForNewUpdateInInvoices(updateLogic, companyName);
             publishMessage("C02U1337UPJ", message);
           }
         }
@@ -104,7 +105,7 @@ export const getDataForDashboard =
                    handle: cusData.handle,
                    flowStartDate: invdata.flowStartDate ? invdata.flowStartDate : false,
                    errorState: reepayUtils.checkTransactionVariable(invdata.invoice, "error_state"),
-                   emailCount: invdata.emailCount ? invdata.emailCount : false,
+                   flowCount: invdata.flowCount ? invdata.flowCount : false,
                    ordertext: invdata.invoice.order_lines[0].ordertext,
                    created: invdata.invoice.created,
                    settled_invoices: cusData.settled_invoices,
@@ -144,7 +145,7 @@ export const getDataForDashboard =
                    handle: cusData.handle,
                    flowStartDate: invdata.flowStartDate ? invdata.flowStartDate : false,
                    errorState: reepayUtils.checkTransactionVariable(invdata.invoice, "error_state"),
-                   emailCount: invdata.emailCount ? invdata.emailCount : false,
+                   flowCount: invdata.flowCount ? invdata.flowCount : false,
                    ordertext: invdata.invoice.order_lines[0].ordertext,
                    created: invdata.invoice.created,
                    settled_invoices: cusData.settled_invoices,
@@ -166,7 +167,7 @@ export const getDataForDashboard =
                    handle: cusData.handle,
                    flowStartDate: invdata.flowStartDate ? invdata.flowStartDate : false,
                    errorState: reepayUtils.checkTransactionVariable(invdata.invoice, "error_state"),
-                   emailCount: invdata.emailCount ? invdata.emailCount : false,
+                   flowCount: invdata.flowCount ? invdata.flowCount : false,
                    ordertext: invdata.invoice.order_lines[0].ordertext,
                    created: invdata.invoice.created,
                    settled_invoices: cusData.settled_invoices,
@@ -222,23 +223,21 @@ kunder on hold
 endnu ikke fastholdt.
 Brutto Fastholdelse
 */
-import * as firestoreUtils from "../utils/firestoreUtils";
-apps.get("/halloworld", async (req, res) => {
-  const message = "No updates";
-  const companys: any = await getCompanys();
-  for (const company of companys) {
-    const updates: any = await sendgridLogic(company);
-    if ((updates.phonecall).length != 0 || (updates.sms).length != 0 || (updates.endedflows).length != 0) {
-      const message = await updatesForPhoneSmsAndEndedFlows(updates, company.companyName);
-      console.log("NOOOO", message);
-      publishMessage("C02U1337UPJ", message);
-    } else {
-      publishMessage("C02U1337UPJ", noUpdatesToday(company.companyName));
-    }
+// apps.get("/halloworld", async (req, res) => {
+//   const activeInvoiceDocData =
+//       await firestoreUtils.retriveActiveInvoicesDocDataFromCompany("LALA");
+//   const activeInvoiceIdArray = firestoreUtils.retriveDocIdsFromDocData(activeInvoiceDocData);
+//   const activeInvoiceDataArray = activeInvoiceDocData.map((invoice) => {
+//     return invoice.data();
+//   });
+//   for (const invoiceId of activeInvoiceIdArray) {
+//     const invoice = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
+//     console.log(invoice);
+//   }
 
-    res.status(200).send("DER HUL IGENNEM!"+JSON.stringify(message));
-  }
-});
+//   res.status(200).send("DER HUL IGENNEM!"+JSON.stringify("WHAT"));
+// }
+// );
 
 export const creatMonthlyReport =
   functions.region("europe-west2").pubsub.schedule("59 22 3 * *")
