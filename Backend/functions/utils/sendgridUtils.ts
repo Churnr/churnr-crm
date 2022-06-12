@@ -2,11 +2,15 @@ import {getInvoicesObjectBasedOnStatusFromCompany,
   getCustomerFromFirestore,
   updateInvoiceFlowCountValue,
   updateInvoiceActiveFlowValue,
-  updateInvoiceFlowEndValue} from "../utils/firestoreUtils";
+  updateInvoiceFlowEndValue,
+  updateInvoiceLastFlowActivity} from "../utils/firestoreUtils";
 import {differenceInDays} from "date-fns";
-// // import * as sendgrid from "@sendgrid/mail";
+import * as sendgrid from "@sendgrid/mail";
 // import * as functions from "firebase-functions";
 // const config = functions.config();
+const sengridapikey = process.env.SENDGRID_API_KEY;
+// const sengridapikey = config.env.SLACK_BOT_TOKEN;
+
 // Pre. Add map to customer, containing templateIds
 
 // Slash command ind param: companyName, customer.id, templateId;
@@ -130,46 +134,56 @@ export async function sendgridLogic(company:any) {
   const templateMap = company.templateMap;
   const companyEmail = company.email;
   const flowRules = company.flowRules;
+  const phonecallArray = [];
+  const smsArray = [];
+  const endedflows = [];
+  const updateMap = new Map();
   const today = new Date();
-  console.log(invoiceArray);
-  // if (config.env.sengridapikey === undefined) {
-  //   throw new Error("Sendgrid api key not in enviroment");
-  // }
-  // sendgrid.setApiKey(config.env.sengridapikey);
+  if (sengridapikey === undefined) {
+    throw new Error("Sendgrid api key not in enviroment");
+  }
+  // sendgrid.setApiKey(sengridapikey);
   for (const invoice of invoiceArray) {
     if (invoice.status == "active") {
       if (flowRules.length > invoice.flowCount) {
-        console.log("hejsa", new Date(invoice.flowStartDate.toDate()));
-
         const DifferenceInTime = differenceInDays(today, new Date(invoice.flowStartDate.toDate()));
-        console.log("hejsa", DifferenceInTime);
         if (DifferenceInTime == flowRules[invoice.flowCount].time) {
           const customer = await getCustomerFromFirestore(company.companyName, invoice.invoice.customer);
           if (flowRules[invoice.flowCount].type == "email") {
-            console.log(templateMap, invoice.invoiceError, invoice.flowCount);
             const emailMsg = emailMessage("system@churnr.dk", companyEmail,
                 templateMap[invoice.invoiceError][invoice.flowCount], customer);
-            console.log(emailMsg);
-            // sendgrid.send(emailMsg);
+            sendgrid.send(emailMsg);
             updateInvoiceFlowCountValue(company.companyName, invoice.invoice.handle, invoice.flowCount+1);
+            updateInvoiceLastFlowActivity(company.companyName, invoice.invoice.handle, today);
           } else if (flowRules[invoice.flowCount].type == "phonecall") {
             // Missing phonecall implementation
+            phonecallArray.push(invoice);
+            // Make Array of invoices and return the value to publish on slack
             updateInvoiceFlowCountValue(company.companyName, invoice.invoice.handle, invoice.flowCount+1);
+            updateInvoiceLastFlowActivity(company.companyName, invoice.invoice.handle, today);
           } else if (flowRules[invoice.flowCount].type == "sms") {
             // Missing sms implementation
+            smsArray.push(invoice);
+            // Make Array of invoices and return the value to publish on slack
             updateInvoiceFlowCountValue(company.companyName, invoice.invoice.handle, invoice.flowCount+1);
+            updateInvoiceLastFlowActivity(company.companyName, invoice.invoice.handle, today);
           }
         }
       }
       if (flowRules.length <= invoice.flowCount) {
         // this block will deactivate the flow if the invoice flowCounter
         // is bigger or as big as the flowRules array length
+        endedflows.push(invoice);
         updateInvoiceActiveFlowValue(company.companyName, invoice.invoice.handle, false);
         updateInvoiceFlowEndValue(company.companyName, invoice.invoice.handle, today);
         console.log("flow deactivatet");
       }
     }
   }
+  updateMap["phonecall"] = phonecallArray;
+  updateMap["sms"] = smsArray;
+  updateMap["endedflows"] = endedflows;
+  return updateMap;
 }
 
 

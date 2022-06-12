@@ -11,6 +11,7 @@ import * as functions from "firebase-functions";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import {company, dailyUpdate} from "../types/types";
 import "dotenv/config";
+import {getCustomerFromFirestore} from "../utils/firestoreUtils";
 // const config = functions.config();
 // const slackbottoken = config.env.slackbottoken;
 // const signingSecret = config.env.slacksigning as string | (() => PromiseLike<string>);
@@ -143,6 +144,77 @@ export const publishMessage = async (id:string, text:(Block | KnownBlock)[] | un
     console.error(error);
   }
 };
+export const noUpdatesToday = (companyName:string) => {
+  const message = [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": `New Daily Updates From Flow For ${companyName}`,
+        "emoji": true,
+      },
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "plain_text",
+        "text": "There no new update for phone calls, sms or ended flows today",
+        "emoji": true,
+      },
+    },
+  ];
+
+  return message;
+};
+
+const sectionFromArray = async (object:any, companyName:string, message:string) => {
+  const tmpList = [];
+  console.log(object);
+  for (const inv of object) {
+    const customer = await getCustomerFromFirestore(companyName, inv.invoice.customer);
+    const phonecall = {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": `*Customer${message}*\n *Name:* ${customer.first_name as string} ${customer.last_name as string}\n *email:* ${customer.email as string} `,
+      },
+    };
+    tmpList.push(phonecall);
+  }
+  return tmpList;
+};
+export const updatesForPhoneSmsAndEndedFlows = async (object:any, companyName:string) => {
+  const phonecall = await sectionFromArray(object.phonecall, companyName, " needs a phonecall");
+  const sms = await sectionFromArray(object.sms, companyName, " needs a sms");
+  const ended = await sectionFromArray(object.endedflows, companyName, "'s flow ended");
+  const header = {
+    "type": "header",
+    "text": {
+      "type": "plain_text",
+      "text": `New Daily Updates From Flow For ${companyName}`,
+      "emoji": true,
+    },
+  };
+  const messages = [];
+  messages.push(header);
+  for ( const msg of phonecall ) {
+    if (msg) {
+      messages.push(msg);
+    }
+  }
+  for (const msg of sms) {
+    if (msg) {
+      messages.push(msg);
+    }
+  }
+  for (const msg of ended) {
+    if (msg) {
+      messages.push(msg);
+    }
+  }
+
+  return messages;
+};
 
 export const dailyUpdateForSlack = (object:dailyUpdate) => {
   const message = [
@@ -150,7 +222,7 @@ export const dailyUpdateForSlack = (object:dailyUpdate) => {
       "type": "header",
       "text": {
         "type": "plain_text",
-        "text": "New daily Updates",
+        "text": "New Daily Updates From Invoices",
         "emoji": true,
       },
     },

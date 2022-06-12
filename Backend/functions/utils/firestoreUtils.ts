@@ -180,6 +180,11 @@ export const updateInvoiceEndDate = async (companyName:string, docId:string) => 
   return firestoreData;
 };
 
+export const updateInvoiceLastFlowActivity = async (companyName:string, docId:string, today:Date) => {
+  const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
+      .collection("Invoices").doc(docId).update({lastFlowActivity: today});
+  return firestoreData;
+};
 
 export const updateInvoiceFlowCountValue = async (companyName:string, docId:string, flowCount:number) => {
   const firestoreData = await admin.firestore().collection("Companys").doc(companyName)

@@ -14,7 +14,12 @@ import * as reepayUtils from "../utils/reepayUtils";
 // import {PubSub} from "@google-cloud/pubsub";
 import * as cors from "cors";
 import * as middleware from "../middleware/middleware";
-import {slackAppFunctions, publishMessage, dailyUpdateForSlack} from "../utils/slackUtils";
+import {slackAppFunctions,
+  publishMessage,
+  dailyUpdateForSlack,
+  updatesForPhoneSmsAndEndedFlows,
+  noUpdatesToday,
+} from "../utils/slackUtils";
 import {sendgridLogic} from "../utils/sendgridUtils";
 import * as express from "express";
 import "dotenv/config";
@@ -30,8 +35,8 @@ const dataApi = express();
 
 // Enables middleware for slackApp endpoints
 apps.use(corsHandler);
-apps.use(express.json());
-apps.use(middleware.validateFirebaseIdToken);
+// apps.use(express.json());
+// apps.use(middleware.validateFirebaseIdToken);
 dataApi.use(corsHandler);
 dataApi.use(middleware.validateFirebaseIdToken);
 // slackApp.use(middleware.validateSlackSigningSecret);
@@ -196,7 +201,13 @@ functions.region("europe-west2").pubsub.schedule("0 17 * * *")
     .timeZone("Europe/Copenhagen").onRun(async (context) => {
       const companys: any = await getCompanys();
       for (const company of companys) {
-        sendgridLogic(company);
+        const updates: any = await sendgridLogic(company);
+        if ((updates.phonecall).length != 0 || (updates.sms).length != 0 || (updates.endedflows).length != 0) {
+          const message = await updatesForPhoneSmsAndEndedFlows(updates, company.companyName);
+          publishMessage("C02U1337UPJ", message);
+        } else {
+          publishMessage("C02U1337UPJ", noUpdatesToday(company.companyName));
+        }
       }
       return null;
     });
@@ -213,25 +224,20 @@ Brutto Fastholdelse
 */
 import * as firestoreUtils from "../utils/firestoreUtils";
 apps.get("/halloworld", async (req, res) => {
-  const companyName = "LALA";
-  const invoiceArray = (await firestoreUtils.retriveInvoicesForMonthlyReportDocDataFromCompany(companyName, 2))
-      .map((test) => test.data());
-  const activeInvoiceArray = (await firestoreUtils.retriveActiveInvoicesDocDataFromCompany(companyName))
-      .map((doc) => doc.data());
-  const reportMap = {};
-  // total dunning kunder. læg invoiceArray og activeInvoiceArray sammen.
-  reportMap["totalDunning"] = invoiceArray.length + activeInvoiceArray.length;
-  // Kunder fastholdt. Tag fat i alle kunder der er retained
-  reportMap["totalRetained"] = invoiceArray.filter((invoice) => invoice.status === "retained").length;
-  // On hold tag fat i kunder der er onhold
-  reportMap["totalOnHold"] = invoiceArray.filter((invoice) => invoice.status === "onhold").length;
-  // længden af activeInvoiceArray
-  reportMap["totalNotRetained"] = activeInvoiceArray.length;
-  // total gross income for all retained invoices
-  reportMap["totalGrossIncome"] = reepayGetTotalGrossIncome(
-      invoiceArray.filter((invoice) => invoice.status === "retained"));
-  console.log(invoiceArray);
-  res.status(200).send("DER HUL IGENNEM!"+JSON.stringify(reportMap));
+  const message = "No updates";
+  const companys: any = await getCompanys();
+  for (const company of companys) {
+    const updates: any = await sendgridLogic(company);
+    if ((updates.phonecall).length != 0 || (updates.sms).length != 0 || (updates.endedflows).length != 0) {
+      const message = await updatesForPhoneSmsAndEndedFlows(updates, company.companyName);
+      console.log("NOOOO", message);
+      publishMessage("C02U1337UPJ", message);
+    } else {
+      publishMessage("C02U1337UPJ", noUpdatesToday(company.companyName));
+    }
+
+    res.status(200).send("DER HUL IGENNEM!"+JSON.stringify(message));
+  }
 });
 
 export const creatMonthlyReport =
