@@ -62,9 +62,13 @@ export const fetchDunningInvoices =
           const companyApykey: string = company.apiKey;
           const paymentGateway: string = company.paymentGateway;
           if (paymentGateway === "Reepay") {
-            const updateLogic = await reepayUtils.reepayLogic(companyApykey, companyName);
-            const message = await updatesForNewUpdateInInvoices(updateLogic, companyName);
-            publishMessage("C02U1337UPJ", message);
+            const updateLogic:any = await reepayUtils.reepayLogic(companyApykey, companyName);
+            if ((updateLogic.dunning).length != 0 ||
+             (updateLogic.retianed).length != 0 ||
+             (updateLogic.onhold).length != 0) {
+              const message = await updatesForNewUpdateInInvoices(updateLogic, companyName);
+              publishMessage("C02U1337UPJ", message);
+            }
           }
         }
         return null;
@@ -232,7 +236,10 @@ Brutto Fastholdelse
 //   });
 //   for (const invoiceId of activeInvoiceIdArray) {
 //     const invoice = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
-//     console.log(invoice);
+//     if (invoice != undefined) {
+//       const customer = invoice.invoice.customer;
+//       console.log(customer);
+//     }
 //   }
 
 //   res.status(200).send("DER HUL IGENNEM!"+JSON.stringify("WHAT"));

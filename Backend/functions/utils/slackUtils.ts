@@ -167,9 +167,24 @@ export const noUpdatesToday = (companyName:string) => {
   return message;
 };
 
+const sectionFromArrayToFetch = async (object:any, companyName:string, message:string) => {
+  const tmpList = [];
+  functions.logger.log("In sectionFromAwway", object);
+  for (const inv of object) {
+    const customer = await getCustomerFromFirestore(companyName, inv.customer);
+    const phonecall = {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": `*Customer${message}*\n *Name:* ${customer.first_name as string} ${customer.last_name as string}\n *email:* ${customer.email as string} `,
+      },
+    };
+    tmpList.push(phonecall);
+  }
+  return tmpList;
+};
 const sectionFromArray = async (object:any, companyName:string, message:string) => {
   const tmpList = [];
-  console.log(object);
   for (const inv of object) {
     const customer = await getCustomerFromFirestore(companyName, inv.invoice.customer);
     const phonecall = {
@@ -185,9 +200,9 @@ const sectionFromArray = async (object:any, companyName:string, message:string) 
 };
 
 export const updatesForNewUpdateInInvoices = async (object:any, companyName:string) => {
-  const dunning = await sectionFromArray(object.phonecall, companyName, " arrived in dunning");
-  const retained = await sectionFromArray(object.sms, companyName, " arrived in retained");
-  const onhold = await sectionFromArray(object.endedflows, companyName, " arrived in onhold");
+  const dunning = await sectionFromArrayToFetch(object.dunning, companyName, " arrived in dunning");
+  const retained = await sectionFromArrayToFetch(object.retained, companyName, " arrived in retained");
+  const onhold = await sectionFromArrayToFetch(object.onhold, companyName, " arrived in onhold");
   const header = {
     "type": "header",
     "text": {

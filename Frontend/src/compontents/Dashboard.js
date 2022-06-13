@@ -48,7 +48,7 @@ export default function Dashboard() {
     const headers = {
       'Authorization': `Bearer ${token}`
     }
-    const data = await (await fetch('https://europe-west2-churnr-system-development.cloudfunctions.net/slackApp/getData', { headers })).json();
+    const data = await (await fetch('https://europe-west2-churnr-system.cloudfunctions.net/dataApi/getData', { headers })).json();
     setResponse(data);
     const newDunningList = NewDataFromDateInterval(data.Lalatoys.dunningList, date);
     const newDctiveDunning = NewDataFromDateInterval(data.Lalatoys.activeDunning, date);
@@ -147,7 +147,7 @@ export default function Dashboard() {
                                 <th>Order amount</th>
                                 <th>Dunning created</th>
                                 <th>Invoice settled</th>
-                                <th>Email Count</th>
+                                <th>Flow Count</th>
                                 <th>Flow Start Date</th>
                                 <th>Flow Status</th>
                               </tr>
@@ -168,7 +168,7 @@ export default function Dashboard() {
                                     <td >{Number(row?.amount) / 100 + "kr"}</td>
                                     <td >{new Date(row?.created).toDateString()}</td>
                                     <td >{row?.settled_invoices}</td>
-                                    <td >{row?.emailCount}</td>
+                                    <td >{row?.flowCount}</td>
                                     <td >{row?.flowStartDate ? (new Date(row?.flowStartDate._seconds * 1000).toDateString()) : <span>No date</span>}</td>
                                     <td >{row?.activeFlow === true ? "Started" : "Endend"
                                     }</td>
@@ -196,7 +196,7 @@ export default function Dashboard() {
                                 <th>Order amount</th>
                                 <th>Dunning created</th>
                                 <th>Invoice settled</th>
-                                <th>Email Count</th>
+                                <th>Flow Count</th>
                                 <th>Flow Start Date</th>
                                 <th>Flow Status</th>
                                 <th>Retained Date</th>
@@ -218,7 +218,7 @@ export default function Dashboard() {
                                     <td >{Number(row?.amount) / 100 + "kr"}</td>
                                     <td >{new Date(row?.created).toDateString()}</td>
                                     <td >{row?.settled_invoices}</td>
-                                    <td >{row?.emailCount ? row?.emailCount : "No count"}</td>
+                                    <td >{row?.flowCount ? row?.flowCount : "No count"}</td>
                                     <td >{row?.flowStartDate ? (new Date(row?.flowStartDate._seconds * 1000).toDateString()) : <span>No date</span>}</td>
                                     <td >{row?.activeFlow ? "Started" : "Endend"
                                     }</td>
@@ -246,7 +246,7 @@ export default function Dashboard() {
                                 <th>Order amount</th>
                                 <th>Dunning created</th>
                                 <th>Invoice settled</th>
-                                <th>Email Count</th>
+                                <th>Flow Count</th>
                                 <th>Flow Start Date</th>
                                 <th>Flow Status</th>
                                 <th>Onhold Date</th>
@@ -268,7 +268,7 @@ export default function Dashboard() {
                                     <td >{Number(row?.amount) / 100 + "kr"}</td>
                                     <td >{new Date(row?.created).toDateString()}</td>
                                     <td >{row?.settled_invoices}</td>
-                                    <td >{row?.emailCount ? row?.emailCount : "No count"}</td>
+                                    <td >{row?.flowCount ? row?.flowCount : "No count"}</td>
                                     <td >{row?.flowStartDate ? (new Date(row?.flowStartDate._seconds * 1000).toDateString()) : <span>No date</span>}</td>
                                     <td >{row?.activeFlow ? "Started" : "Endend"
                                     }</td>

@@ -202,7 +202,7 @@ export const checkTransactionVariable = (invoiceObject:any, state:string) => {
  */
 export const reepayLogic = async (companyApikey: string, companyName:string) => {
   const dunning:any = [];
-  const retianed:any = [];
+  const retained:any = [];
   const onhold:any = [];
   const updateMap = new Map();
   const options = createHttpOptionsForReepay(companyApikey);
@@ -252,7 +252,7 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
             const invoice = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
             firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
             firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
-            retianed.push(invoice);
+            retained.push(invoice);
           } else if (eventsArray[1].event_type == "invoice_cancelled") {
             const invoice = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
             firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
@@ -263,7 +263,7 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
           const invoice = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
           firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
           firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
-          retianed.push(invoice);
+          retained.push(invoice);
         } else if (eventsArray[0].event_type == "invoice_cancelled") {
           const invoice = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
           firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
@@ -280,7 +280,7 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
     }
   }
   updateMap["dunning"] = dunning;
-  updateMap["retianed"] = retianed;
+  updateMap["retained"] = retained;
   updateMap["onhold"] = onhold;
   return updateMap;
 };
