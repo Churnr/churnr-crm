@@ -171,7 +171,7 @@ const sectionFromArrayToFetch = async (object:any, companyName:string, message:s
   const tmpList = [];
   functions.logger.log("In sectionFromAwway", object);
   for (const inv of object) {
-    const customer = await getCustomerFromFirestore(companyName, inv.customer);
+    const customer = await getCustomerFromFirestore(companyName, inv);
     const phonecall = {
       "type": "section",
       "text": {
@@ -186,7 +186,7 @@ const sectionFromArrayToFetch = async (object:any, companyName:string, message:s
 const sectionFromArray = async (object:any, companyName:string, message:string) => {
   const tmpList = [];
   for (const inv of object) {
-    const customer = await getCustomerFromFirestore(companyName, inv.invoice.customer);
+    const customer = await getCustomerFromFirestore(companyName, inv);
     const phonecall = {
       "type": "section",
       "text": {

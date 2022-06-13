@@ -3,6 +3,8 @@ import * as customType from "../types/types";
 import fetch from "node-fetch";
 import * as firestoreUtils from "../utils/firestoreUtils";
 import * as functions from "firebase-functions";
+import {ActiveDunning, Dunning, Retained} from "../types/interface";
+import * as reepayUtils from "../utils/reepayUtils";
 // import {dailyUpdate} from "../types/types";
 /**
  * Keeps sending request aslong as respons contains next_page_token
@@ -185,6 +187,110 @@ export const checkTransactionVariable = (invoiceObject:any, state:string) => {
   }
 };
 
+export const reepayGetDataForDashboard = (customerdata:any, invoiceData:any) => {
+  const companyMap = new Map();
+  const dunningList = [];
+  const activeDunning = [];
+  const retainedList = [];
+  const onHoldList = [];
+  // const reDunning = [];
+  for (const cusData of customerdata ) {
+    for (const invdata of invoiceData) {
+      if (cusData.handle == invdata.invoice.customer) {
+        if (invdata.activeFlow === true && invdata.status === "active") {
+          const activedunning: ActiveDunning = {
+            first_name: cusData.first_name,
+            last_name: cusData.last_name,
+            handle: cusData.handle,
+            flowStartDate: invdata.flowStartDate ? invdata.flowStartDate : false,
+            errorState: reepayUtils.checkTransactionVariable(invdata.invoice, "error_state"),
+            flowCount: invdata.flowCount ? invdata.flowCount : false,
+            ordertext: invdata.invoice.order_lines[0].ordertext,
+            created: invdata.invoice.created,
+            settled_invoices: cusData.settled_invoices,
+            amount: invdata.invoice.order_lines[0].amount,
+            phone: cusData.phone,
+            email: cusData.email,
+            error: reepayUtils.checkTransactionVariable(invdata.invoice, "error") ?
+                   reepayUtils.checkTransactionVariable(invdata.invoice, "error") : false,
+            acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message")?
+                   reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message") : false,
+            activeFlow: invdata.activeFlow ? invdata.activeFlow : false,
+          };
+          activeDunning.push(activedunning);
+        } else if (!invdata.activeFlow && invdata.status === "active") {
+          const dunning: Dunning = {
+            first_name: cusData.first_name,
+            last_name: cusData.last_name,
+            handle: cusData.handle,
+            errorState: reepayUtils.checkTransactionVariable(invdata.invoice, "error_state"),
+            ordertext: invdata.invoice.order_lines[0].ordertext,
+            created: invdata.invoice.created,
+            settled_invoices: cusData.settled_invoices,
+            amount: invdata.invoice.order_lines[0].amount,
+            phone: cusData.phone,
+            email: cusData.email,
+            error: reepayUtils.checkTransactionVariable(invdata.invoice, "error") ?
+                   reepayUtils.checkTransactionVariable(invdata.invoice, "error") : false,
+            acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message")?
+                   reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message") : false,
+          };
+          dunningList.push(dunning);
+        } else if (invdata.status === "retained") {
+          const retained: Retained = {
+            first_name: cusData.first_name,
+            last_name: cusData.last_name,
+            handle: cusData.handle,
+            flowStartDate: invdata.flowStartDate ? invdata.flowStartDate : false,
+            errorState: reepayUtils.checkTransactionVariable(invdata.invoice, "error_state"),
+            flowCount: invdata.flowCount ? invdata.flowCount : false,
+            ordertext: invdata.invoice.order_lines[0].ordertext,
+            created: invdata.invoice.created,
+            settled_invoices: cusData.settled_invoices,
+            amount: invdata.invoice.order_lines[0].amount,
+            phone: cusData.phone,
+            email: cusData.email,
+            error: reepayUtils.checkTransactionVariable(invdata.invoice, "error") ?
+                   reepayUtils.checkTransactionVariable(invdata.invoice, "error") : false,
+            acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message")?
+                   reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message") : false,
+            activeFlow: invdata.activeFlow ? invdata.activeFlow : false,
+            invoiceEndDate: invdata?.invoiceEndDate,
+          };
+          retainedList.push(retained);
+        } else if (invdata.status === "onhold") {
+          const onhold: Retained = {
+            first_name: cusData.first_name,
+            last_name: cusData.last_name,
+            handle: cusData.handle,
+            flowStartDate: invdata.flowStartDate ? invdata.flowStartDate : false,
+            errorState: reepayUtils.checkTransactionVariable(invdata.invoice, "error_state"),
+            flowCount: invdata.flowCount ? invdata.flowCount : false,
+            ordertext: invdata.invoice.order_lines[0].ordertext,
+            created: invdata.invoice.created,
+            settled_invoices: cusData.settled_invoices,
+            amount: invdata.invoice.order_lines[0].amount,
+            phone: cusData.phone,
+            email: cusData.email,
+            error: reepayUtils.checkTransactionVariable(invdata.invoice, "error") ?
+                   reepayUtils.checkTransactionVariable(invdata.invoice, "error") : false,
+            acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message")?
+                   reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message") : false,
+            activeFlow: invdata.activeFlow ? invdata.activeFlow : false,
+            invoiceEndDate: invdata?.invoiceEndDate,
+          };
+          onHoldList.push(onhold);
+        }
+      }
+    }
+  }
+  companyMap["dunningList"] = dunningList;
+  companyMap["activeDunning"] = activeDunning;
+  companyMap["retainedList"] = retainedList;
+  companyMap["onHoldList"] = onHoldList;
+
+  return companyMap;
+};
 
 /**
  * Firstly the functions fetches the dunninglist of a given company.
@@ -218,16 +324,19 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
   const activeInvoiceIdArray = firestoreUtils.retriveDocIdsFromDocData(activeInvoiceDocData);
 
   for (const dunningInvoices of reepayInvoiceArray) {
-    if (activeInvoiceDocData.indexOf(dunningInvoices.handle) == -1) {
-      dunning.push(dunningInvoices);
+    if (activeInvoiceIdArray.indexOf(dunningInvoices.handle) == -1) {
+      dunning.push(dunningInvoices.customer);
+      functions.logger.log("in if statemaent linje 223", dunning);
+      const customerObject = await getReepayCustomerObject(options, dunningInvoices.customer);
+      const subscriptionObject = await getReepaySubscriptionObject(options, dunningInvoices.subscription);
+      const customCustomerObject = await createCustomCustomerObject(customerObject, subscriptionObject);
       if (customerIdArray.indexOf(dunningInvoices.customer) == -1) {
-        const customerObject = await getReepayCustomerObject(options, dunningInvoices.customer);
-        const subscriptionObject = await getReepaySubscriptionObject(options, dunningInvoices.subscription);
-        const customCustomerObject = await createCustomCustomerObject(customerObject, subscriptionObject);
         await firestoreUtils.addDataToDocInCollectionUnderCompany("Customers",
             companyName, customCustomerObject, customCustomerObject.handle);
         await firestoreUtils.addInvoceToCustomer(companyName, customCustomerObject.handle, dunningInvoices);
       } else {
+        await firestoreUtils.updateDataToDocInCollectionUnderCompany("Customers",
+            companyName, customCustomerObject, customCustomerObject.handle);
         await firestoreUtils.addInvoceToCustomer(companyName, dunningInvoices.customer, dunningInvoices);
       }
       await firestoreUtils.addActiveInvoiceToCompany(companyName,
@@ -249,26 +358,26 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
       if (eventsArray.length != 0) {
         if (eventsArray[0].event_type == "invoice_dunning_cancelled") {
           if (eventsArray[1].event_type == "invoice_settled") {
-            const invoice = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
+            const invoice:any = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
             firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
             firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
-            retained.push(invoice);
+            retained.push(invoice.invoice.customer);
           } else if (eventsArray[1].event_type == "invoice_cancelled") {
-            const invoice = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
+            const invoice:any = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
             firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
             firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
-            onhold.push(invoice);
+            onhold.push(invoice.invoice.customer);
           }
         } else if (eventsArray[0].event_type == "invoice_settled") {
-          const invoice = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
+          const invoice:any = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
           firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
           firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
-          retained.push(invoice);
+          retained.push(invoice.invoice.customer);
         } else if (eventsArray[0].event_type == "invoice_cancelled") {
-          const invoice = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
+          const invoice:any = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
           firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
           firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
-          onhold.push(invoice);
+          onhold.push(invoice.invoice.customer);
         } else if (eventsArray[0].event_type == "invoice_failed" ||
         eventsArray[0].event_type == "invoice_refund" ||
         eventsArray[0].event_type == "invoice_reactivate" ||

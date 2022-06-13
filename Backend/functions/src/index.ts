@@ -26,8 +26,7 @@ import {slackAppFunctions,
 import {sendgridLogic} from "../utils/sendgridUtils";
 import * as express from "express";
 import "dotenv/config";
-import {Dunning, ActiveDunning, Retained} from "../types/interface";
-import {reepayGetTotalGrossIncome} from "../utils/reepayUtils";
+import {reepayGetDataForDashboard, reepayGetTotalGrossIncome} from "../utils/reepayUtils";
 // const config = functions.config();
 // const config = process.env;
 admin.initializeApp();
@@ -64,7 +63,7 @@ export const fetchDunningInvoices =
           if (paymentGateway === "Reepay") {
             const updateLogic:any = await reepayUtils.reepayLogic(companyApykey, companyName);
             if ((updateLogic.dunning).length != 0 ||
-             (updateLogic.retianed).length != 0 ||
+             (updateLogic.retained).length != 0 ||
              (updateLogic.onhold).length != 0) {
               const message = await updatesForNewUpdateInInvoices(updateLogic, companyName);
               publishMessage("C02U1337UPJ", message);
@@ -90,110 +89,8 @@ export const getDataForDashboard =
          const data = await retriveCustomersDocDataFromCompany(company.companyName);
          const invoices = await retriveInvoicesDocDataFromCompany(company.companyName);
          const invoiceData = await retriveDatasFromDocData(invoices);
-         functions.logger.log(invoiceData);
          const customerdata = await retriveDatasFromDocData(data);
-         const companyMap = new Map();
-         const dunningList = [];
-         const activeDunning = [];
-         const retainedList = [];
-         const onHoldList = [];
-         // const reDunning = [];
-         for (const cusData of customerdata ) {
-           for (const invdata of invoiceData) {
-             if (cusData.handle == invdata.invoice.customer) {
-               functions.logger.log("first if", invdata);
-               if (invdata.activeFlow === true && invdata.status === "active") {
-                 const activedunning: ActiveDunning = {
-                   first_name: cusData.first_name,
-                   last_name: cusData.last_name,
-                   handle: cusData.handle,
-                   flowStartDate: invdata.flowStartDate ? invdata.flowStartDate : false,
-                   errorState: reepayUtils.checkTransactionVariable(invdata.invoice, "error_state"),
-                   flowCount: invdata.flowCount ? invdata.flowCount : false,
-                   ordertext: invdata.invoice.order_lines[0].ordertext,
-                   created: invdata.invoice.created,
-                   settled_invoices: cusData.settled_invoices,
-                   amount: invdata.invoice.order_lines[0].amount,
-                   phone: cusData.phone,
-                   email: cusData.email,
-                   error: reepayUtils.checkTransactionVariable(invdata.invoice, "error") ?
-                   reepayUtils.checkTransactionVariable(invdata.invoice, "error") : false,
-                   acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message")?
-                   reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message") : false,
-                   activeFlow: invdata.activeFlow ? invdata.activeFlow : false,
-                 };
-                 activeDunning.push(activedunning);
-               } else if (!invdata.activeFlow && invdata.status === "active") {
-                 const dunning: Dunning = {
-                   first_name: cusData.first_name,
-                   last_name: cusData.last_name,
-                   handle: cusData.handle,
-                   errorState: reepayUtils.checkTransactionVariable(invdata.invoice, "error_state"),
-                   ordertext: invdata.invoice.order_lines[0].ordertext,
-                   created: invdata.invoice.created,
-                   settled_invoices: cusData.settled_invoices,
-                   amount: invdata.invoice.order_lines[0].amount,
-                   phone: cusData.phone,
-                   email: cusData.email,
-                   error: reepayUtils.checkTransactionVariable(invdata.invoice, "error") ?
-                   reepayUtils.checkTransactionVariable(invdata.invoice, "error") : false,
-                   acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message")?
-                   reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message") : false,
-                 };
-                 functions.logger.log("dunning", dunning);
-                 dunningList.push(dunning);
-               } else if (invdata.status === "retained") {
-                 const retained: Retained = {
-                   first_name: cusData.first_name,
-                   last_name: cusData.last_name,
-                   handle: cusData.handle,
-                   flowStartDate: invdata.flowStartDate ? invdata.flowStartDate : false,
-                   errorState: reepayUtils.checkTransactionVariable(invdata.invoice, "error_state"),
-                   flowCount: invdata.flowCount ? invdata.flowCount : false,
-                   ordertext: invdata.invoice.order_lines[0].ordertext,
-                   created: invdata.invoice.created,
-                   settled_invoices: cusData.settled_invoices,
-                   amount: invdata.invoice.order_lines[0].amount,
-                   phone: cusData.phone,
-                   email: cusData.email,
-                   error: reepayUtils.checkTransactionVariable(invdata.invoice, "error") ?
-                   reepayUtils.checkTransactionVariable(invdata.invoice, "error") : false,
-                   acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message")?
-                   reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message") : false,
-                   activeFlow: invdata.activeFlow ? invdata.activeFlow : false,
-                   invoiceEndDate: invdata?.invoiceEndDate,
-                 };
-                 retainedList.push(retained);
-               } else if (invdata.status === "onhold") {
-                 const onhold: Retained = {
-                   first_name: cusData.first_name,
-                   last_name: cusData.last_name,
-                   handle: cusData.handle,
-                   flowStartDate: invdata.flowStartDate ? invdata.flowStartDate : false,
-                   errorState: reepayUtils.checkTransactionVariable(invdata.invoice, "error_state"),
-                   flowCount: invdata.flowCount ? invdata.flowCount : false,
-                   ordertext: invdata.invoice.order_lines[0].ordertext,
-                   created: invdata.invoice.created,
-                   settled_invoices: cusData.settled_invoices,
-                   amount: invdata.invoice.order_lines[0].amount,
-                   phone: cusData.phone,
-                   email: cusData.email,
-                   error: reepayUtils.checkTransactionVariable(invdata.invoice, "error") ?
-                   reepayUtils.checkTransactionVariable(invdata.invoice, "error") : false,
-                   acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message")?
-                   reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message") : false,
-                   activeFlow: invdata.activeFlow ? invdata.activeFlow : false,
-                   invoiceEndDate: invdata?.invoiceEndDate,
-                 };
-                 onHoldList.push(onhold);
-               }
-             }
-           }
-         }
-         companyMap["dunningList"] = dunningList;
-         companyMap["activeDunning"] = activeDunning;
-         companyMap["retainedList"] = retainedList;
-         companyMap["onHoldList"] = onHoldList;
+         const companyMap = reepayGetDataForDashboard(customerdata, invoiceData );
          functions.logger.log(companyMap);
          addDashboardDataToCompany(company.companyName, companyMap);
        }

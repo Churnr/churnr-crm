@@ -116,6 +116,28 @@ export const addDataToDocInCollectionUnderCompany = async (collection:string,
 };
 
 /**
+ * Creats a doc in a collection under a companies doc
+ * @param {string}collection collection name in firestore
+ * @param {string}companyName companyName
+ * @param {any} object
+ * @param {string} docId
+ * @return {admin.firestore.WriteResult} firestore WriteResult
+ */
+export const updateDataToDocInCollectionUnderCompany = async (collection:string,
+    companyName:string, object:any, docId:string): Promise<admin.firestore.WriteResult> => {
+  try {
+    const newDoc = await admin.firestore()
+        .collection("Companys")
+        .doc(companyName)
+        .collection(collection)
+        .doc(docId).update(object);
+    return newDoc;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
  * adds an invoice object to a companies customer
  * and push it to array of strings - invoiceIdArray
  * @param {string}companyName collection name in firestore

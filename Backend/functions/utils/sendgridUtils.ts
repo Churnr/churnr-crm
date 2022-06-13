@@ -6,7 +6,7 @@ import {getInvoicesObjectBasedOnStatusFromCompany,
   updateInvoiceLastFlowActivity} from "../utils/firestoreUtils";
 import {differenceInDays} from "date-fns";
 import * as sendgrid from "@sendgrid/mail";
-// import * as functions from "firebase-functions";
+import * as functions from "firebase-functions";
 // const config = functions.config();
 const sengridapikey = process.env.SENDGRID_API_KEY;
 // const sengridapikey = config.env.SLACK_BOT_TOKEN;
@@ -147,23 +147,24 @@ export async function sendgridLogic(company:any) {
     if (invoice.status == "active") {
       if (flowRules.length > invoice.flowCount) {
         const DifferenceInTime = differenceInDays(today, new Date(invoice.flowStartDate.toDate()));
-        if (DifferenceInTime == flowRules[invoice.flowCount].time) {
+        if (DifferenceInTime >= flowRules[invoice.flowCount].time) {
           const customer = await getCustomerFromFirestore(company.companyName, invoice.invoice.customer);
           if (flowRules[invoice.flowCount].type == "email") {
             const emailMsg = emailMessage("system@churnr.dk", companyEmail,
                 templateMap[invoice.invoiceError][invoice.flowCount], customer);
-            sendgrid.send(emailMsg);
+            const test = sendgrid.send(emailMsg);
+            functions.logger.log(test);
             updateInvoiceFlowCountValue(company.companyName, invoice.invoice.handle, invoice.flowCount+1);
             updateInvoiceLastFlowActivity(company.companyName, invoice.invoice.handle, today);
           } else if (flowRules[invoice.flowCount].type == "phonecall") {
             // Missing phonecall implementation
-            phonecallArray.push(invoice);
+            phonecallArray.push(invoice.invoice.customer);
             // Make Array of invoices and return the value to publish on slack
             updateInvoiceFlowCountValue(company.companyName, invoice.invoice.handle, invoice.flowCount+1);
             updateInvoiceLastFlowActivity(company.companyName, invoice.invoice.handle, today);
           } else if (flowRules[invoice.flowCount].type == "sms") {
             // Missing sms implementation
-            smsArray.push(invoice);
+            smsArray.push(invoice.invoice.customer);
             // Make Array of invoices and return the value to publish on slack
             updateInvoiceFlowCountValue(company.companyName, invoice.invoice.handle, invoice.flowCount+1);
             updateInvoiceLastFlowActivity(company.companyName, invoice.invoice.handle, today);
@@ -173,7 +174,7 @@ export async function sendgridLogic(company:any) {
       if (flowRules.length <= invoice.flowCount) {
         // this block will deactivate the flow if the invoice flowCounter
         // is bigger or as big as the flowRules array length
-        endedflows.push(invoice);
+        endedflows.push(invoice.invoice.customer);
         updateInvoiceActiveFlowValue(company.companyName, invoice.invoice.handle, false);
         updateInvoiceFlowEndValue(company.companyName, invoice.invoice.handle, today);
         console.log("flow deactivatet");
