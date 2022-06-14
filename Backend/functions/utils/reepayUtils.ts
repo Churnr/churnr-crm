@@ -310,6 +310,7 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
   const dunning:any = [];
   const retained:any = [];
   const onhold:any = [];
+  const expired:any = [];
   const updateMap = new Map();
   const options = createHttpOptionsForReepay(companyApikey);
   const reepayInvoiceArray: Array<any> =
@@ -365,6 +366,11 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
           } else if (eventsArray[1].event_type == "invoice_cancelled") {
             const invoice:any = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
             firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
+            firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "expired");
+            expired.push(invoice.invoice.customer);
+          } else if (eventsArray[1].event_type == "invoice_failed") {
+            const invoice:any = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
+            firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
             firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
             onhold.push(invoice.invoice.customer);
           }
@@ -376,10 +382,14 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
         } else if (eventsArray[0].event_type == "invoice_cancelled") {
           const invoice:any = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
           firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
+          firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "expired");
+          expired.push(invoice.invoice.customer);
+        } else if (eventsArray[0].event_type == "invoice_failed") {
+          const invoice:any = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
+          firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
           firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
           onhold.push(invoice.invoice.customer);
-        } else if (eventsArray[0].event_type == "invoice_failed" ||
-        eventsArray[0].event_type == "invoice_refund" ||
+        } else if (eventsArray[0].event_type == "invoice_refund" ||
         eventsArray[0].event_type == "invoice_reactivate" ||
         eventsArray[0].event_type == "invoice_credited" ||
         eventsArray[0].event_type == "invoice_changed") {
@@ -391,6 +401,7 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
   updateMap["dunning"] = dunning;
   updateMap["retained"] = retained;
   updateMap["onhold"] = onhold;
+  updateMap["expired"] = expired;
   return updateMap;
 };
 

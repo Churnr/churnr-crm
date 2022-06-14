@@ -1,9 +1,11 @@
-import {getInvoicesObjectBasedOnStatusFromCompany,
+import {
+  getInvoicesObjectBasedOnStatusFromCompany,
   getCustomerFromFirestore,
   updateInvoiceFlowCountValue,
   updateInvoiceActiveFlowValue,
   updateInvoiceFlowEndValue,
-  updateInvoiceLastFlowActivity} from "../utils/firestoreUtils";
+  updateInvoiceLastFlowActivity,
+} from "../utils/firestoreUtils";
 import {differenceInDays} from "date-fns";
 import * as sendgrid from "@sendgrid/mail";
 import * as functions from "firebase-functions";
@@ -32,10 +34,18 @@ const sengridapikey = process.env.SENDGRID_API_KEY;
 
 // Der skal katergori med, slack commanden, og der så 3 katergori med 7 emails der skal sendes
 // eslint-disable-next-line require-jsdoc
-export function emailMessage(to:string, from:string, template:string, customerObject:any) {
+export function emailMessage(
+    to: string,
+    from: string,
+    template: string,
+    customerObject: any
+) {
   const msg = {
     to: to,
-    from: from,
+    from: {
+      email: from,
+      name: "Jacob fra Lalatoys",
+    },
     templateId: template,
     dynamicTemplateData: {
       customer: {
@@ -129,8 +139,10 @@ export function emailMessage(to:string, from:string, template:string, customerOb
  * Evt. ændre navn fra sendGridLogic til flowLogic??
  */
 // eslint-disable-next-line require-jsdoc
-export async function sendgridLogic(company:any) {
-  const invoiceArray = await getInvoicesObjectBasedOnStatusFromCompany(company.companyName);
+export async function sendgridLogic(company: any) {
+  const invoiceArray = await getInvoicesObjectBasedOnStatusFromCompany(
+      company.companyName
+  );
   const templateMap = company.templateMap;
   const companyEmail = company.email;
   const flowRules = company.flowRules;
@@ -146,28 +158,62 @@ export async function sendgridLogic(company:any) {
   for (const invoice of invoiceArray) {
     if (invoice.status == "active") {
       if (flowRules.length > invoice.flowCount) {
-        const DifferenceInTime = differenceInDays(today, new Date(invoice.flowStartDate.toDate()));
+        const DifferenceInTime = differenceInDays(
+            today,
+            new Date(invoice.flowStartDate.toDate())
+        );
         if (DifferenceInTime >= flowRules[invoice.flowCount].time) {
-          const customer = await getCustomerFromFirestore(company.companyName, invoice.invoice.customer);
+          const customer = await getCustomerFromFirestore(
+              company.companyName,
+              invoice.invoice.customer
+          );
           if (flowRules[invoice.flowCount].type == "email") {
-            const emailMsg = emailMessage("system@churnr.dk", companyEmail,
-                templateMap[invoice.invoiceError][invoice.flowCount], customer);
+            const emailMsg = emailMessage(
+                customer.email,
+                companyEmail,
+                templateMap[invoice.invoiceError][invoice.flowCount],
+                customer
+            );
             const test = sendgrid.send(emailMsg);
             functions.logger.log(test);
-            updateInvoiceFlowCountValue(company.companyName, invoice.invoice.handle, invoice.flowCount+1);
-            updateInvoiceLastFlowActivity(company.companyName, invoice.invoice.handle, today);
+            updateInvoiceFlowCountValue(
+                company.companyName,
+                invoice.invoice.handle,
+                invoice.flowCount + 1
+            );
+            updateInvoiceLastFlowActivity(
+                company.companyName,
+                invoice.invoice.handle,
+                today
+            );
           } else if (flowRules[invoice.flowCount].type == "phonecall") {
             // Missing phonecall implementation
             phonecallArray.push(invoice.invoice.customer);
             // Make Array of invoices and return the value to publish on slack
-            updateInvoiceFlowCountValue(company.companyName, invoice.invoice.handle, invoice.flowCount+1);
-            updateInvoiceLastFlowActivity(company.companyName, invoice.invoice.handle, today);
+            updateInvoiceFlowCountValue(
+                company.companyName,
+                invoice.invoice.handle,
+                invoice.flowCount + 1
+            );
+            updateInvoiceLastFlowActivity(
+                company.companyName,
+                invoice.invoice.handle,
+                today
+            );
           } else if (flowRules[invoice.flowCount].type == "sms") {
             // Missing sms implementation
             smsArray.push(invoice.invoice.customer);
             // Make Array of invoices and return the value to publish on slack
-            updateInvoiceFlowCountValue(company.companyName, invoice.invoice.handle, invoice.flowCount+1);
-            updateInvoiceLastFlowActivity(company.companyName, invoice.invoice.handle, today);
+            updateInvoiceFlowCountValue(
+                company.companyName,
+                invoice.invoice.handle,
+                invoice.flowCount + 1
+            );
+            updateInvoiceLastFlowActivity(
+                company.companyName,
+                invoice.invoice.handle,
+                today
+            );
           }
         }
       }
@@ -175,8 +221,16 @@ export async function sendgridLogic(company:any) {
         // this block will deactivate the flow if the invoice flowCounter
         // is bigger or as big as the flowRules array length
         endedflows.push(invoice.invoice.customer);
-        updateInvoiceActiveFlowValue(company.companyName, invoice.invoice.handle, false);
-        updateInvoiceFlowEndValue(company.companyName, invoice.invoice.handle, today);
+        updateInvoiceActiveFlowValue(
+            company.companyName,
+            invoice.invoice.handle,
+            false
+        );
+        updateInvoiceFlowEndValue(
+            company.companyName,
+            invoice.invoice.handle,
+            today
+        );
         console.log("flow deactivatet");
       }
     }
@@ -186,7 +240,6 @@ export async function sendgridLogic(company:any) {
   updateMap["endedflows"] = endedflows;
   return updateMap;
 }
-
 
 // slack Command send
 

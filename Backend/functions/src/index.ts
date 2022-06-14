@@ -181,6 +181,19 @@ dataApi.get("/getData", async (req, res) => {
   res.status(200).send(mainList);
 });
 
+dataApi.get("/refresh", async (req, res) => {
+  const companyList:any = await getCompanys();
+  for (const company of companyList) {
+    const data = await retriveCustomersDocDataFromCompany(company.companyName);
+    const invoices = await retriveInvoicesDocDataFromCompany(company.companyName);
+    const invoiceData = await retriveDatasFromDocData(invoices);
+    const customerdata = await retriveDatasFromDocData(data);
+    const companyMap = reepayGetDataForDashboard(customerdata, invoiceData );
+    functions.logger.log(companyMap);
+    addDashboardDataToCompany(company.companyName, companyMap);
+  }
+});
+
 
 exports.app = functions
     .region("europe-west2").https.onRequest(apps);
