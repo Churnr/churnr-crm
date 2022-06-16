@@ -5,6 +5,7 @@ import {
   updateInvoiceActiveFlowValue,
   updateInvoiceFlowEndValue,
   updateInvoiceLastFlowActivity,
+  updateInvoiceEmailCountValue,
 } from "../utils/firestoreUtils";
 import {differenceInDays} from "date-fns";
 import * as sendgrid from "@sendgrid/mail";
@@ -171,7 +172,7 @@ export async function sendgridLogic(company: any) {
             const emailMsg = emailMessage(
                 customer.email,
                 companyEmail,
-                templateMap[invoice.invoiceError][invoice.flowCount],
+                templateMap[invoice.invoiceError][invoice.emailCount],
                 customer
             );
             const test = sendgrid.send(emailMsg);
@@ -185,6 +186,11 @@ export async function sendgridLogic(company: any) {
                 company.companyName,
                 invoice.invoice.handle,
                 today
+            );
+            updateInvoiceEmailCountValue(
+                company.companyName,
+                invoice.invoice.handle,
+                invoice.emailCount + 1
             );
           } else if (flowRules[invoice.flowCount].type == "phonecall") {
             // Missing phonecall implementation

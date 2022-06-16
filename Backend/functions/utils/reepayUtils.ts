@@ -5,6 +5,7 @@ import * as firestoreUtils from "../utils/firestoreUtils";
 import * as functions from "firebase-functions";
 import {ActiveDunning, Dunning, Retained} from "../types/interface";
 import * as reepayUtils from "../utils/reepayUtils";
+import {updateInvoiceActiveFlowValue} from "../utils/firestoreUtils";
 // import {dailyUpdate} from "../types/types";
 /**
  * Keeps sending request aslong as respons contains next_page_token
@@ -327,7 +328,6 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
   for (const dunningInvoices of reepayInvoiceArray) {
     if (activeInvoiceIdArray.indexOf(dunningInvoices.handle) == -1) {
       dunning.push(dunningInvoices.customer);
-      functions.logger.log("in if statemaent linje 223", dunning);
       const customerObject = await getReepayCustomerObject(options, dunningInvoices.customer);
       const subscriptionObject = await getReepaySubscriptionObject(options, dunningInvoices.subscription);
       const customCustomerObject = await createCustomCustomerObject(customerObject, subscriptionObject);
@@ -362,32 +362,50 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
             const invoice:any = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
             firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
             firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
+            if (invoice.activeFlow != undefined) {
+              updateInvoiceActiveFlowValue(companyName, invoice.invoice.handle, false);
+            }
             retained.push(invoice.invoice.customer);
           } else if (eventsArray[1].event_type == "invoice_cancelled") {
             const invoice:any = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
             firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
             firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "expired");
+            if (invoice.activeFlow != undefined) {
+              updateInvoiceActiveFlowValue(companyName, invoice.invoice.handle, false);
+            }
             expired.push(invoice.invoice.customer);
           } else if (eventsArray[1].event_type == "invoice_failed") {
             const invoice:any = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
             firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
             firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
+            if (invoice.activeFlow != undefined) {
+              updateInvoiceActiveFlowValue(companyName, invoice.invoice.handle, false);
+            }
             onhold.push(invoice.invoice.customer);
           }
         } else if (eventsArray[0].event_type == "invoice_settled") {
           const invoice:any = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
           firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
           firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "retained");
+          if (invoice.activeFlow != undefined) {
+            updateInvoiceActiveFlowValue(companyName, invoice.invoice.handle, false);
+          }
           retained.push(invoice.invoice.customer);
         } else if (eventsArray[0].event_type == "invoice_cancelled") {
           const invoice:any = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
           firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
           firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "expired");
+          if (invoice.activeFlow != undefined) {
+            updateInvoiceActiveFlowValue(companyName, invoice.invoice.handle, false);
+          }
           expired.push(invoice.invoice.customer);
         } else if (eventsArray[0].event_type == "invoice_failed") {
           const invoice:any = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
           firestoreUtils.updateInvoiceEndDate(companyName, invoiceId);
           firestoreUtils.updateInvoiceStatusValue(companyName, invoiceId, "onhold");
+          if (invoice.activeFlow != undefined) {
+            updateInvoiceActiveFlowValue(companyName, invoice.invoice.handle, false);
+          }
           onhold.push(invoice.invoice.customer);
         } else if (eventsArray[0].event_type == "invoice_refund" ||
         eventsArray[0].event_type == "invoice_reactivate" ||

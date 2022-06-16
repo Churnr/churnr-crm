@@ -3,7 +3,7 @@ import * as admin from "firebase-admin";
 import * as types from "../types/types";
 import {logger} from "firebase-functions";
 import {customer} from "../types/types";
-import {checkTransactionVariable} from "./reepayUtils";
+// import {checkTransactionVariable} from "./reepayUtils";
 import {extraDaysFunction} from "./dateUtils";
 
 /**
@@ -205,6 +205,11 @@ export const updateInvoiceEndDate = async (companyName:string, docId:string) => 
 export const updateInvoiceLastFlowActivity = async (companyName:string, docId:string, today:Date) => {
   const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
       .collection("Invoices").doc(docId).update({lastFlowActivity: today});
+  return firestoreData;
+};
+export const updateInvoiceEmailCountValue = async (companyName:string, docId:string, emailCount:number) => {
+  const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
+      .collection("Invoices").doc(docId).update({emailCount: emailCount});
   return firestoreData;
 };
 
@@ -476,14 +481,10 @@ export const updateActiveInvoiceWithActiveFlowVariables = async (companyName:str
         .doc(companyName)
         .collection("Invoices")
         .where("status", "==", "active").where("invoice.customer", "==", customerId).get()).docs[0].data();
-    if (checkTransactionVariable(activeInvoice.invoice, "error_state") != "hard_declined") {
-      await admin.firestore().collection("Companys").doc(companyName)
-          .collection("Invoices").doc(activeInvoice.invoice.handle).update({flowCount: 0,
-            activeFlow: true, invoiceError: invoiceError,
-            flowStartDate: today});
-    } else {
-      throw new Error("It looks like you tried to start a flow on a hard declined invoice");
-    }
+    await admin.firestore().collection("Companys").doc(companyName)
+        .collection("Invoices").doc(activeInvoice.invoice.handle).update({emailCount: 0, flowCount: 0,
+          activeFlow: true, invoiceError: invoiceError,
+          flowStartDate: today});
   } catch (error) {
     throw new Error(error + "updateActiveInvoiceWithActiveFlowVariables");
   }
