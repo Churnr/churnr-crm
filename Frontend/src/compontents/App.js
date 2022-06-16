@@ -6,7 +6,6 @@ import Dashboard from "./Dashboard";
 import Guide from "./Guide";
 import Login from "./Login";
 import PrivateRoute from "./PrivateRoute";
-import { ChakraProvider } from '@chakra-ui/react'
 function App() {
   return (
     
