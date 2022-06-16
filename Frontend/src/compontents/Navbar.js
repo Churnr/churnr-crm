@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Navbar, Container, NavDropdown, Nav, Button } from "react-bootstrap";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { Wrap,Avatar,WrapItem } from '@chakra-ui/react'
 export default function Navbar_site() {
   const { logout } = useAuth();
   const { currentUser } = useAuth();
@@ -30,7 +31,7 @@ export default function Navbar_site() {
             </NavDropdown>
           </Nav>
         </Navbar.Collapse>
-        <p
+        {/* <p
           style={{
             color: "white",
             lineHeight: "50px",
@@ -39,7 +40,21 @@ export default function Navbar_site() {
           }}
         >
           {currentUser.email}
+        </p> */}
+        <Wrap>
+          <WrapItem>            
+            <p
+          style={{
+            color: "white",
+            paddingRight: "0.5rem"
+          }}
+        >
+          {currentUser.email}
         </p>
+            <Avatar size='sm' name='Dan Abrahmov' src='https://berlingske.bmcdn.dk/media/cache/resolve/image_x_large_vertical/image/97/973869/6980615-ole.jpg' style={{margin: "0 15px"}}/>
+
+          </WrapItem>
+        </Wrap>
         <Button variant="light" size="sm" onClick={handleLogout}>
           Log Out{error}
         </Button>
