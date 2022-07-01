@@ -45,10 +45,6 @@ export default function Dashboard() {
       response.Lalatoys.dunningList,
       date
     );
-    const newDctiveDunning = NewDataFromDateInterval(
-      response.Lalatoys.activeDunning,
-      date
-    );
     const newRetainedList = NewDataFromDateInterval(
       response.Lalatoys.retainedList,
       date
@@ -59,7 +55,7 @@ export default function Dashboard() {
     );
 
     setResponeDunning(newDunningList);
-    setResponeActive(newDctiveDunning);
+    setResponeActive(response.Lalatoys.activeDunning);
     setResponeRetained(newRetainedList);
     setResponeOnhold(newOnHoldList);
   };
@@ -80,10 +76,6 @@ export default function Dashboard() {
       data.Lalatoys.dunningList,
       date
     );
-    const newDctiveDunning = NewDataFromDateInterval(
-      data.Lalatoys.activeDunning,
-      date
-    );
     const newRetainedList = NewDataFromDateInterval(
       data.Lalatoys.retainedList,
       date
@@ -94,7 +86,7 @@ export default function Dashboard() {
     );
 
     setResponeDunning(newDunningList);
-    setResponeActive(newDctiveDunning);
+    setResponeActive(data.Lalatoys.activeDunning);
     setResponeRetained(newRetainedList);
     setResponeOnhold(newOnHoldList);
     setisData(true);

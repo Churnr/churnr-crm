@@ -11,17 +11,12 @@ import {
 } from "../utils/firestoreUtils";
 import * as reepayUtils from "../utils/reepayUtils";
 import * as firestoreUtils from "../utils/firestoreUtils";
-// import * as sendgridUtils from "../utils/sendgridUtils";
-// import {PubSub} from "@google-cloud/pubsub";
 import * as cors from "cors";
 import * as middleware from "../middleware/middleware";
 import {slackAppFunctions,
   publishMessage,
-  // dailyUpdateForSlack,
-  updatesForPhoneSmsAndEndedFlows,
   noUpdatesToday,
   updatesForNewUpdateInInvoices,
-  // updatesForNewUpdateInInvoices,
 } from "../utils/slackUtils";
 import {sendgridLogic} from "../utils/sendgridUtils";
 import * as express from "express";
@@ -65,8 +60,15 @@ export const fetchDunningInvoices =
             if ((updateLogic.dunning).length != 0 ||
              (updateLogic.retained).length != 0 ||
              (updateLogic.onhold).length != 0) {
-              const message = await updatesForNewUpdateInInvoices(updateLogic, companyName);
-              publishMessage("C03E3GB54JD", message);
+              const dunning = await updatesForNewUpdateInInvoices(updateLogic.dunning, companyName
+                  , "dunning", " arrived in dunning &#129299");
+              const retained = await updatesForNewUpdateInInvoices(updateLogic.retained, companyName,
+                  "retained", " arrived in retained &#1F973");
+              const onhold = await updatesForNewUpdateInInvoices(updateLogic.onhold, companyName,
+                  "onhold", " arrived in onhold &#128577");
+              publishMessage("C03E3GB54JD", dunning);
+              publishMessage("C03E3GB54JD", retained);
+              publishMessage("C03E3GB54JD", onhold);
             }
           }
         }
@@ -104,9 +106,17 @@ functions.region("europe-west2").pubsub.schedule("0 17 * * *")
       const companys: any = await getCompanys();
       for (const company of companys) {
         const updates: any = await sendgridLogic(company);
+        const companyName = company.companyName;
         if ((updates.phonecall).length != 0 || (updates.sms).length != 0 || (updates.endedflows).length != 0) {
-          const message = await updatesForPhoneSmsAndEndedFlows(updates, company.companyName);
-          publishMessage("C03E3GB54JD", message);
+          const phonecall = await updatesForNewUpdateInInvoices(updates.phonecall, companyName
+              , "phonecall", " needs a phonecall &#1F4DE");
+          const sms = await updatesForNewUpdateInInvoices(updates.sms, companyName
+              , "sms", " needs a sms &#1F514");
+          const endedflows = await updatesForNewUpdateInInvoices(updates.endedflows, companyName
+              , "endedflows", "'s flow ended");
+          publishMessage("C03E3GB54JD", phonecall);
+          publishMessage("C03E3GB54JD", sms);
+          publishMessage("C03E3GB54JD", endedflows);
         } else {
           publishMessage("C03E3GB54JD", noUpdatesToday(company.companyName));
         }
@@ -146,7 +156,7 @@ Brutto Fastholdelse
 export const creatMonthlyReport =
   functions.region("europe-west2").pubsub.schedule("59 22 3 * *")
       .timeZone("Europe/Copenhagen").onRun(async (context) => {
-        const companyName = "LALA";
+        const companyName = "Lalatoys";
         const invoiceArray = (await firestoreUtils.retriveInvoicesForMonthlyReportDocDataFromCompany(companyName, 2))
             .map((test) => test.data());
         const activeInvoiceArray = (await firestoreUtils.retriveActiveInvoicesDocDataFromCompany(companyName))
@@ -163,7 +173,7 @@ export const creatMonthlyReport =
         // total gross income for all retained invoices
         reportMap["totalGrossIncome"] = reepayGetTotalGrossIncome(
             invoiceArray.filter((invoice) => invoice.status === "retained"));
-        console.log(invoiceArray);
+        console.log(reportMap);
         return null;
       }
       );

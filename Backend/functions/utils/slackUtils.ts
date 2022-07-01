@@ -169,7 +169,6 @@ export const noUpdatesToday = (companyName:string) => {
 
 const sectionFromArrayToFetch = async (object:any, companyName:string, message:string) => {
   const tmpList = [];
-  functions.logger.log("In sectionFromAwway", object);
   for (const inv of object) {
     const customer = await getCustomerFromFirestore(companyName, inv);
     const phonecall = {
@@ -199,31 +198,19 @@ const sectionFromArray = async (object:any, companyName:string, message:string) 
   return tmpList;
 };
 
-export const updatesForNewUpdateInInvoices = async (object:any, companyName:string) => {
-  const dunning = await sectionFromArrayToFetch(object.dunning, companyName, " arrived in dunning");
-  const retained = await sectionFromArrayToFetch(object.retained, companyName, " arrived in retained");
-  const onhold = await sectionFromArrayToFetch(object.onhold, companyName, " arrived in onhold");
+export const updatesForNewUpdateInInvoices = async (object:any, companyName:string, message:string, status:string) => {
+  const array = await sectionFromArrayToFetch(object, companyName, message);
   const header = {
     "type": "header",
     "text": {
       "type": "plain_text",
-      "text": `New Daily Updates From Flow For ${companyName}`,
+      "text": `New customers arrived in ${status} for ${companyName}`,
       "emoji": true,
     },
   };
   const messages = [];
   messages.push(header);
-  for ( const msg of dunning ) {
-    if (msg) {
-      messages.push(msg);
-    }
-  }
-  for (const msg of retained) {
-    if (msg) {
-      messages.push(msg);
-    }
-  }
-  for (const msg of onhold) {
+  for ( const msg of array ) {
     if (msg) {
       messages.push(msg);
     }
@@ -761,14 +748,6 @@ export const slackAppFunctions = () => {
                       emoji: true,
                     },
                     value: "value-0",
-                  },
-                  {
-                    text: {
-                      type: "plain_text",
-                      text: "Spiritium",
-                      emoji: true,
-                    },
-                    value: "value-1",
                   },
                 ],
                 action_id: "static_select-action",
