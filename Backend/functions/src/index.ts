@@ -66,7 +66,7 @@ export const fetchDunningInvoices =
              (updateLogic.retained).length != 0 ||
              (updateLogic.onhold).length != 0) {
               const message = await updatesForNewUpdateInInvoices(updateLogic, companyName);
-              publishMessage("C02U1337UPJ", message);
+              publishMessage("C03E3GB54JD", message);
             }
           }
         }
@@ -106,9 +106,9 @@ functions.region("europe-west2").pubsub.schedule("0 17 * * *")
         const updates: any = await sendgridLogic(company);
         if ((updates.phonecall).length != 0 || (updates.sms).length != 0 || (updates.endedflows).length != 0) {
           const message = await updatesForPhoneSmsAndEndedFlows(updates, company.companyName);
-          publishMessage("C02U1337UPJ", message);
+          publishMessage("C03E3GB54JD", message);
         } else {
-          publishMessage("C02U1337UPJ", noUpdatesToday(company.companyName));
+          publishMessage("C03E3GB54JD", noUpdatesToday(company.companyName));
         }
       }
       return null;
