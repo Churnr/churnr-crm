@@ -278,7 +278,7 @@ export const retriveInvoicesForMonthlyReportDocDataFromCompany = async (companyN
   try {
     const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
         .collection("Invoices")
-        .where("invoiceEndDate", ">=", endDate)
+        .where("invoiceEndDate", ">=", expirationDate)
         .where("invoiceEndDate", "<", startdate).get();
     return firestoreData.docs;
   } catch (error) {

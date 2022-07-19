@@ -96,3 +96,31 @@ export type dailyUpdate = {
 // Betalte invoices i alt
 // Antal emails sendt
 
+export type Retained = {
+    customerId: number;
+    firstName: string;
+    lastName: string;
+    invoiceValue: number;
+    retainedDate: Date;
+}
+export type Expired = {
+    customerId: number;
+    firstName: string;
+    lastName: string;
+    customerCreated: Date;
+    expiredDate: Date;
+}
+export type OnHold = {
+    customerId: number;
+    firstName: string;
+    lastName: string;
+    customerCreated: Date;
+    onHoldDate: Date;
+}
+export type NotRetained = {
+    customerId: number;
+    firstName: string;
+    lastName: string;
+    emailCount: number;
+    phoneCount: number;
+}

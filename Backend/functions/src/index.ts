@@ -8,6 +8,7 @@ import {
   addDashboardDataToCompany,
   retriveDataFromFirestoreToDisplayOnDasboard,
   retriveInvoicesDocDataFromCompany,
+  getCustomerFromFirestore,
 } from "../utils/firestoreUtils";
 import * as reepayUtils from "../utils/reepayUtils";
 import * as firestoreUtils from "../utils/firestoreUtils";
@@ -22,6 +23,7 @@ import {sendgridLogic} from "../utils/sendgridUtils";
 import * as express from "express";
 import "dotenv/config";
 import {reepayGetDataForDashboard, reepayGetTotalGrossIncome} from "../utils/reepayUtils";
+import {Retained, OnHold, Expired, NotRetained} from "../types/types";
 // const config = functions.config();
 // const config = process.env;
 admin.initializeApp();
@@ -161,16 +163,73 @@ export const creatMonthlyReport =
             .map((test) => test.data());
         const activeInvoiceArray = (await firestoreUtils.retriveActiveInvoicesDocDataFromCompany(companyName))
             .map((doc) => doc.data());
-        const reportMap = {};
+        const retained: Array<Retained> = [];
+        const onHold: Array<OnHold> = [];
+        const expired: Array<Expired> = [];
+        const notRetained: Array<NotRetained> = [];
         // total dunning kunder. læg invoiceArray og activeInvoiceArray sammen.
-        reportMap["totalDunning"] = invoiceArray.length + activeInvoiceArray.length;
         // Kunder fastholdt. Tag fat i alle kunder der er retained
-        reportMap["totalRetained"] = invoiceArray.filter((invoice) => invoice.status === "retained").length;
+        // reportMap["totalRetained"] = invoiceArray.filter((invoice) => invoice.status === "retained").length;
         // On hold tag fat i kunder der er onhold
-        reportMap["totalOnHold"] = invoiceArray.filter((invoice) => invoice.status === "onhold").length;
+        // reportMap["totalOnHold"] = invoiceArray.filter((invoice) => invoice.status === "onhold").length;
+        // Expired tag fat i kunder der er expired
+        // reportMap["totalExpired"] = invoiceArray.filter((invoice) => invoice.status === "expired").length;
         // længden af activeInvoiceArray
-        reportMap["totalNotRetained"] = activeInvoiceArray.length;
+        // reportMap["totalNotRetained"] = activeInvoiceArray.length;
         // total gross income for all retained invoices
+        for (const invoice of invoiceArray) {
+          const status = invoice.status;
+          const flowCount = invoice?.flowCount ? invoice?.flowCount : 0;
+          const emailCount = invoice?.emailCount ? invoice?.emailCount : 0;
+          let phoneCount = 0;
+          const customerId = invoice.invoice.customer;
+          const customer = await getCustomerFromFirestore(companyName, customerId);
+          const firstName: string = customer.first_name;
+          const lastName = customer.last_name;
+          const customerCreated = customer.created;
+          const invoiceValue = invoice.invoice.amount;
+          if (flowCount >= 4 && flowCount < 8) {
+            phoneCount = 1;
+          }
+          if (flowCount >= 8) {
+            phoneCount = 2;
+          }
+          if (status == "active") {
+            const reportObject = {customerId: customerId,
+              firstName: firstName,
+              lastName: lastName,
+              emailCount: emailCount,
+              phoneCount: phoneCount,
+              flowStatus: "Not Critical"};
+            if (flowCount >= 7) {
+              reportObject["flowStatus"] = "Critical!!!";
+            }
+            notRetained.push(reportObject);
+          }
+          if (status == "onHold") {
+            onHold.push({customerId: customerId,
+              firstName: firstName,
+              lastName: lastName,
+              customerCreated: customerCreated,
+              onHoldDate: invoice.invoiceEndDate});
+          }
+          if (status == "expired") {
+            expired.push({customerId: customerId,
+              firstName: firstName,
+              lastName: lastName,
+              customerCreated: customerCreated,
+              expiredDate: invoice.invoiceEndDate});
+          }
+          if (status == "retained") {
+            retained.push({customerId: customerId,
+              firstName: firstName,
+              lastName: lastName,
+              invoiceValue: invoiceValue,
+              retainedDate: invoice.invoiceEndDate});
+          }
+        }
+        const reportMap = {retained: retained, onHold: onHold, expired: expired, notRetained: notRetained};
+        reportMap["totalDunning"] = invoiceArray.length + activeInvoiceArray.length;
         reportMap["totalGrossIncome"] = reepayGetTotalGrossIncome(
             invoiceArray.filter((invoice) => invoice.status === "retained"));
         console.log(reportMap);
