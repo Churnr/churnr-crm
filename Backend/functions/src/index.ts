@@ -60,15 +60,24 @@ export const fetchDunningInvoices =
             if ((updateLogic.dunning).length != 0 ||
              (updateLogic.retained).length != 0 ||
              (updateLogic.onhold).length != 0) {
-              const dunning = await updatesForNewUpdateInInvoices(updateLogic.dunning, companyName
-                  , "dunning", " arrived in dunning &#129299");
-              const retained = await updatesForNewUpdateInInvoices(updateLogic.retained, companyName,
-                  "retained", " arrived in retained &#1F973");
-              const onhold = await updatesForNewUpdateInInvoices(updateLogic.onhold, companyName,
-                  "onhold", " arrived in onhold &#128577");
-              publishMessage("C03E3GB54JD", dunning);
-              publishMessage("C03E3GB54JD", retained);
-              publishMessage("C03E3GB54JD", onhold);
+              if ((updateLogic.dunning).length != 0) {
+                const dunning = await updatesForNewUpdateInInvoices(updateLogic.dunning, companyName
+                    , " dunning", " dunning");
+                publishMessage("C03E3GB54JD", dunning);
+              }
+              if ((updateLogic.retained).length != 0) {
+                const retained = await updatesForNewUpdateInInvoices(updateLogic.retained, companyName,
+                    " retained", " retained");
+                publishMessage("C03E3GB54JD", retained);
+              }
+              if ( (updateLogic.onhold).length != 0) {
+                const onhold = await updatesForNewUpdateInInvoices(updateLogic.onhold, companyName,
+                    " onhold", " onhold");
+                publishMessage("C03E3GB54JD", onhold);
+              }
+            } else {
+              publishMessage("C03E3GB54JD",
+                  noUpdatesToday(company.companyName, ` ${company.companyName} when fetched new data for invoices.`));
             }
           }
         }
@@ -107,18 +116,22 @@ functions.region("europe-west2").pubsub.schedule("0 17 * * *")
       for (const company of companys) {
         const updates: any = await sendgridLogic(company);
         const companyName = company.companyName;
-        if ((updates.phonecall).length != 0 || (updates.sms).length != 0 || (updates.endedflows).length != 0) {
-          const phonecall = await updatesForNewUpdateInInvoices(updates.phonecall, companyName
-              , "phonecall", " needs a phonecall &#1F4DE");
-          const sms = await updatesForNewUpdateInInvoices(updates.sms, companyName
-              , "sms", " needs a sms &#1F514");
-          const endedflows = await updatesForNewUpdateInInvoices(updates.endedflows, companyName
-              , "endedflows", "'s flow ended");
-          publishMessage("C03E3GB54JD", phonecall);
-          publishMessage("C03E3GB54JD", sms);
-          publishMessage("C03E3GB54JD", endedflows);
+        if ((updates.endedflows).length != 0 || (updates.phonecall).length != 0 || (updates.sms).length != 0) {
+          if ((updates.endedflows).length != 0) {
+            const endedflows = await updatesForNewUpdateInInvoices(updates.endedflows, companyName
+                , " endedflows", "'s flow ended");
+            publishMessage("C03E3GB54JD", endedflows);
+          } if ((updates.phonecall).length != 0 ) {
+            const phonecall = await updatesForNewUpdateInInvoices(updates.phonecall, companyName
+                , " phonecall", " needs a phonecall");
+            publishMessage("C03E3GB54JD", phonecall);
+          } if ((updates.sms).length != 0) {
+            const sms = await updatesForNewUpdateInInvoices(updates.sms, companyName
+                , " sms", " needs a sms");
+            publishMessage("C03E3GB54JD", sms);
+          }
         } else {
-          publishMessage("C03E3GB54JD", noUpdatesToday(company.companyName));
+          publishMessage("C03E3GB54JD", noUpdatesToday(company.companyName, " phone calls, sms or ended flows today"));
         }
       }
       return null;
