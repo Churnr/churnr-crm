@@ -144,7 +144,7 @@ export const publishMessage = async (id:string, text:(Block | KnownBlock)[] | un
     console.error(error);
   }
 };
-export const noUpdatesToday = (companyName:string) => {
+export const noUpdatesToday = (companyName:string, text:string) => {
   const message = [
     {
       "type": "header",
@@ -158,7 +158,7 @@ export const noUpdatesToday = (companyName:string) => {
       "type": "section",
       "text": {
         "type": "plain_text",
-        "text": "There no new update for phone calls, sms or ended flows today",
+        "text": `There no new update for ${text}`,
         "emoji": true,
       },
     },
@@ -190,7 +190,7 @@ const sectionFromArray = async (object:any, companyName:string, message:string) 
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": `*Customer${message}*\n *Name:* ${customer.first_name as string} ${customer.last_name as string}\n *email:* ${customer.email as string} `,
+        "text": `*${message}*\n *Name:* ${customer.first_name as string} ${customer.last_name as string}\n *email:* ${customer.email as string} `,
       },
     };
     tmpList.push(phonecall);
