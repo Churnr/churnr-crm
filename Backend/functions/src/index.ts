@@ -9,6 +9,8 @@ import {
   retriveDataFromFirestoreToDisplayOnDasboard,
   retriveInvoicesDocDataFromCompany,
   getCustomerFromFirestore,
+  addMonthlyDataToCompany,
+  retriveRapportFromFirestoreToDisplayOnDasboard,
 } from "../utils/firestoreUtils";
 import * as reepayUtils from "../utils/reepayUtils";
 import * as firestoreUtils from "../utils/firestoreUtils";
@@ -104,7 +106,6 @@ export const getDataForDashboard =
          const invoiceData = await retriveDatasFromDocData(invoices);
          const customerdata = await retriveDatasFromDocData(data);
          const companyMap = reepayGetDataForDashboard(customerdata, invoiceData );
-         functions.logger.log(companyMap);
          addDashboardDataToCompany(company.companyName, companyMap);
        }
      }
@@ -149,65 +150,50 @@ kunder on hold
 endnu ikke fastholdt.
 Brutto Fastholdelse
 */
-// apps.get("/halloworld", async (req, res) => {
-//   const activeInvoiceDocData =
-//       await firestoreUtils.retriveActiveInvoicesDocDataFromCompany("LALA");
-//   const activeInvoiceIdArray = firestoreUtils.retriveDocIdsFromDocData(activeInvoiceDocData);
-//   const activeInvoiceDataArray = activeInvoiceDocData.map((invoice) => {
-//     return invoice.data();
-//   });
-//   for (const invoiceId of activeInvoiceIdArray) {
-//     const invoice = activeInvoiceDataArray.find((invoice) => invoice.invoice.handle === invoiceId);
-//     if (invoice != undefined) {
-//       const customer = invoice.invoice.customer;
-//       console.log(customer);
-//     }
-//   }
-
-//   res.status(200).send("DER HUL IGENNEM!"+JSON.stringify("WHAT"));
-// }
-// );
+apps.get("/halloworld", async (req, res) => {
+  // const companyList:any = await getCompanys();
+  // const mainList: any = new Map();
+  // for (const company of companyList) {
+  //   const companyName:string = company?.companyName;
+  //   const dashboardData = await retriveRapportFromFirestoreToDisplayOnDasboard(companyName) as any;
+  //   const data = await retriveDatasFromDocData(dashboardData);
+  //   mainList[company.companyName] = data;
+  // }
+  // console.log(mainList.LALA);
+  // res.status(200).send(mainList);
+}
+);
 
 export const creatMonthlyReport =
   functions.region("europe-west2").pubsub.schedule("59 22 3 * *")
       .timeZone("Europe/Copenhagen").onRun(async (context) => {
-        const companyName = "Lalatoys";
-        const invoiceArray = (await firestoreUtils.retriveInvoicesForMonthlyReportDocDataFromCompany(companyName, 2))
-            .map((test) => test.data());
-        const activeInvoiceArray = (await firestoreUtils.retriveActiveInvoicesDocDataFromCompany(companyName))
-            .map((doc) => doc.data());
-        const retained: Array<Retained> = [];
-        const onHold: Array<OnHold> = [];
-        const expired: Array<Expired> = [];
-        const notRetained: Array<NotRetained> = [];
-        // total dunning kunder. læg invoiceArray og activeInvoiceArray sammen.
-        // Kunder fastholdt. Tag fat i alle kunder der er retained
-        // reportMap["totalRetained"] = invoiceArray.filter((invoice) => invoice.status === "retained").length;
-        // On hold tag fat i kunder der er onhold
-        // reportMap["totalOnHold"] = invoiceArray.filter((invoice) => invoice.status === "onhold").length;
-        // Expired tag fat i kunder der er expired
-        // reportMap["totalExpired"] = invoiceArray.filter((invoice) => invoice.status === "expired").length;
-        // længden af activeInvoiceArray
-        // reportMap["totalNotRetained"] = activeInvoiceArray.length;
-        // total gross income for all retained invoices
-        for (const invoice of invoiceArray) {
-          const status = invoice.status;
-          const flowCount = invoice?.flowCount ? invoice?.flowCount : 0;
-          const emailCount = invoice?.emailCount ? invoice?.emailCount : 0;
-          let phoneCount = 0;
-          const customerId = invoice.invoice.customer;
-          const customer = await getCustomerFromFirestore(companyName, customerId);
-          const firstName: string = customer.first_name;
-          const lastName = customer.last_name;
-          const customerCreated = customer.created;
-          const invoiceValue = invoice.invoice.amount;
-          if (flowCount >= 4 && flowCount < 8) {
-            phoneCount = 1;
-          }
-          if (flowCount >= 8) {
-            phoneCount = 2;
-          }
-          if (status == "active") {
+        const companys: any = await getCompanys();
+        for (const company of companys) {
+          const companyName = company.companyName;
+          const invoiceArray = (await firestoreUtils.retriveInvoicesForMonthlyReportDocDataFromCompany(companyName, 2))
+              .map((test) => test.data());
+          const activeInvoiceArray =
+           (await firestoreUtils.retriveActiveInvoicesDocDataFromCompany(companyName))
+               .map((doc) => doc.data());
+          const retained: Array<Retained> = [];
+          const onHold: Array<OnHold> = [];
+          const expired: Array<Expired> = [];
+          const notRetained: Array<NotRetained> = [];
+          for (const invoice of activeInvoiceArray) {
+            const flowCount = invoice?.flowCount ? invoice?.flowCount : 0;
+            const emailCount = invoice?.emailCount ? invoice?.emailCount : 0;
+            let phoneCount = 0;
+            const customerId = invoice.invoice.customer;
+            const customer = await getCustomerFromFirestore(companyName, customerId);
+            const firstName: string = customer.first_name;
+            const lastName = customer.last_name;
+            if (flowCount >= 4 && flowCount < 8) {
+              phoneCount = 1;
+            }
+            if (flowCount >= 8) {
+              phoneCount = 2;
+            }
+
             const reportObject = {customerId: customerId,
               firstName: firstName,
               lastName: lastName,
@@ -219,34 +205,47 @@ export const creatMonthlyReport =
             }
             notRetained.push(reportObject);
           }
-          if (status == "onHold") {
-            onHold.push({customerId: customerId,
-              firstName: firstName,
-              lastName: lastName,
-              customerCreated: customerCreated,
-              onHoldDate: invoice.invoiceEndDate});
+          for (const invoice of invoiceArray) {
+            const status = invoice.status;
+            const customerId = invoice.invoice.customer;
+            const customer = await getCustomerFromFirestore(companyName, customerId);
+            const firstName: string = customer.first_name;
+            const lastName = customer.last_name;
+            const customerCreated = customer.created;
+            const invoiceValue = invoice.invoice.amount;
+            if (status == "onhold") {
+              onHold.push({customerId: customerId,
+                firstName: firstName,
+                lastName: lastName,
+                customerCreated: customerCreated,
+                onHoldDate: invoice.invoiceEndDate});
+            }
+            if (status == "expired") {
+              expired.push({customerId: customerId,
+                firstName: firstName,
+                lastName: lastName,
+                customerCreated: customerCreated,
+                expiredDate: invoice.invoiceEndDate});
+            }
+            if (status == "retained") {
+              retained.push({customerId: customerId,
+                firstName: firstName,
+                lastName: lastName,
+                invoiceValue: invoiceValue,
+                retainedDate: invoice.invoiceEndDate});
+            }
           }
-          if (status == "expired") {
-            expired.push({customerId: customerId,
-              firstName: firstName,
-              lastName: lastName,
-              customerCreated: customerCreated,
-              expiredDate: invoice.invoiceEndDate});
-          }
-          if (status == "retained") {
-            retained.push({customerId: customerId,
-              firstName: firstName,
-              lastName: lastName,
-              invoiceValue: invoiceValue,
-              retainedDate: invoice.invoiceEndDate});
-          }
+          const today = new Date();
+          const reportMap = {retained: retained,
+            onHold: onHold,
+            expired: expired,
+            notRetained: notRetained,
+            totalDunning: invoiceArray.length + activeInvoiceArray.length,
+            totalGrossIncome: reepayGetTotalGrossIncome(
+                invoiceArray.filter((invoice) => invoice.status === "retained")),
+            date: today};
+          addMonthlyDataToCompany(companyName, reportMap);
         }
-        const reportMap = {retained: retained, onHold: onHold, expired: expired, notRetained: notRetained};
-        reportMap["totalDunning"] = invoiceArray.length + activeInvoiceArray.length;
-        reportMap["totalGrossIncome"] = reepayGetTotalGrossIncome(
-            invoiceArray.filter((invoice) => invoice.status === "retained"));
-        console.log(reportMap);
-        return null;
       }
       );
 
@@ -263,6 +262,21 @@ dataApi.get("/getData", async (req, res) => {
   res.status(200).send(mainList);
 });
 
+/**
+ * Function is made so its possible to get data with the right format to show on dashboard
+ */
+dataApi.get("/getRapport", async (req, res) => {
+  const companyList:any = await getCompanys();
+  const mainList: any = new Map();
+  for (const company of companyList) {
+    const companyName:string = company?.companyName;
+    const dashboardData = await retriveRapportFromFirestoreToDisplayOnDasboard(companyName) as any;
+    const data = await retriveDatasFromDocData(dashboardData);
+    mainList[company.companyName] = data;
+  }
+  res.status(200).send(mainList);
+});
+
 dataApi.get("/refresh", async (req, res) => {
   const companyList:any = await getCompanys();
   for (const company of companyList) {
@@ -271,7 +285,6 @@ dataApi.get("/refresh", async (req, res) => {
     const invoiceData = await retriveDatasFromDocData(invoices);
     const customerdata = await retriveDatasFromDocData(data);
     const companyMap = reepayGetDataForDashboard(customerdata, invoiceData );
-    functions.logger.log(companyMap);
     addDashboardDataToCompany(company.companyName, companyMap);
   }
 });

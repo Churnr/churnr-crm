@@ -274,15 +274,34 @@ export const retriveInvoicesForMonthlyReportDocDataFromCompany = async (companyN
   const endDate = enDate;
   const startDate = admin.firestore.Timestamp.fromDate(startdate);
   const expirationDate = admin.firestore.Timestamp.fromDate(endDate);
-  console.log(startDate, expirationDate);
   try {
     const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
         .collection("Invoices")
         .where("invoiceEndDate", ">=", expirationDate)
-        .where("invoiceEndDate", "<", startdate).get();
+        .where("invoiceEndDate", "<", startDate).get();
     return firestoreData.docs;
   } catch (error) {
-    logger.error("retriveActiveInvoicesFromCompany: " + error);
+    logger.error("retriveInvoicesForMonthlyReportDocDataFromCompany: " + error);
+    throw error;
+  }
+};
+
+export const retriveInvoicesForMonthlyReportDocDataFromCompanyWithFlowStartDate = async (companyName:string,
+    days: number) => {
+  const today = new Date(); // den 4 i måned
+  const [stDate, enDate] = extraDaysFunction(today, days, days);
+  const startdate = stDate;
+  const endDate = enDate;
+  const startDate = admin.firestore.Timestamp.fromDate(startdate);
+  const expirationDate = admin.firestore.Timestamp.fromDate(endDate);
+  try {
+    const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
+        .collection("Invoices")
+        .where("flowStartDate", ">=", expirationDate)
+        .where("flowStartDate", "<", startDate).get();
+    return firestoreData.docs;
+  } catch (error) {
+    logger.error("retriveInvoicesForMonthlyReportDocDataFromCompanyWithFlowStartDate: " + error);
     throw error;
   }
 };
@@ -320,8 +339,53 @@ export const retriveDataFromFirestoreToDisplayOnDasboard = async (companyName:st
   }
 };
 
+
+export const retriveRapportFromFirestoreToDisplayOnDasboard = async (companyName:string) => {
+  try {
+    const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
+        .collection("MonthlyRapport").listDocuments();
+    const docFrom = firestoreData;
+    return docFrom;
+  } catch (error) {
+    logger.error("retriveDataFromFirestoreToDisplayOnDasboard: " + error);
+    throw error;
+  }
+};
+
 /**
- * Creats an Invoice doc in the Invoices Collection under a company
+ * Adding data to firestore, so it can be grabbed easier to be displayed on the dashboard.
+ * @param {string}companyName companyName
+ * @param {any} object
+ * @return {admin.firestore.WriteResult} firestore WriteResult
+ */
+export const addMonthlyDataToCompany = async (companyName:string, object:any) => {
+  const today = new Date().toUTCString();
+  console.log(today);
+  const data ={
+    retained: object.retained,
+    onHold: object.onHold,
+    expired: object.expired,
+    notRetained: object.notRetained,
+    totalDunning: object.totalDunning,
+    totalGrossIncome: object.totalGrossIncome,
+  };
+  logger.log(data);
+  try {
+    const newDoc = await admin.firestore()
+        .collection("Companys")
+        .doc(companyName)
+        .collection("MonthlyRapport")
+        .doc(today).set(data);
+    return newDoc;
+  } catch (error) {
+    logger.error("addDashboardDataToCompany: " + error);
+    throw error;
+  }
+};
+
+
+/**
+ * Adding data to firestore, so it can be grabbed easier to be displayed on the dashboard.
  * @param {string}companyName companyName
  * @param {any} object
  * @return {admin.firestore.WriteResult} firestore WriteResult

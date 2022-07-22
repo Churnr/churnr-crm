@@ -6,6 +6,7 @@ import {
   updateInvoiceFlowEndValue,
   updateInvoiceLastFlowActivity,
   updateInvoiceEmailCountValue,
+  updateInvoiceStatusValue,
 } from "../utils/firestoreUtils";
 import {differenceInDays} from "date-fns";
 import * as sendgrid from "@sendgrid/mail";
@@ -194,7 +195,7 @@ export async function sendgridLogic(company: any) {
             );
           } else if (flowRules[invoice.flowCount].type == "phonecall") {
             // Missing phonecall implementation
-            phonecallArray.push(invoice.invoice.customer);
+            phonecallArray.push(invoice);
             // Make Array of invoices and return the value to publish on slack
             updateInvoiceFlowCountValue(
                 company.companyName,
@@ -208,7 +209,7 @@ export async function sendgridLogic(company: any) {
             );
           } else if (flowRules[invoice.flowCount].type == "sms") {
             // Missing sms implementation
-            smsArray.push(invoice.invoice.customer);
+            smsArray.push(invoice);
             // Make Array of invoices and return the value to publish on slack
             updateInvoiceFlowCountValue(
                 company.companyName,
@@ -226,7 +227,11 @@ export async function sendgridLogic(company: any) {
       if (flowRules.length <= invoice.flowCount) {
         // this block will deactivate the flow if the invoice flowCounter
         // is bigger or as big as the flowRules array length
-        endedflows.push(invoice.invoice.customer);
+        endedflows.push(invoice);
+        updateInvoiceStatusValue(
+            company.companyName,
+            invoice.invoice.handle, "expired"
+        );
         updateInvoiceActiveFlowValue(
             company.companyName,
             invoice.invoice.handle,

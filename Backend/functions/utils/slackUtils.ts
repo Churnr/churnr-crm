@@ -182,18 +182,37 @@ const sectionFromArrayToFetch = async (object:any, companyName:string, message:s
   }
   return tmpList;
 };
-const sectionFromArray = async (object:any, companyName:string, message:string) => {
+const sectionFromArray = async (object:any, companyName:string, message:string, phone:boolean) => {
   const tmpList = [];
+
   for (const inv of object) {
-    const customer = await getCustomerFromFirestore(companyName, inv);
-    const phonecall = {
+    const customer = await getCustomerFromFirestore(companyName, inv.invoice.customer);
+    if (phone == true) {
+      const flowcount = inv.flowCount;
+      let phoneCount = 0;
+      if (flowcount >= 4 && flowcount < 8) {
+        phoneCount = 1;
+      }
+      if (flowcount >= 8) {
+        phoneCount = 2;
+      }
+      const messageToCus = {
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": `*${message}*\n *Name:* ${customer.first_name as string} ${customer.last_name as string}\n *email:* ${customer.phone as string} *phone count:* ${phoneCount}`,
+        },
+      };
+      tmpList.push(messageToCus);
+    }
+    const messageToCus = {
       "type": "section",
       "text": {
         "type": "mrkdwn",
         "text": `*${message}*\n *Name:* ${customer.first_name as string} ${customer.last_name as string}\n *email:* ${customer.email as string} `,
       },
     };
-    tmpList.push(phonecall);
+    tmpList.push(messageToCus);
   }
   return tmpList;
 };
@@ -220,9 +239,9 @@ export const updatesForNewUpdateInInvoices = async (object:any, companyName:stri
 };
 
 export const updatesForPhoneSmsAndEndedFlows = async (object:any, companyName:string) => {
-  const phonecall = await sectionFromArray(object.phonecall, companyName, " needs a phonecall");
-  const sms = await sectionFromArray(object.sms, companyName, " needs a sms");
-  const ended = await sectionFromArray(object.endedflows, companyName, "'s flow ended");
+  const phonecall = await sectionFromArray(object.phonecall, companyName, " needs a phonecall", true);
+  const sms = await sectionFromArray(object.sms, companyName, " needs a sms", false);
+  const ended = await sectionFromArray(object.endedflows, companyName, "'s flow ended", false);
   const header = {
     "type": "header",
     "text": {
@@ -395,14 +414,6 @@ export const slackAppFunctions = () => {
                       emoji: true,
                     },
                     value: "value-0",
-                  },
-                  {
-                    text: {
-                      type: "plain_text",
-                      text: "Spiritium",
-                      emoji: true,
-                    },
-                    value: "value-1",
                   },
                 ],
                 action_id: "static_select-action",
