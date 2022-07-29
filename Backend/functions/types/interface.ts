@@ -25,6 +25,7 @@ export interface Dunning {
     email:string,
     error:string,
     acquirer_message:string,
+    invoice_id: string,
 }
 
 export interface ActiveDunning extends Dunning {

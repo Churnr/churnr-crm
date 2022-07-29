@@ -49,6 +49,8 @@ export const slack = functions
 /**
  * Fetches invoices in dunning state from paymentGateway
  * Reepay ready
+ * Function is made so its possible to get data from a paymentgateway, and process it.
+ * When its processed it will give a update with relevant information to slack
  */
 export const fetchDunningInvoices =
   functions
@@ -112,6 +114,12 @@ export const getDataForDashboard =
      );
 
 
+/**
+ * Functions made so that customers will get a email on certian days in their flow.
+ * This wil then run every day 5pm UTC+2
+ * If a phonecall or a sms is needed, it will give a notification to slack
+ * But also if a flow is ended.
+ */
 export const sendEmails =
 functions.region("europe-west2").pubsub.schedule("0 17 * * *")
     .timeZone("Europe/Copenhagen").onRun(async (context) => {

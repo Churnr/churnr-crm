@@ -231,6 +231,13 @@ export const updateInvoiceActiveFlowValue = async (companyName:string, docId:str
   return firestoreData;
 };
 
+export const removeInvoiceEndDateFromInvoice = async (companyName:string, docId:string) => {
+  const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
+      .collection("Invoices").doc(docId).update({invoiceEndDate: admin.firestore.FieldValue.delete()});
+  return firestoreData;
+};
+
+
 export const retriveDatasFromDocData = async (firestoreData:any) => {
   const dataArray = [];
   for (const i of firestoreData) {
@@ -267,6 +274,19 @@ export const retriveActiveInvoicesDocDataFromCompany = async (companyName:string
     throw error;
   }
 };
+
+
+export const retriveAllInvoicesFromCompany = async (companyName:string) => {
+  try {
+    const firestoreData = await admin.firestore().collection("Companys").doc(companyName)
+        .collection("Invoices").get();
+    return firestoreData.docs;
+  } catch (error) {
+    logger.error("retriveActiveInvoicesFromCompany: " + error);
+    throw error;
+  }
+};
+
 export const retriveInvoicesForMonthlyReportDocDataFromCompany = async (companyName:string, days: number) => {
   const today = new Date(); // den 4 i måned
   const [stDate, enDate] = extraDaysFunction(today, days, days);
@@ -504,6 +524,27 @@ export const getCustomerObjectBasedOnEmailFromCompany = async (companyName:strin
   }
 };
 
+/**
+ * Retrives customer object based on email given
+ * @param {string} companyName
+ * @param {string} invoiceId
+ * @return {admin.firestore.WriteResult} newDoc
+ */
+export const getInvoiceObjectBasedOnIdFromCompany = async (companyName:string, invoiceId:string): Promise<any> => {
+  try {
+    const dataFrom = await admin.firestore()
+        .collection("Companys")
+        .doc(companyName)
+        .collection("Invoices")
+        .where("invoice.handle", "==", invoiceId).get();
+
+
+    return dataFrom.docs[0].data();
+  } catch (error) {
+    throw error;
+  }
+};
+
 
 /**
  * Retrive all Active Invoices from firebase with activeflow == true
@@ -581,6 +622,22 @@ export const updateFlowErrorOnInvoice = async (companyName:string,
   }
 };
 
+/**
+ * Moves and deletes doc from given collection and moves to given collection
+ * @param {string} companyName
+ * @param {string} invoiceHandle
+ * @param {string} status
+ * @return {admin.firestore.WriteResult} newDoc
+ */
+export const updateStatusOnInvoice = async (companyName:string,
+    invoiceHandle:string, status:string) => {
+  try {
+    await admin.firestore().collection("Companys").doc(companyName)
+        .collection("Invoices").doc(invoiceHandle).update({status: status});
+  } catch (error) {
+    throw new Error(error + " updateStatusOnInvoice, you may have written a wrong id");
+  }
+};
 
 /**
  * Moves and deletes doc from given collection and moves to given collection

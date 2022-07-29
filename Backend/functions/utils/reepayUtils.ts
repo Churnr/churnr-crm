@@ -5,7 +5,7 @@ import * as firestoreUtils from "../utils/firestoreUtils";
 import * as functions from "firebase-functions";
 import {ActiveDunning, Dunning, Retained} from "../types/interface";
 import * as reepayUtils from "../utils/reepayUtils";
-import {updateInvoiceActiveFlowValue} from "../utils/firestoreUtils";
+import {retriveAllInvoicesFromCompany, updateInvoiceActiveFlowValue} from "../utils/firestoreUtils";
 // import {dailyUpdate} from "../types/types";
 /**
  * Keeps sending request aslong as respons contains next_page_token
@@ -212,6 +212,7 @@ export const reepayGetDataForDashboard = (customerdata:any, invoiceData:any) => 
             amount: invdata.invoice.order_lines[0].amount,
             phone: cusData.phone,
             email: cusData.email,
+            invoice_id: invdata.invoice.handle,
             error: reepayUtils.checkTransactionVariable(invdata.invoice, "error") ?
                    reepayUtils.checkTransactionVariable(invdata.invoice, "error") : false,
             acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message")?
@@ -231,6 +232,7 @@ export const reepayGetDataForDashboard = (customerdata:any, invoiceData:any) => 
             amount: invdata.invoice.order_lines[0].amount,
             phone: cusData.phone,
             email: cusData.email,
+            invoice_id: invdata.invoice.handle,
             error: reepayUtils.checkTransactionVariable(invdata.invoice, "error") ?
                    reepayUtils.checkTransactionVariable(invdata.invoice, "error") : false,
             acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message")?
@@ -251,6 +253,7 @@ export const reepayGetDataForDashboard = (customerdata:any, invoiceData:any) => 
             amount: invdata.invoice.order_lines[0].amount,
             phone: cusData.phone,
             email: cusData.email,
+            invoice_id: invdata.invoice.handle,
             error: reepayUtils.checkTransactionVariable(invdata.invoice, "error") ?
                    reepayUtils.checkTransactionVariable(invdata.invoice, "error") : false,
             acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message")?
@@ -273,6 +276,7 @@ export const reepayGetDataForDashboard = (customerdata:any, invoiceData:any) => 
             amount: invdata.invoice.order_lines[0].amount,
             phone: cusData.phone,
             email: cusData.email,
+            invoice_id: invdata.invoice.handle,
             error: reepayUtils.checkTransactionVariable(invdata.invoice, "error") ?
                    reepayUtils.checkTransactionVariable(invdata.invoice, "error") : false,
             acquirer_message: reepayUtils.checkTransactionVariable(invdata.invoice, "acquirer_message")?
@@ -324,9 +328,10 @@ export const reepayLogic = async (companyApikey: string, companyName:string) => 
   const activeInvoiceDocData =
       await firestoreUtils.retriveActiveInvoicesDocDataFromCompany(companyName);
   const activeInvoiceIdArray = firestoreUtils.retriveDocIdsFromDocData(activeInvoiceDocData);
+  const allInvoiceIdArray = firestoreUtils.retriveDocIdsFromDocData(await retriveAllInvoicesFromCompany(companyName));
 
   for (const dunningInvoices of reepayInvoiceArray) {
-    if (activeInvoiceIdArray.indexOf(dunningInvoices.handle) == -1) {
+    if (allInvoiceIdArray.indexOf(dunningInvoices.handle) == -1) {
       dunning.push(dunningInvoices.customer);
       const customerObject = await getReepayCustomerObject(options, dunningInvoices.customer);
       const subscriptionObject = await getReepaySubscriptionObject(options, dunningInvoices.subscription);
